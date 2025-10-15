@@ -6,6 +6,7 @@ import FileContent from "../components/FileContent";
 import ChatSection from "../components/ChatSections";
 import UserList from "../components/UserLists"; 
 import RoomList from "../components/RoomList"; 
+import DTRTable from "../components/DTRTable";
 import { AuthContext } from "../context/AuthContext";
 import api from "../api";
 import "./../components/styles/ViewerDashboard.css";
@@ -94,156 +95,156 @@ export default function ViewerDashboard() {
 
         {/* Floating Chat + Users List */}
         <div className="chat-float">
-                      {/* Floating Chat Button */}
-                      <button
-                        className="chat-toggle-btn"
-                        onClick={() => {
-                          setChatOpen(prev => !prev);
-                          if (!chatOpen) setHasUnread(false);
-                        }}
-                      >
-                        💬
-                        {hasUnread && <span className="chat-notification-dot"></span>}
-                      </button>
+          {/* Floating Chat Button */}
+          <button
+            className="chat-toggle-btn"
+            onClick={() => {
+            setChatOpen(prev => !prev);
+              if (!chatOpen) setHasUnread(false);
+            }}
+          >
+          💬
+          {hasUnread && <span className="chat-notification-dot"></span>}
+          </button>
                 
-                      {/* Floating UserList + RoomList Toggles */}
+          {/* Floating UserList + RoomList Toggles */}
+          <AnimatePresence>
+            {chatOpen && (
+          <>
+            <motion.button
+              key="userlist-toggle"
+              className="userlist-floating-toggle"
+              onClick={() => setShowUserList(prev => !prev)}
+              title={showUserList ? "Hide Users" : "Show Users"}
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 50 }}
+              transition={{ duration: 0.3 }}
+            >
+              {showUserList ? (
+              <span className="icon-text">
+                <UserMinus size={18} /> Hide Users
+              </span>
+              ) : (
+              <span className="icon-text">
+                <UserPlus size={18} /> Show Users
+              </span>
+              )}
+              </motion.button>
+                
+              <motion.button
+                key="roomlist-toggle"
+                className="roomlist-floating-toggle"
+                onClick={() => setShowRooms(prev => !prev)}
+                title={showRooms ? "Hide Rooms" : "Show Rooms"}
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 50 }}
+                transition={{ duration: 0.3 }}
+              >
+                {showRooms ? (
+                <span className="icon-text">
+                  <MinusCircle size={18} /> Hide Rooms
+                </span>
+                ) : (
+                <span className="icon-text">
+                  <PlusCircle size={18} /> Show Rooms
+                </span>
+                )}
+                </motion.button>
+              </>
+              )}
+              </AnimatePresence>
+                
+              {/* Chat Popup */}
+              <AnimatePresence>
+                {chatOpen && (
+                  <motion.div
+                    className={`chat-popup`}
+                    initial={{ opacity: 0, x: 50 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 50 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                  >
+                    <div className="chat-container">
+                    {/* RoomList */}
                       <AnimatePresence>
-                        {chatOpen && (
-                          <>
-                            <motion.button
-                              key="userlist-toggle"
-                              className="userlist-floating-toggle"
-                              onClick={() => setShowUserList(prev => !prev)}
-                              title={showUserList ? "Hide Users" : "Show Users"}
-                              initial={{ opacity: 0, x: 50 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              exit={{ opacity: 0, x: 50 }}
-                              transition={{ duration: 0.3 }}
-                            >
-                              {showUserList ? (
-                                <span className="icon-text">
-                                  <UserMinus size={18} /> Hide Users
-                                </span>
-                              ) : (
-                                <span className="icon-text">
-                                  <UserPlus size={18} /> Show Users
-                                </span>
-                              )}
-                            </motion.button>
-                
-                            <motion.button
-                              key="roomlist-toggle"
-                              className="roomlist-floating-toggle"
-                              onClick={() => setShowRooms(prev => !prev)}
-                              title={showRooms ? "Hide Rooms" : "Show Rooms"}
-                              initial={{ opacity: 0, x: 50 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              exit={{ opacity: 0, x: 50 }}
-                              transition={{ duration: 0.3 }}
-                            >
-                              {showRooms ? (
-                                <span className="icon-text">
-                                  <MinusCircle size={18} /> Hide Rooms
-                                </span>
-                              ) : (
-                                <span className="icon-text">
-                                  <PlusCircle size={18} /> Show Rooms
-                                </span>
-                              )}
-                            </motion.button>
-                          </>
-                        )}
-                      </AnimatePresence>
-                
-                      {/* Chat Popup */}
-                      <AnimatePresence>
-                        {chatOpen && (
+                        {showRooms && (
                           <motion.div
-                            className={`chat-popup`}
+                            key="roomlist"
                             initial={{ opacity: 0, x: 50 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: 50 }}
                             transition={{ duration: 0.3, ease: "easeInOut" }}
                           >
-                            <div className="chat-container">
-                              {/* RoomList */}
-                              <AnimatePresence>
-                                {showRooms && (
-                                  <motion.div
-                                    key="roomlist"
-                                    initial={{ opacity: 0, x: 50 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: 50 }}
-                                    transition={{ duration: 0.3, ease: "easeInOut" }}
-                                  >
-                                    <RoomList
-                                      currentUser={currentUser}
-                                      onSelectRoom={(room) => {
-                                        setSelectedRoom(room);
-                                        setRoomName(room.name); 
-                                        setMessages([]);
-                                        setHasUnread(false);
-                                        setUnreadCounts(prev => {
-                                          const updated = { ...prev };
-                                          delete updated[room.name];
-                                          return updated;
-                                        });
-                                      }}
-                                      joinedRooms={joinedRooms}
-                                      isVisible={true}
-                                    />
+                          <RoomList
+                            currentUser={currentUser}
+                            onSelectRoom={(room) => {
+                              setSelectedRoom(room);
+                              setRoomName(room.name); 
+                              setMessages([]);
+                              setHasUnread(false);
+                              setUnreadCounts(prev => {
+                                const updated = { ...prev };
+                                delete updated[room.name];
+                                return updated;
+                              });
+                            }}
+                            joinedRooms={joinedRooms}
+                            isVisible={true}
+                          />
                 
-                                  </motion.div>
-                                )}
-                              </AnimatePresence>
-                
-                              {/* UserList */}
-                              <AnimatePresence>
-                                {showUserList && (
-                                  <motion.div
-                                    key="userlist"
-                                    initial={{ opacity: 0, x: 50 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: 50 }}
-                                    transition={{ duration: 0.3, ease: "easeInOut" }}
-                                  >
-                                    <UserList
-                                      className={`user-list-wrapper`}
-                                      currentUser={currentUser}
-                                      unreadCounts={unreadCounts}
-                                      onSelectRoom={(room) => {
-                                        setSelectedRoom(room);
-                                        setRoomName(room.name);
-                                        setMessages([]);
-                                        setHasUnread(false);
-                                        setUnreadCounts(prev => {
-                                          const updated = { ...prev };
-                                          delete updated[room.name];
-                                          return updated;
-                                        });
-                                      }}
-                                      isVisible={true}
-                                    />
-                                  </motion.div>
-                                )}
-                              </AnimatePresence>
-                
-                              <ChatSection
-                                role={role}
-                                currentUser={currentUser}
-                                roomName={roomName}
-                                roomId={selectedRoom?.id}
-                                roomCreatorId={selectedRoom?.created_by?.id}
-                                messages={messages}
-                                setMessages={setMessages}
-                                onNewMessage={handleNewMessage}
-                                users={usersList}
-                              />
-                            </div>
                           </motion.div>
                         )}
-                      </AnimatePresence>
-                    </div>
+                        </AnimatePresence>
+                
+                        {/* UserList */}
+                        <AnimatePresence>
+                          {showUserList && (
+                            <motion.div
+                              key="userlist"
+                              initial={{ opacity: 0, x: 50 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              exit={{ opacity: 0, x: 50 }}
+                              transition={{ duration: 0.3, ease: "easeInOut" }}
+                            >
+                            <UserList
+                              className={`user-list-wrapper`}
+                              currentUser={currentUser}
+                              unreadCounts={unreadCounts}
+                              onSelectRoom={(room) => {
+                                setSelectedRoom(room);
+                                setRoomName(room.name);
+                                setMessages([]);
+                                setHasUnread(false);
+                                setUnreadCounts(prev => {
+                                  const updated = { ...prev };
+                                  delete updated[room.name];
+                                    return updated;
+                                });
+                              }}
+                                isVisible={true}
+                            />
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                
+                        <ChatSection
+                          role={role}
+                          currentUser={currentUser}
+                          roomName={roomName}
+                          roomId={selectedRoom?.id}
+                          roomCreatorId={selectedRoom?.created_by?.id}
+                          messages={messages}
+                          setMessages={setMessages}
+                          onNewMessage={handleNewMessage}
+                          users={usersList}
+                        />
+                      </div>
+                    </motion.div>
+                  )}
+          </AnimatePresence>
+        </div>
       </motion.div>
     </div>
   );

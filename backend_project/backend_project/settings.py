@@ -13,14 +13,13 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 from decouple import config
-import dj_database_url
 from dotenv import load_dotenv
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-load_dotenv(os.path.join(BASE_DIR, '.env'))
 
+load_dotenv()
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
@@ -100,17 +99,15 @@ CORS_ALLOWED_ORIGINS = [
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASE_URL = os.environ.get('DATABASE_URL')
-
-if DATABASE_URL:
-    # Use external URL (local dev or testing)
-    DATABASES = {
-        'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': config("DB_NAME"),
+        'USER': config("DB_USER"),
+        'PASSWORD': config("DB_PASSWORD"),
+        'HOST': config("DB_HOST", default="localhost"),
+        'PORT': config("DB_PORT", default="5432"),
     }
-else:
-    # Use Render internal DB (when deployed)
-    DATABASES = {
-    'default': dj_database_url.parse(os.environ.get('DATABASE_URL'), conn_max_age=600)
 }
 
 REST_FRAMEWORK = {
@@ -166,9 +163,6 @@ AUTH_USER_MODEL = 'accounts.User'
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
-
-# Path to Poppler binaries (for pdf2image OCR)
-POPPLER_PATH = r"C:\poppler-25.07.0\Library\bin"
 
 CELERY_BROKER_URL = 'redis://localhost:6379/0'  # adjust if using another broker
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'

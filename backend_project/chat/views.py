@@ -31,7 +31,6 @@ def get_messages(request, room_name):
 
 class IsCreatorOrReadOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        # Only allow creator to delete
         if request.method in permissions.SAFE_METHODS:
             return True
         return obj.created_by == request.user

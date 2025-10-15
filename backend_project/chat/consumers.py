@@ -73,13 +73,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
 class RoomConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
         await self.accept()
-        # join a global group for all users
         await self.channel_layer.group_add("rooms", self.channel_name)
 
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard("rooms", self.channel_name)
 
-    # called by the backend to broadcast room creation
     async def room_created(self, event):
         await self.send_json({
             "type": "room_created",

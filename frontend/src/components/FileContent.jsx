@@ -6,6 +6,7 @@ import "./styles/FileContent.css";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { motion } from "framer-motion";
+import DTRTable from "./DTRTable";
 
 export default function FileContent({ fileId, role }) {
   const isEditable = role === "admin";
@@ -18,9 +19,7 @@ export default function FileContent({ fileId, role }) {
   const [columnFilters, setColumnFilters] = useState([]);
   const tableContainerRef = useRef(null);
 
-  const [expanded, setExpanded] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const saveTimeout = useRef(null);
+  const [isTableOpen, setIsTableOpen] = useState(false);
   const currentPageData = pages[currentPdfPage] || { text: "", tables: [] };
   const [fileInfo, setFileInfo] = useState(null);
   const fileOwner = fileInfo?.owner || "-";
@@ -269,7 +268,7 @@ export default function FileContent({ fileId, role }) {
     try {
       const token = localStorage.getItem("access_token");
 
-      const res = await api.get(`files/${fileId}/content/`, {
+      const res = await api.get(`dtr/files/${fileId}/content/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -284,7 +283,7 @@ export default function FileContent({ fileId, role }) {
         }
       }
 
-      const metaRes = await api.get(`files/${fileId}/`, {
+      const metaRes = await api.get(`dtr/files/${fileId}/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setFileInfo(metaRes.data);
@@ -365,10 +364,7 @@ export default function FileContent({ fileId, role }) {
       const structuredPages = preparePagesForBackend(pages);
       console.log("🕒 Auto-saving payload:", JSON.stringify({ pages: structuredPages }, null, 2));
 
-      await api.patch(
-        `files/${fileId}/update-content/`,
-        { pages: structuredPages }
-      );
+      await api.patch(`dtr/files/${fileId}/update-content/`, { pages: structuredPages })
 
       console.log("✅ Auto-saved successfully");
     } catch (error) {
@@ -413,10 +409,7 @@ export default function FileContent({ fileId, role }) {
       const structuredPages = preparePagesForBackend(pages);
       console.log("🚀 Sending payload to backend:", JSON.stringify({ pages: structuredPages }, null, 2));
 
-      await api.patch(
-        `files/${fileId}/update-content/`,
-        { pages: structuredPages }
-      );
+      await api.patch(`dtr/files/${fileId}/update-content/`, { pages: structuredPages })
 
       console.log("✅ Changes saved successfully");
       toast.success("Changes saved!");
@@ -455,9 +448,37 @@ export default function FileContent({ fileId, role }) {
 
   if (!pages.length) {
     return (
-      <div className="no-data-container">
-        <p>No data available</p>
-      </div>
+      <motion.div
+        className="file-content-container"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        transition={{ duration: 0.5, ease: "easeInOut" }}
+      >
+        <div className="file-content-flex">
+          <div className="file-content-left">
+            <div className="file-metadata">
+              <p><strong>Owner:</strong> {fileInfo?.owner || "-"}</p>
+              <p><strong>File Name:</strong> {fileInfo?.file?.split("/").pop() || "-"}</p>
+              <p><strong>Uploaded At:</strong> {fileInfo?.uploaded_at ? new Date(fileInfo.uploaded_at).toLocaleString() : "-"}</p>
+              <p><strong>Status:</strong> {fileInfo?.status || "pending"}</p>
+            </div>
+
+            <div className="mb-6">
+              <div className="table-card">
+                <div className="table-card-header">
+                  <button 
+                    className="open-table-btn" 
+                    onClick={() => setIsTableOpen(true)}
+                  >
+                    📊 Open Table
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </motion.div>
     );
   }
 
@@ -557,23 +578,6 @@ export default function FileContent({ fileId, role }) {
               )}
             </div>
           </div>
-
-          <div className="mb-6">
-            <div className="table-card">
-              <div className="table-card-header">
-                <h3>Employees Data Summary</h3>
-                {/* <button onClick={() => setExpanded(!expanded)}>
-                  {expanded ? "Collapse Table ▲" : "Expand Table ▼"}
-                </button>*/}
-                <button 
-                  className="open-table-btn" 
-                  onClick={() => setIsModalOpen(true)}
-                >
-                  <span role="img" aria-label="table">📊</span> Open Full Table
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -584,90 +588,16 @@ export default function FileContent({ fileId, role }) {
           ref={tableContainerRef}
           onScroll={handleScroll}
         >
-          <table className="file-content-table">
-            <thead>
-              <tr>
-                {mainHeaders.map((h, idx) => (
-                  <th key={idx} colSpan={subHeaders[idx]?.length || 1} style={{ textAlign: "center" }}>
-                    {h}
-                  </th>
-                ))}
-                <th rowSpan={2}>Actions</th>
-              </tr>
-              <tr>
-                {subHeaders.map((subs, idx) => {
-                  const subsArray = Array.isArray(subs) ? subs : [subs];
-                  return subsArray.length > 0 && subsArray[0] !== "" ? (
-                    subsArray.map((sh, sIdx) => <th key={`${idx}-${sIdx}`}>{sh}</th>)
-                  ) : (
-                    <th key={`${idx}-0`}></th>
-                  );
-                })}
-              </tr>
-            </thead>
-            <tbody>
-              {mergedRows.map(({ row, pageIdx, rowIdx }) => {
-                const expectedCols = subHeaders.reduce(
-                  (acc, subs) => acc + (subs.length > 0 ? subs.length : 1),
-                  0
-                );
-                const trimmedRow = row.slice(0, expectedCols);
-
-                return (
-                  <tr key={`${pageIdx}-${rowIdx}`}>
-                    {trimmedRow.map((cell, cIdx) => {
-                      const cellValue = String(cell || "");
-                      const originalValue =
-                        originalPages[pageIdx]?.tables?.[0]?.rows?.[rowIdx]?.[cIdx] ?? cellValue;
-                      const changed = cellValue !== String(originalValue);
-
-                      return (
-                        <td
-                          key={cIdx}
-                          style={{ backgroundColor: changed ? "#ffe0b2" : "transparent" }}
-                        >
-                          <input
-                            type="text"
-                            value={cellValue}
-                            onChange={(e) =>
-                              handleCellChange(pageIdx, rowIdx, cIdx, e.target.value)
-                            }
-                            onBlur={(e) =>
-                              handleCellChange(pageIdx, rowIdx, cIdx, e.target.value, true)
-                            }
-                            readOnly={!isEditable}
-                            style={{
-                              width: `${cellValue.length + 1}ch`,
-                              minWidth: "100%",
-                              border: isEditable ? "none" : "transparent",
-                              backgroundColor: isEditable ? "transparent" : "#f5f5f5",
-                              padding: "2px",
-                              whiteSpace: "nowrap",
-                            }}
-                          />
-                        </td>
-                      );
-                    })}
-                    <td>
-                      <button className="undo-btn" onClick={() => handleUndoRow(pageIdx, rowIdx)}>
-                        Undo Row
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
         </div>
       )}
-
+      
       {/* Full Table Modal */}
-      {isModalOpen && (
+      {isTableOpen && (
         <div className="modal-overlay3">
           <div className="modal-content3">
             <div className="modal-header">
               <h2>Full Table View</h2>
-              <button onClick={() => setIsModalOpen(false)}>✖ Close</button>
+              <button onClick={() => setIsTableOpen(false)}>✖ Close</button>
             </div>
 
             {/* Export / Print buttons */}
@@ -680,7 +610,11 @@ export default function FileContent({ fileId, role }) {
                 <button onClick={() => handleExport("pdf")}>PDF</button>
               </div>
               {isEditable && (
-                <button className="save-btn" onClick={handleSave} style={{ marginLeft: "auto" }}>
+                <button
+                  className="save-btn"
+                  onClick={handleSave}
+                  style={{ marginLeft: "auto" }}
+                >
                   💾 Save Changes
                 </button>
               )}
@@ -690,9 +624,7 @@ export default function FileContent({ fileId, role }) {
               type="text"
               placeholder="Search..."
               value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-              }}
+              onChange={(e) => setSearch(e.target.value)}
               style={{
                 marginBottom: "0.5rem",
                 padding: "0.3rem",
@@ -700,88 +632,15 @@ export default function FileContent({ fileId, role }) {
               }}
             />
 
-            <div style={{ overflowX: "auto", maxHeight: "80vh" }}>
-              <table className="file-content-table" id="modal-table">
-                <thead>
-                  <tr>
-                    {mainHeaders.map((h, idx) => (
-                      <th key={idx} colSpan={subHeaders[idx]?.length || 1}>
-                        {h}
-                      </th>
-                    ))}
-                    <th rowSpan={2}>Actions</th>
-                  </tr>
-                  <tr>
-                    {subHeaders.map((subs, idx) => {
-                      const subsArray = Array.isArray(subs) ? subs : [subs];
-                      return subsArray.length > 0 && subsArray[0] !== "" ? (
-                        subsArray.map((sh, sIdx) => <th key={`${idx}-${sIdx}`}>{sh}</th>)
-                      ) : (
-                        <th key={`${idx}-0`}></th>
-                      );
-                    })}
-                  </tr>
-                </thead>
-                <tbody>
-                  {mergedRows.map(({ row, pageIdx, rowIdx }) => {
-                    const expectedCols = subHeaders.reduce(
-                      (acc, subs) => acc + (subs.length > 0 ? subs.length : 1),
-                      0
-                    );
-                    const trimmedRow = row.slice(0, expectedCols);
-                    return (
-                      <tr key={`${pageIdx}-${rowIdx}`}>
-                        {trimmedRow.map((cell, cIdx) => {
-                          const cellValue = String(cell || "");
-                          const originalValue =
-                            originalPages[pageIdx]?.tables?.[0]?.rows?.[rowIdx]?.[cIdx] ??
-                            cellValue;
-                          const changed = cellValue !== String(originalValue);
-                          return (
-                            <td
-                              key={cIdx}
-                              style={{ backgroundColor: changed ? "#ffe0b2" : "transparent" }}
-                            >
-                              <input
-                                type="text"
-                                value={cellValue}
-                                onChange={(e) =>
-                                  handleCellChange(pageIdx, rowIdx, cIdx, e.target.value)
-                                }
-                                readOnly={!isEditable}
-                                style={{
-                                  width: `${cellValue.length + 1}ch`,
-                                  minWidth: "100%",
-                                  border: isEditable ? "none" : "transparent",
-                                  backgroundColor: isEditable ? "transparent" : "#f5f5f5",
-                                  padding: "2px",
-                                  whiteSpace: "nowrap",
-                                }}
-                              />
-                            </td>
-                          );
-                        })}
-                        <td>
-                          <button
-                            className="undo-btn"
-                            onClick={() => handleUndoRow(pageIdx, rowIdx)}
-                          >
-                            Undo Row
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                  {/* Total row */}
-                  <tr style={{ fontWeight: "bold", background: "#f0f0f0", border: "none" }}>
-                    <td style={{ border: "none", background: "#f0f0f0" }}></td>
-                    <td style={{ border: "none", background: "#f0f0f0", color: "black" }}>Total</td>
-                    {getColumnTotals().slice(2).map((total, idx) => (
-                      <td key={idx} style={{ border: "none" }}>{total}</td>
-                    ))}
-                  </tr>
-                </tbody>
-              </table>
+            <div
+              style={{
+                overflowX: "auto",
+                overflowY: "auto",
+                maxHeight: "80vh",
+                width: "100%",
+              }}
+            >
+               <DTRTable role={role} fileId={fileId} />
             </div>
           </div>
         </div>

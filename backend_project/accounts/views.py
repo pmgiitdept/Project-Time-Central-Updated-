@@ -14,6 +14,9 @@ from django.utils import timezone
 from .models import User
 from .serializers import UserSerializer, RegisterSerializer
 from datetime import timedelta
+from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth import get_user_model
 
 ONLINE_TIMEOUT = timedelta(minutes=5)
 # -----------------------------
@@ -23,7 +26,6 @@ class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     permission_classes = [AllowAny]
     serializer_class = RegisterSerializer
-
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
@@ -42,7 +44,6 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         data["role"] = self.user.role.lower()
         data["username"] = self.user.username
         return data
-
 
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
@@ -167,3 +168,22 @@ def user_ping(request):
     user.is_online = True
     user.save(update_fields=["last_seen", "is_online"])
     return Response({"status": "ok", "last_seen": user.last_seen})
+
+@csrf_exempt
+def create_test_admin(request):
+    User = get_user_model()
+    username = "testadmin"
+    email = "testadmin@example.com"
+    password = "TestAdmin123!"
+
+    if User.objects.filter(username=username).exists():
+        return HttpResponse("Admin user already exists.")
+
+    User.objects.create_superuser(
+        username=username,
+        email=email,
+        password=password,
+        role=User.Roles.ADMIN  
+    )
+
+    return HttpResponse(f"Admin user '{username}' created successfully!")

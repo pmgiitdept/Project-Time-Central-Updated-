@@ -22,7 +22,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.http import HttpResponse
 from accounts.views import MyTokenObtainPairView, user_stats
-from files.views import file_stats
+from files.views import file_stats, compare_employees
 
 def home(request):
     return HttpResponse("Project Time Central Backend is running!")
@@ -36,4 +36,5 @@ urlpatterns = [
     path("api/file-stats/", file_stats, name="file-stats"),
     path("api/user-stats/", user_stats, name="user-stats"),
     path("api/chat/", include("chat.urls")),
+    path("api/compare-employees/", compare_employees, name="compare-employees"),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

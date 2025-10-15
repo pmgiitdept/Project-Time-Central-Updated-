@@ -1,0 +1,58 @@
+.employee-button-wrapper {
+  position: relative;
+  display: inline-block;
+  z-index: 9999;
+}
+
+.employee-button {
+  background-color: #007bff;
+  color: white;
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.employee-button:hover {
+  background-color: #0056b3;
+}
+
+.employee-directory-floating {
+  position: absolute;
+  top: 110%;
+  right: 0;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  padding: 1.2rem;
+  z-index: 10;
+  width: 280px;
+}
+
+.employee-directory-title {
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+  color: #333;
+}
+
+.employee-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.employee-directory-upload-btn {
+  background-color: #28a745;
+  color: white;
+  padding: 0.5rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.employee-directory-upload-btn:hover {
+  background-color: #218838;
+}

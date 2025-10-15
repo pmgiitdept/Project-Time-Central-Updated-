@@ -20,6 +20,8 @@ import OverallResultsTable from "../components/OverallResultsTable";
 import ChatSection from "../components/ChatSections";
 import UserList from "../components/UserLists";
 import RoomList from "../components/RoomList";
+import DTRTable from "../components/DTRTable";
+import EmployeeDirectory from '../components/EmployeeDirectory';
 import "../components/styles/AdminDashboard.css"; 
 import api from "../api";
 import jsPDF from "jspdf";
@@ -84,6 +86,7 @@ export default function AdminDashboard() {
   const sidebarItems = [
     { key: "dashboard", label: "Dashboard", icon: <FaTachometerAlt /> },
     { key: "files", label: "Files", icon: <FaFileAlt /> },
+    { key: "employeeDirectory",  label: "Employee Directory", icon: <FaUsers />},
     { key: "users", label: "Users", icon: <FaUsers /> },
     { key: "audit", label: "Audit Logs", icon: <FaClipboardList /> },
     { key: "reports", label: "Reports", icon: <FaChartBar /> },
@@ -1237,6 +1240,8 @@ export default function AdminDashboard() {
               </div>
             </motion.div>
           )}
+
+           {activeSection === "employeeDirectory" && <EmployeeDirectory />}
         </div>
       </div>
       {/* Floating Chat Button + Chat Window */}
@@ -1391,6 +1396,9 @@ export default function AdminDashboard() {
         )}
       </AnimatePresence>
     </div>
+
+   
+
     </div>
   );
 }

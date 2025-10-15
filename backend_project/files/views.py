@@ -1,25 +1,28 @@
 #files/views.py
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, status
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
-from .models import File, AuditLog, SystemSettings
-from .serializers import FileSerializer, FileStatusSerializer, AuditLogSerializer, SystemSettingsSerializer
+from .models import File, AuditLog, SystemSettings, EmployeeDirectory, DTRFile, DTREntry, Employee
+from .serializers import FileSerializer, FileStatusSerializer, AuditLogSerializer, SystemSettingsSerializer, EmployeeDirectorySerializer, DTREntrySerializer, DTRFileSerializer, EmployeeSerializer
 from accounts.permissions import ReadOnlyForViewer, IsOwnerOrAdmin, CanEditStatus, IsAdmin
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from django.http import FileResponse, Http404, HttpResponse
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
-import csv
 from openpyxl import load_workbook
-import io
+import io, re, logging, csv, math, traceback
 from accounts.models import User
 from reportlab.pdfgen import canvas
 from django.db.models import Count, Q
 from django.db.models.functions import TruncDay, TruncWeek, TruncMonth
-from PIL import Image
-import numpy as np
 from .utils import log_action, get_client_ip
 from django.core.exceptions import ValidationError
 from .utils import send_rejection_sms 
+import pandas as pd
+from decimal import Decimal, InvalidOperation
+from datetime import timedelta
+from fuzzywuzzy import fuzz
+from django.core.exceptions import FieldDoesNotExist
+from datetime import datetime
 
 def log_action(user, action, status="success", ip_address=None):
     AuditLog.objects.create(
@@ -314,7 +317,6 @@ class FileViewSet(viewsets.ModelViewSet):
         if not pages and not content:
             return Response({"detail": "No content provided"}, status=400)
 
-        # --- Flatten pages -> content for CSV/XLSX/images ---
         if pages and not content:
             content = []
             for page in pages:
@@ -341,7 +343,6 @@ class FileViewSet(viewsets.ModelViewSet):
 
         file_name = file_obj.file.name.lower()
 
-        # --- Helper to format numbers consistently ---
         def format_numeric(val):
             if val is None or val == "":
                 return "0.00"
@@ -398,7 +399,6 @@ class FileViewSet(viewsets.ModelViewSet):
                     y_offset = 750
                     page_has_content = False
 
-                    # Write text if present
                     if "text" in page and page["text"]:
                         p.setFont("Helvetica", 10)
                         for line in page["text"].splitlines():
@@ -410,7 +410,6 @@ class FileViewSet(viewsets.ModelViewSet):
                                 y_offset = 750
                         p.showPage()
 
-                    # Write tables if present
                     if "tables" in page and page["tables"]:
                         for table in page["tables"]:
                             main_headers = table.get("main_headers", [])
@@ -641,3 +640,728 @@ def rejected_files(request):
     files = File.objects.filter(owner=user, status="rejected").order_by("-uploaded_at")
     serializer = FileSerializer(files, many=True)
     return Response(serializer.data)
+
+def clean_value(value):
+    """Convert NaN or missing values to None for JSON storage."""
+    if pd.isna(value) or (isinstance(value, float) and math.isnan(value)):
+        return None
+    return value
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def upload_employee_excel(request):
+    file = request.FILES.get('file')
+    if not file:
+        return Response({"detail": "No file uploaded."}, status=400)
+    
+    try:
+        df = pd.read_excel(file, header=0, dtype=str)
+        df.columns = [col.strip() for col in df.columns]  
+        df_cleaned = df.applymap(clean_value)
+
+        added_count = 0
+        updated_count = 0
+
+        def to_float(val):
+            try:
+                return float(val)
+            except (ValueError, TypeError):
+                return None
+
+        for _, row in df_cleaned.iterrows():
+            employee_code_raw = row.get('Employee Code')
+            employee_code = str(employee_code_raw).strip().zfill(5) if employee_code_raw else ""
+
+            data = {
+                'employee_code': employee_code,
+                'employee_name': str(row.get('EmployeeName', '')).strip(),
+                'total_hours': to_float(row.get('Total Hours')),
+                'nd_reg_hrs': to_float(row.get('ND Reg Hrs')),
+                'absences': to_float(row.get('Absences')),
+                'tardiness': to_float(row.get('Tardiness')),
+                'undertime': to_float(row.get('Undertime')),
+                'ot_regular': to_float(row.get('OTRegular')),
+                'nd_ot_reg': to_float(row.get('ND OT Reg')),
+                'ot_restday': to_float(row.get('OT Restday')),
+                'nd_restday': to_float(row.get('ND Restday')),
+                'ot_rest_excess': to_float(row.get('OT RestExcess')),
+                'nd_rest_excess': to_float(row.get('ND Restday Excess')),
+                'ot_special_hday': to_float(row.get('OTSpecialHday')),
+                'nd_special_hday': to_float(row.get('ND SpecialHday')),
+                'ot_shday_excess': to_float(row.get('OT SHdayExcess')),
+                'nd_shday_excess': to_float(row.get('ND SHday Excess')),
+                'ot_legal_holiday': to_float(row.get('OT LegalHoliday')),
+                'special_holiday': to_float(row.get('Special Holiday')),
+                'ot_leghol_excess': to_float(row.get('OTLegHol Excess')),
+                'nd_leghol_excess': to_float(row.get('ND LegHol Excess')),
+                'ot_sh_on_rest': to_float(row.get('OT SHday on Rest')),
+                'nd_sh_on_rest': to_float(row.get('ND SH on Rest')),
+                'ot_sh_on_rest_excess': to_float(row.get('OT SH on Rest Excess')),
+                'nd_sh_on_rest_excess': to_float(row.get('ND SH on Rest Excess')),
+                'leg_h_on_rest_day': to_float(row.get('LegH on Rest Day')),
+                'nd_leg_h_on_restday': to_float(row.get('ND LegH on Restday')),
+                'ot_leg_h_on_rest_excess': to_float(row.get('OT LegH on Rest Excess')),
+                'nd_leg_h_on_rest_excess': to_float(row.get('ND LegH on Rest Excess')),
+                'vacleave_applied': to_float(row.get('VacLeave_Applied')),
+                'sickleave_applied': to_float(row.get('SickLeave_Applied')),
+                'back_pay_vl': to_float(row.get('Back Pay VL')),
+                'back_pay_sl': to_float(row.get('Back Pay SL')),
+                'ot_regular_excess': to_float(row.get('OTRegular Excess')),
+                'nd_ot_reg_excess': to_float(row.get('ND OT Reg Excess')),
+                'legal_holiday': to_float(row.get('Legal Holiday')),
+                'nd_legal_holiday': to_float(row.get('ND Legal Holiday')),
+                'overnight_rate': to_float(row.get('Overnight Rate')),
+                'project': str(row.get('PROJECT', '')).strip(),
+            }
+
+            if employee_code:
+                obj, created = EmployeeDirectory.objects.update_or_create(
+                    employee_code=employee_code,
+                    defaults=data
+                )
+                if created:
+                    added_count += 1
+                else:
+                    updated_count += 1
+            else:
+                obj = EmployeeDirectory.objects.filter(employee_name=data['employee_name'], employee_code="").first()
+                if obj:
+                    for key, value in data.items():
+                        setattr(obj, key, value)
+                    obj.save()
+                    updated_count += 1
+                else:
+                    EmployeeDirectory.objects.create(**data)
+                    added_count += 1
+
+        return Response({
+            "detail": f"{added_count} new employees added, {updated_count} employees updated."
+        })
+
+    except Exception as e:
+        return Response({"detail": str(e)}, status=400)
+    
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def list_employees(request):
+    employees = EmployeeDirectory.objects.all().order_by("id")
+    serializer = EmployeeDirectorySerializer(employees, many=True)
+    return Response(serializer.data)
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def add_employee(request):
+    employee_code = request.data.get("employee_code")
+    employee_name = request.data.get("employee_name")
+
+    if not employee_code or not employee_name:
+        return Response({"detail": "Employee code and name are required."}, status=400)
+
+    employee_code = str(employee_code).strip().zfill(5)
+    employee_name = employee_name.strip()
+
+    obj, created = EmployeeDirectory.objects.get_or_create(
+        employee_code=employee_code,
+        defaults={"employee_name": employee_name}
+    )
+
+    if not created:
+        return Response({"detail": "Employee already exists."}, status=400)
+
+    return Response({"detail": "Employee added successfully!"})
+
+@api_view(['DELETE'])
+@permission_classes([IsAdminUser])
+def delete_employee(request, employee_code):
+    employee_code_str = str(employee_code)
+    padded_code = employee_code_str.zfill(5)
+
+    try:
+        employee = EmployeeDirectory.objects.get(
+            Q(employee_code=padded_code) | Q(employee_code=employee_code_str)
+        )
+        employee.delete()
+        return Response({"detail": "Employee deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+    except EmployeeDirectory.DoesNotExist:
+        return Response({"detail": "Employee not found."}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['PUT'])
+@permission_classes([IsAdminUser])
+def update_employee(request, employee_code):
+    employee_code_str = str(employee_code)
+    padded_code = employee_code_str.zfill(5)
+    
+    try:
+        employee = EmployeeDirectory.objects.get(
+            Q(employee_code=padded_code) | Q(employee_code=employee_code_str)
+        )
+    except EmployeeDirectory.DoesNotExist:
+        return Response({"detail": "Employee not found"}, status=404)
+
+    numeric_fields = [
+        "total_hours", "nd_reg_hrs", "absences", "tardiness", "undertime",
+        "ot_regular", "nd_ot_reg", "ot_restday", "nd_restday", "ot_rest_excess",
+        "nd_rest_excess", "ot_special_hday", "nd_special_hday", "ot_shday_excess",
+        "nd_shday_excess", "ot_legal_holiday", "special_holiday", "ot_leghol_excess",
+        "nd_leghol_excess", "ot_sh_on_rest", "nd_sh_on_rest", "ot_sh_on_rest_excess",
+        "nd_sh_on_rest_excess", "leg_h_on_rest_day", "nd_leg_h_on_restday",
+        "ot_leg_h_on_rest_excess", "nd_leg_h_on_rest_excess", "vacleave_applied",
+        "sickleave_applied", "back_pay_vl", "back_pay_sl", "ot_regular_excess",
+        "nd_ot_reg_excess", "legal_holiday", "nd_legal_holiday", "overnight_rate",
+    ]
+
+    for field, value in request.data.items():
+        if hasattr(employee, field):
+            if field in numeric_fields:
+                if value in ["", None]:
+                    setattr(employee, field, None)
+                else:
+                    try:
+                        setattr(employee, field, Decimal(value))
+                    except InvalidOperation:
+                        setattr(employee, field, None)
+            else:
+                setattr(employee, field, value)
+
+    employee.save()
+    return Response({"detail": "Employee updated successfully"})
+
+def safe_number(val, default=0):
+    """Convert pandas/Excel values into a safe float or default."""
+    if pd.isna(val):
+        return default
+    try:
+        return float(val)
+    except (ValueError, TypeError):
+        return default
+
+def safe_string(val):
+    """Convert to string if not NaN, else return None."""
+    if pd.isna(val):
+        return None
+    return str(val).strip()
+
+class DTRFileViewSet(viewsets.ModelViewSet):
+    queryset = DTRFile.objects.all().order_by("-uploaded_at")
+    serializer_class = DTRFileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if hasattr(user, "role") and user.role in ["admin", "viewer"]:
+            return DTRFile.objects.all().order_by("-uploaded_at")
+
+        return DTRFile.objects.filter(uploaded_by=user).order_by("-uploaded_at")
+
+    def perform_create(self, serializer):
+        serializer.save(uploaded_by=self.request.user)
+
+    @action(detail=True, methods=["post"])
+    def parse(self, request, pk=None):
+        dtr_file = self.get_object()
+        file_path = dtr_file.file.path
+        dtr_file.entries.all().delete()
+
+        try:
+            df = pd.read_excel(file_path, header=None)
+
+            start_date_val = df.iat[8, 3] if not pd.isna(df.iat[8, 3]) else None
+            end_date_val = df.iat[9, 3] if not pd.isna(df.iat[9, 3]) else None
+
+            dtr_file.start_date = pd.to_datetime(start_date_val).date() if start_date_val else None
+            dtr_file.end_date = pd.to_datetime(end_date_val).date() if end_date_val else None
+            dtr_file.save()
+
+            employee_df = df.iloc[14:, :]
+
+            for _, row in employee_df.iterrows():
+                name = row[2] 
+                emp_no = row[3]  
+
+                if pd.isna(name) or pd.isna(emp_no):
+                    continue
+
+                emp_code = str(emp_no).strip()
+                if emp_code.startswith("PM"):
+                    emp_code = emp_code[2:]
+                emp_code = "".join(filter(str.isdigit, emp_code))
+
+                daily_data = {}
+                if dtr_file.start_date:
+                    for idx, col in enumerate(range(7, 23)):  # H → W
+                        day = dtr_file.start_date + timedelta(days=idx)
+                        val = row[col]
+                        daily_data[str(day)] = None if pd.isna(val) else val
+
+                DTREntry.objects.create(
+                    dtr_file=dtr_file,
+                    full_name=safe_string(name),
+                    employee_no=emp_code,
+                    position=safe_string(row[4]),  # E
+                    shift=safe_string(row[5]),     # F
+                    time=safe_string(row[6]),      # G
+                    daily_data=daily_data,
+                    total_days=safe_number(row[23]),         # X
+                    total_hours=safe_number(row[24]),        # Y
+                    undertime_minutes=safe_number(row[25]),  # Z
+                    regular_ot=safe_number(row[26]),         # AA
+                    legal_holiday=safe_number(row[27]),      # AB
+                    unworked_reg_holiday=safe_number(row[28]), # AC
+                    special_holiday=safe_number(row[29]),    # AD
+                    night_diff=safe_number(row[30]),         # AE
+                )
+
+            return Response({"message": "DTR file parsed successfully."})
+
+        except Exception as e:
+            traceback.print_exc()
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=["get"])
+    def content(self, request, pk=None):
+        dtr_file = self.get_object()
+        entries = dtr_file.entries.all()
+        serializer = DTREntrySerializer(entries, many=True)
+        return Response({
+            "start_date": dtr_file.start_date,
+            "end_date": dtr_file.end_date,
+            "rows": serializer.data
+        })
+
+    @action(detail=False, methods=["post"], url_path="sync-all")
+    def sync_all_files(self, request):
+        """
+        Sync only verified DTR files to EmployeeDirectory.
+        Optional request data:
+            start_date, end_date -> filter which DTR files to consider
+        """
+        start_date_str = request.data.get("start_date")
+        end_date_str = request.data.get("end_date")
+
+        start_date = pd.to_datetime(start_date_str).date() if start_date_str else None
+        end_date = pd.to_datetime(end_date_str).date() if end_date_str else None
+
+        dtr_files = DTRFile.objects.filter(status="verified").order_by("start_date")
+
+        if start_date:
+            dtr_files = dtr_files.filter(end_date__gte=start_date)
+        if end_date:
+            dtr_files = dtr_files.filter(start_date__lte=end_date)
+
+        if not dtr_files.exists():
+            return Response(
+                {"detail": "No verified DTR files found for syncing."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        aggregated = {}
+        for dtr_file in dtr_files:
+            for entry in dtr_file.entries.all():
+                code = str(entry.employee_no).zfill(5) if entry.employee_no else None
+                name = entry.full_name.strip() if entry.full_name else None
+                if not code or not name:
+                    continue
+
+                if code not in aggregated:
+                    aggregated[code] = {
+                        "employee_name": name,
+                        "total_hours": 0,
+                        "undertime": 0,
+                        "ot_regular": 0,
+                        "legal_holiday": 0,
+                        "special_holiday": 0,
+                        "nd_reg_hrs": 0,
+                        "date_covered_start": dtr_file.start_date,
+                        "date_covered_end": dtr_file.end_date,
+                    }
+
+                aggregated[code]["total_hours"] += entry.total_hours or 0
+                aggregated[code]["undertime"] += entry.undertime_minutes or 0
+                aggregated[code]["ot_regular"] += entry.regular_ot or 0
+                aggregated[code]["legal_holiday"] += entry.legal_holiday or 0
+                aggregated[code]["special_holiday"] += entry.special_holiday or 0
+                aggregated[code]["nd_reg_hrs"] += entry.night_diff or 0
+
+                if dtr_file.start_date and (
+                    aggregated[code]["date_covered_start"] is None
+                    or dtr_file.start_date < aggregated[code]["date_covered_start"]
+                ):
+                    aggregated[code]["date_covered_start"] = dtr_file.start_date
+
+                if dtr_file.end_date and (
+                    aggregated[code]["date_covered_end"] is None
+                    or dtr_file.end_date > aggregated[code]["date_covered_end"]
+                ):
+                    aggregated[code]["date_covered_end"] = dtr_file.end_date
+
+        created, updated = 0, 0
+        for code, data in aggregated.items():
+            date_covered = None
+            if data.get("date_covered_start") and data.get("date_covered_end"):
+                start_str = data["date_covered_start"].strftime("%b %d, %Y")
+                end_str = data["date_covered_end"].strftime("%b %d, %Y")
+                date_covered = f"{start_str} → {end_str}"
+
+            emp, is_created = EmployeeDirectory.objects.update_or_create(
+                employee_code=code,
+                defaults={
+                    **{k: v for k, v in data.items() if k not in ["date_covered_start", "date_covered_end"]},
+                    "date_covered": date_covered,
+                },
+            )
+            if is_created:
+                created += 1
+            else:
+                updated += 1
+
+        return Response({
+            "detail": f"Synced {created} new, {updated} updated (verified only)."
+        })
+    
+    @action(detail=True, methods=["post"], url_path="update-rows")
+    def update_rows(self, request, pk=None):
+        dtr_file = self.get_object()
+        rows = request.data.get("rows", [])
+
+        for row in rows:
+            entry_id = row.get("id")
+            if entry_id:
+                try:
+                    entry = dtr_file.entries.get(id=entry_id)
+                except DTREntry.DoesNotExist:
+                    continue
+            else:
+                entry = DTREntry(dtr_file=dtr_file)
+
+            entry.full_name = row.get("full_name", entry.full_name)
+            entry.employee_no = row.get("employee_no", entry.employee_no)
+
+            entry.daily_data = row.get("daily_data", entry.daily_data)
+
+            entry.total_days = row.get("total_days", entry.total_days)
+            entry.total_hours = row.get("total_hours", entry.total_hours)
+            entry.regular_ot = row.get("regular_ot", entry.regular_ot)
+            entry.legal_holiday = row.get("legal_holiday", entry.legal_holiday)
+            entry.unworked_reg_holiday = row.get("unworked_reg_holiday", entry.unworked_reg_holiday)
+            entry.special_holiday = row.get("special_holiday", entry.special_holiday)
+            entry.night_diff = row.get("night_diff", entry.night_diff)
+            entry.undertime_minutes = row.get("undertime_minutes", entry.undertime_minutes)
+
+            entry.save()
+
+        return Response({"message": "DTR entries updated successfully!"}, status=status.HTTP_200_OK)
+
+class DTREntryViewSet(viewsets.ModelViewSet):
+    queryset = DTREntry.objects.all().order_by("full_name")
+    serializer_class = DTREntrySerializer
+    permission_classes = [IsAuthenticated]
+
+    @action(detail=False, methods=["get"], url_path="employee")
+    def by_employee(self, request):
+        code = request.query_params.get("employee_code")
+
+        if not code:
+            return Response({"detail": "employee_code is required"}, status=400)
+
+        normalized = code.lstrip("0").upper()
+
+        qs = self.get_queryset().filter(
+            Q(employee_no=code) | 
+            Q(employee_no=normalized) | 
+            Q(employee_no__endswith=normalized),
+            dtr_file__status="verified"   
+        )
+
+        if not qs.exists():
+            return Response([], status=200)
+
+        grouped = {}
+        for entry in qs:
+            dtr_file = entry.dtr_file
+            key = f"{dtr_file.start_date} → {dtr_file.end_date}"
+            if key not in grouped:
+                grouped[key] = {
+                    "start_date": dtr_file.start_date,
+                    "end_date": dtr_file.end_date,
+                    "rows": []
+                }
+            grouped[key]["rows"].append(DTREntrySerializer(entry).data)
+
+        return Response(list(grouped.values()))
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def upload_basic_employees(request):
+    employees = request.data.get("employees", [])
+    if not employees:
+        return Response({"detail": "No employees provided"}, status=status.HTTP_400_BAD_REQUEST)
+
+    created, updated, skipped = 0, 0, 0
+
+    for emp in employees:
+        serializer = EmployeeSerializer(data=emp)
+        if serializer.is_valid():
+            emp_no = serializer.validated_data["employee_no"]
+            emp_name = serializer.validated_data["employee_name"]
+
+            obj, created_flag = Employee.objects.update_or_create(
+                employee_no=emp_no,
+                defaults={"employee_name": emp_name}
+            )
+            if created_flag:
+                created += 1
+            else:
+                updated += 1
+        else:
+            skipped += 1
+
+    return Response(
+        {"detail": f"{created} created, {updated} updated, {skipped} skipped"},
+        status=status.HTTP_200_OK
+    )
+
+logger = logging.getLogger(__name__)
+
+def normalize_name(s):
+    if not s:
+        return ""
+    s = re.sub(r"[^\w\s]", " ", s)
+    return re.sub(r"\s+", " ", s).strip().upper()
+
+@api_view(["GET", "POST"])
+@permission_classes([IsAuthenticated])
+def compare_employees(request):
+    """
+    Compare EmployeeDirectory names to Employee (source of truth).
+    Also removes duplicates (by employee_code or employee_name).
+    Supports:
+      - POST body { "threshold": 85, "dry_run": true/false }
+      - GET query params ?threshold=85&dry_run=1 for quick tests
+    """
+    try:
+        threshold = int(request.data.get("threshold") or request.query_params.get("threshold") or 85)
+        dry_run_param = request.data.get("dry_run", request.query_params.get("dry_run", "false"))
+        dry_run = str(dry_run_param).lower() in ("1", "true", "yes")
+
+        employees_qs = Employee.objects.all()
+        directories_qs = EmployeeDirectory.objects.all()
+
+        duplicates_deleted = []
+        seen_codes, seen_names = set(), set()
+        for d in directories_qs:
+            norm_name = normalize_name(d.employee_name)
+            if d.employee_code in seen_codes or norm_name in seen_names:
+                duplicates_deleted.append({
+                    "employee_code": d.employee_code,
+                    "employee_name": d.employee_name
+                })
+                if not dry_run:
+                    d.delete()
+            else:
+                seen_codes.add(d.employee_code)
+                seen_names.add(norm_name)
+
+        directories_qs = EmployeeDirectory.objects.all()
+
+        employees = []
+        for emp in employees_qs:
+            norm = normalize_name(emp.employee_name)
+            employees.append({
+                "obj": emp,
+                "employee_no": emp.employee_no,
+                "employee_name": emp.employee_name,
+                "norm_name": norm
+            })
+
+        directories = []
+        for d in directories_qs:
+            directories.append({
+                "obj": d,
+                "employee_code": d.employee_code,
+                "employee_name": d.employee_name,
+                "norm_name": normalize_name(d.employee_name)
+            })
+
+        updated, added, skipped = [], [], []
+
+        for d in directories:
+            best_match = None
+            best_score = 0
+            for e in employees:
+                score = fuzz.token_set_ratio(d["norm_name"], e["norm_name"])
+                if score > best_score:
+                    best_score = score
+                    best_match = e
+
+            if best_match and best_score >= threshold:
+                obj = d["obj"]
+                new_code = best_match["employee_no"]
+                new_name = best_match["employee_name"]
+
+                if not dry_run:
+                    # Check for conflicts
+                    conflict = EmployeeDirectory.objects.filter(employee_code=new_code).exclude(id=obj.id).exists()
+                    if conflict:
+                        skipped.append({
+                            "code": d["employee_code"],
+                            "name": d["employee_name"],
+                            "reason": f"Target employee_code {new_code} already exists"
+                        })
+                    else:
+                        obj.employee_code = new_code
+                        obj.employee_name = new_name
+                        obj.save()
+                updated.append({
+                    "old_code": d["employee_code"],
+                    "old_name": d["employee_name"],
+                    "new_code": new_code,
+                    "new_name": new_name,
+                    "match_score": best_score
+                })
+
+        existing_codes = set(EmployeeDirectory.objects.values_list("employee_code", flat=True))
+        existing_norm_names = set(
+            normalize_name(n) for n in EmployeeDirectory.objects.values_list("employee_name", flat=True)
+        )
+
+        for e in employees:
+            if (e["employee_no"] not in existing_codes) and (e["norm_name"] not in existing_norm_names):
+                added.append({
+                    "new_code": e["employee_no"],
+                    "new_name": e["employee_name"]
+                })
+                if not dry_run:
+                    EmployeeDirectory.objects.create(
+                        employee_code=e["employee_no"],
+                        employee_name=e["employee_name"]
+                    )
+                    existing_codes.add(e["employee_no"])
+                    existing_norm_names.add(e["norm_name"])
+
+        summary = {
+            "updated": len(updated),
+            "added": len(added),
+            "skipped": len(skipped),
+            "duplicates_deleted": len(duplicates_deleted),
+            "dry_run": dry_run,
+            "threshold": threshold
+        }
+
+        return Response({
+            "summary": summary,
+            "updated_records": updated,
+            "added_records": added,
+            "skipped_records": skipped,
+            "deleted_duplicates": duplicates_deleted
+        }, status=status.HTTP_200_OK)
+
+    except Exception as exc:
+        logger.exception("compare_employees failed")
+        return Response({
+            "detail": "Internal error during compare",
+            "error": str(exc)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(["POST"])
+def flush_employee_data(request):
+    """
+    Safely reset all numeric/DTR fields in Employee model to None or 0.
+    Only updates actual fields existing in the model.
+    """
+    flush_columns = request.data.get("flush_columns", [])
+
+    valid_fields = []
+    for col in flush_columns:
+        try:
+            EmployeeDirectory._meta.get_field(col)
+            valid_fields.append(col)
+        except FieldDoesNotExist:
+            print(f"Skipping invalid field: {col}")  
+
+    if not valid_fields:
+        return Response({"detail": "No valid fields to flush."}, status=400)
+
+    reset_data = {col: None for col in valid_fields}
+    try:
+        EmployeeDirectory.objects.all().update(**reset_data)
+        return Response({"detail": f"Flushed fields: {valid_fields}"})
+    except Exception as e:
+        return Response({"detail": str(e)}, status=500)
+    
+@api_view(["GET"])
+@permission_classes([IsAdminUser])
+def backup_employee_directory(request):
+    """
+    Backup ALL EmployeeDirectory columns into an Excel file.
+    """
+    employees = EmployeeDirectory.objects.all().values()
+    if not employees.exists():
+        return Response({"detail": "No employee data found."}, status=404)
+
+    df = pd.DataFrame(list(employees))
+
+    for col in df.columns:
+        if pd.api.types.is_datetime64_any_dtype(df[col]):
+            try:
+                df[col] = pd.to_datetime(df[col]).dt.tz_localize(None)
+            except Exception:
+                pass
+
+    buffer = io.BytesIO()
+    df.to_excel(buffer, index=False)
+    buffer.seek(0)
+
+    filename = f"employee_directory_backup_{datetime.now():%Y-%m-%d_%H-%M-%S}.xlsx"
+    response = HttpResponse(
+        buffer.getvalue(),
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return response
+
+@api_view(["POST"])
+@permission_classes([IsAdminUser])
+def restore_employee_directory(request):
+    """
+    Restore EmployeeDirectory data from an Excel backup.
+    Includes ALL model fields.
+    """
+    file = request.FILES.get("file")
+    if not file:
+        return Response({"detail": "No file uploaded."}, status=400)
+
+    try:
+        df = pd.read_excel(file).fillna("")
+
+        if df.empty:
+            return Response({"detail": "The backup file is empty."}, status=400)
+
+        EmployeeDirectory.objects.all().delete()
+
+        model_fields = [field.name for field in EmployeeDirectory._meta.get_fields() if field.concrete and not field.is_relation]
+        objs = []
+
+        for _, row in df.iterrows():
+            field_data = {}
+            for field in model_fields:
+                if field in df.columns:
+                    val = row[field]
+                    if pd.isna(val) or val == "":
+                        val = None
+                    field_data[field] = val
+
+            objs.append(EmployeeDirectory(**field_data))
+
+        EmployeeDirectory.objects.bulk_create(objs)
+
+        return Response({
+            "detail": f"Restore complete. {len(objs)} records restored."
+        }, status=200)
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return Response({
+            "detail": f"Restore failed: {str(e)}"
+        }, status=400)

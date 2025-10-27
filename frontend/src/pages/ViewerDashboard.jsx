@@ -31,12 +31,20 @@ export default function ViewerDashboard() {
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
-    if (!token) return;
+    if (!token) {
+      setCurrentUser(null);
+      return;
+    }
 
-    api.get("/auth/me")
-      .then(res => setCurrentUser({ ...res.data, token }))
-      .catch(err => setCurrentUser(null));
+    api
+      .get("/auth/me/")
+      .then((res) => setCurrentUser({ ...res.data, token }))
+      .catch((err) => {
+        console.error("Auth/me failed:", err);
+        setCurrentUser(null);
+      });
   }, [setCurrentUser]);
+
 
   useEffect(() => {
     const fetchUsers = async () => {

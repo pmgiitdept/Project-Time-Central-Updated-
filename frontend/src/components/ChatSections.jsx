@@ -1,4 +1,4 @@
-/* components/ChatSections.jsx */
+/* components/ChatSection.jsx */
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import EmojiPicker from "emoji-picker-react";
@@ -6,35 +6,38 @@ import api from "../api";
 import "./styles/ChatSection.css"; 
 import ManageUsersModal from "./ManageUsersModal";
 
-export default function ChatSection({ currentUser, roomId, roomName, messages, setMessages, onNewMessage, users, roomCreatorId }) {
+export default function ChatSection({
+  currentUser,
+  roomId,
+  roomName,
+  messages,
+  setMessages,
+  onNewMessage,
+  users,
+  roomCreatorId,
+}) {
   const [newMessage, setNewMessage] = useState("");
   const [connected, setConnected] = useState(false);
   const [showEmoji, setShowEmoji] = useState(false);
   const [loading, setLoading] = useState(true);
-
-  const [manageUsersModal, setManageUsersModal] = useState({ open: false });  
+  const [manageUsersModal, setManageUsersModal] = useState({ open: false });
   const [participants, setParticipants] = useState([]);
 
   const ws = useRef(null);
   const messagesEndRef = useRef(null);
-  
+
   const getOtherUserId = (roomName) => {
     if (!currentUser || !roomName) return null;
-
     const parts = roomName.split("_");
-    if (parts.length < 3) return null; 
+    if (parts.length < 3) return null;
     const id1 = parseInt(parts[1]);
     const id2 = parseInt(parts[2]);
     if (isNaN(id1) || isNaN(id2)) return null;
-
     return id1 === currentUser.id ? id2 : id1;
   };
 
   const otherUserId = getOtherUserId(roomName);
-  const otherUser = otherUserId
-    ? users.find((u) => u.id === otherUserId)
-    : null;
-
+  const otherUser = otherUserId ? users.find((u) => u.id === otherUserId) : null;
   const headerName = otherUser ? otherUser.username : roomName;
 
   const scrollToBottom = (behavior = "auto") => {
@@ -53,20 +56,20 @@ export default function ChatSection({ currentUser, roomId, roomName, messages, s
         const res = await api.get(url, {
           headers: { Authorization: `Bearer ${currentUser.token}` },
         });
-
         const data = res.data;
         allMessages = [...allMessages, ...data.results];
-        url = data.next ? data.next.replace("http://127.0.0.1:8000/api", "") : null;
+        url = data.next
+          ? data.next.replace("http://127.0.0.1:8000/api", "")
+          : null;
       }
 
       allMessages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
-      // console.log("Final merged history:", allMessages);
       setMessages(allMessages);
       localStorage.setItem(`chat-${roomName}`, JSON.stringify(allMessages));
       scrollToBottom("auto");
     } catch (err) {
-      console.error("Failed to load history:", err);
+      console.error("❌ Failed to load history:", err);
     } finally {
       setLoading(false);
     }
@@ -80,24 +83,45 @@ export default function ChatSection({ currentUser, roomId, roomName, messages, s
       setMessages(JSON.parse(cached));
     }
 
-    fetchHistory(); 
+    fetchHistory();
   }, [currentUser?.token, roomName]);
 
   useEffect(() => {
-    if (!currentUser?.token || ws.current) return;
+    //console.log("⚡ Setting up WebSocket effect...");
+    if (!currentUser?.token) {
+      //console.warn("⛔ No token, skipping WebSocket setup.");
+      return;
+    }
+
+    if (ws.current) {
+      //console.log("ℹ️ WebSocket already initialized, skipping re-init.");
+      return;
+    }
 
     const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
-    const wsHost = "localhost:8000";
-    const wsUrl = `${wsScheme}://${wsHost}/ws/chat/${roomName}/?token=${currentUser.token}`;
+    const backendHost = "192.168.100.135:8000"; // ✅ backend only
+    const token =
+      currentUser?.token ||
+      localStorage.getItem("access_token") ||
+      localStorage.getItem("token");
 
-    ws.current = new WebSocket(wsUrl);
+    const wsUrl = `${wsScheme}://${backendHost}/ws/chat/${roomName}/?token=${token}`;
+    //console.log("🧠 Attempting to connect WebSocket:", wsUrl);
+
+    try {
+      ws.current = new WebSocket(wsUrl);
+    } catch (err) {
+      console.error("💥 WebSocket failed to initialize:", err);
+      return;
+    }
 
     ws.current.onopen = () => {
+      //console.log("✅ WebSocket connected!");
       setConnected(true);
-      // console.log("✅ Connected to chat");
     };
 
     ws.current.onmessage = (e) => {
+      //console.log("📨 WS message received:", e.data);
       try {
         const data = JSON.parse(e.data);
         setMessages((prev) => {
@@ -107,14 +131,21 @@ export default function ChatSection({ currentUser, roomId, roomName, messages, s
         });
         scrollToBottom("smooth");
       } catch (err) {
-        console.error("Failed to parse WS message:", err);
+        console.error("❌ Failed to parse WS message:", err);
       }
     };
 
-    ws.current.onclose = () => setConnected(false);
-    ws.current.onerror = (err) => console.error("WS Error:", err);
+    ws.current.onclose = (e) => {
+      console.warn("⚠️ WS closed:", e.code, e.reason);
+      setConnected(false);
+    };
+
+    ws.current.onerror = (err) => {
+      console.error("❌ WS Error:", err);
+    };
 
     return () => {
+      //console.log("🔌 Cleaning up WebSocket...");
       ws.current?.close();
       ws.current = null;
     };
@@ -127,8 +158,11 @@ export default function ChatSection({ currentUser, roomId, roomName, messages, s
   }, [messages, loading]);
 
   const sendMessage = () => {
-    if (!newMessage.trim() || !connected) return;
-
+    if (!newMessage.trim() || !connected) {
+      console.warn("⚠️ Send blocked (empty or disconnected).");
+      return;
+    }
+    //console.log("💬 Sending message:", newMessage);
     ws.current.send(JSON.stringify({ message: newMessage }));
     setNewMessage("");
     setShowEmoji(false);
@@ -146,28 +180,22 @@ export default function ChatSection({ currentUser, roomId, roomName, messages, s
       setParticipants(res.data);
       setManageUsersModal({ open: true });
     } catch (err) {
-      console.error("Failed to fetch participants:", err);
+      console.error("❌ Failed to fetch participants:", err);
       alert("Failed to load participants");
     }
   };
 
   return (
     <div className="chat-wrapper">
-      {/* Header */}
       <div className="chat-header">
         <h2>💬 {headerName}</h2>
-        { /* <span className={`status ${connected ? "online" : "offline"}`}>
-          {connected ? "Online" : "Offline"}
-        </span> */}
         {roomId && currentUser.id === roomCreatorId && (
           <button className="manage-users-btn" onClick={handleFetchParticipants}>
             <span className="icon">👥</span> Manage Users
           </button>
         )}
-
       </div>
 
-      {/* Messages */}
       <div className="chat-messages">
         {loading && (
           <div className="loading-animation">
@@ -178,9 +206,7 @@ export default function ChatSection({ currentUser, roomId, roomName, messages, s
         )}
 
         {!loading && messages.length === 0 && (
-          <div className="no-messages-placeholder">
-            💬 Send a message
-          </div>
+          <div className="no-messages-placeholder">💬 Send a message</div>
         )}
 
         <AnimatePresence>
@@ -192,17 +218,20 @@ export default function ChatSection({ currentUser, roomId, roomName, messages, s
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
               className={`message-row ${
-                msg.sender?.toLowerCase() === currentUser.username?.toLowerCase()
+                msg.sender?.toLowerCase() ===
+                currentUser.username?.toLowerCase()
                   ? "self"
                   : "other"
               }`}
             >
-              {msg.sender?.toLowerCase() !== currentUser.username?.toLowerCase() && (
+              {msg.sender?.toLowerCase() !==
+                currentUser.username?.toLowerCase() && (
                 <div className="avatar">{getInitials(msg.sender)}</div>
               )}
               <div
                 className={`bubble ${
-                  msg.sender?.toLowerCase() === currentUser.username?.toLowerCase()
+                  msg.sender?.toLowerCase() ===
+                  currentUser.username?.toLowerCase()
                     ? "self"
                     : "other"
                 }`}
@@ -222,7 +251,6 @@ export default function ChatSection({ currentUser, roomId, roomName, messages, s
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
       <div className="chat-input">
         <button
           onClick={() => setShowEmoji((prev) => !prev)}
@@ -243,9 +271,9 @@ export default function ChatSection({ currentUser, roomId, roomName, messages, s
                   "\n" +
                   newMessage.slice(selectionEnd);
                 setNewMessage(newValue);
-
                 setTimeout(() => {
-                  e.target.selectionStart = e.target.selectionEnd = selectionStart + 1;
+                  e.target.selectionStart = e.target.selectionEnd =
+                    selectionStart + 1;
                 }, 0);
               } else {
                 e.preventDefault();
@@ -278,19 +306,18 @@ export default function ChatSection({ currentUser, roomId, roomName, messages, s
           </div>
         )}
 
-        {/* ✅ Manage Users Modal */}
-          {manageUsersModal.open && (
-            <ManageUsersModal
-              roomId={roomId} 
-              roomCreatorId={roomCreatorId}
-              currentUser={currentUser}
-              participants={participants}
-              onClose={() => setManageUsersModal({ open: false })}
-              onRemoveUser={(userId) =>
-                setParticipants((prev) => prev.filter((u) => u.id !== userId))
-              }
-            />
-          )}
+        {manageUsersModal.open && (
+          <ManageUsersModal
+            roomId={roomId}
+            roomCreatorId={roomCreatorId}
+            currentUser={currentUser}
+            participants={participants}
+            onClose={() => setManageUsersModal({ open: false })}
+            onRemoveUser={(userId) =>
+              setParticipants((prev) => prev.filter((u) => u.id !== userId))
+            }
+          />
+        )}
       </div>
     </div>
   );

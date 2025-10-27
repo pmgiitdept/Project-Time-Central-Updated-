@@ -1,3 +1,4 @@
+// hooks/useTokenExpirations.jsx
 import { useEffect, useState } from "react";
 import api from "../api"; // your axios instance
 import * as jwt_decode from "jwt-decode";
@@ -12,7 +13,7 @@ export default function useTokenExpiration() {
 
     try {
       const decoded = jwt_decode.default(token);
-      const exp = decoded.exp * 1000; // convert to ms
+      const exp = decoded.exp * 1000; 
       const now = Date.now();
       const msBeforeExpiry = exp - now;
 
@@ -36,7 +37,7 @@ export default function useTokenExpiration() {
       const refresh = localStorage.getItem("refresh_token");
       if (!refresh) throw new Error("No refresh token found");
 
-      const res = await api.post("/token/refresh/", { refresh });
+      const res = await api.post("auth/token/refresh/", { refresh });
       localStorage.setItem("access_token", res.data.access);
       setModalVisible(false);
 

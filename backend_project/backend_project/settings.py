@@ -10,11 +10,14 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+#backend_project/settings.py
+
 from pathlib import Path
 import os
 from decouple import config
 from dotenv import load_dotenv
 import os
+from corsheaders.defaults import default_headers
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -52,6 +55,7 @@ INSTALLED_APPS = [
     'django_celery_beat',
     'channels',
     'chat',
+    'chat.apps.ChatConfig',
 ]
 
 MIDDLEWARE = [
@@ -167,3 +171,24 @@ MEDIA_ROOT = BASE_DIR / "media"
 CELERY_BROKER_URL = 'redis://localhost:6379/0'  # adjust if using another broker
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+
+CORS_ALLOW_CREDENTIALS = True  # important for sending cookies
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "Authorization",
+]
+
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "AUTH_COOKIE": "access_token",           # Name of access token cookie
+    "AUTH_COOKIE_REFRESH": "refresh_token",  # Name of refresh token cookie
+    "AUTH_COOKIE_SECURE": False,             # True if using HTTPS
+    "AUTH_COOKIE_HTTP_ONLY": True,           # Prevent JS access
+    "AUTH_COOKIE_PATH": "/",                  # Cookie path
+    "AUTH_COOKIE_SAMESITE": "Lax",           # 'Lax' for same-site, 'None' for cross-site
+}

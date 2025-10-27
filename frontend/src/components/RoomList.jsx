@@ -7,7 +7,7 @@ import "./styles/RoomList.css";
 import PasskeyModal from "../components/PasskeyModal";
 import DeleteModal from "../components/DeleteModal";
 
-export default function RoomList({ currentUser, onSelectRoom, isVisible }) {
+export default function RoomList({ currentUser, onSelectRoom, isVisible, unreadCounts = {} }) {
   const [rooms, setRooms] = useState([]);
   const [newRoomName, setNewRoomName] = useState("");
   const [joinedRooms, setJoinedRooms] = useState([]);
@@ -137,6 +137,9 @@ export default function RoomList({ currentUser, onSelectRoom, isVisible }) {
                 onClick={() => isJoined && onSelectRoom(room)}
               >
                 # {room.name}
+                {unreadCounts[room.name] > 0 && (
+                  <span className="room-unread-dot">{unreadCounts[room.name]}</span>
+                )}
               </span>
 
               {isCreator && room.passkey && (

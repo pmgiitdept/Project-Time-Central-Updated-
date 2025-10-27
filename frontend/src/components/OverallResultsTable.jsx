@@ -86,7 +86,7 @@ export default function OverallResultsTable({ role }) {
       }
 
       const token = localStorage.getItem("access_token");
-      const res = await api.get("files/", {
+      const res = await api.get("/files/files/", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -100,7 +100,7 @@ export default function OverallResultsTable({ role }) {
 
       for (const file of filesArray) {
         const fileName = file.file ? file.file.split("/").pop() : "Unknown";
-        const contentRes = await api.get(`files/${file.id}/content/`, {
+        const contentRes = await api.get(`/files/files/${file.id}/content/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -413,11 +413,18 @@ export default function OverallResultsTable({ role }) {
           </label>
           <label>
             From:
-            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+            <input
+              type="date"
+              value={startDate || ""}
+              onChange={(e) => setStartDate(e.target.value || "")}
+            />
           </label>
           <label>
             To:
-            <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+            <input type="date" 
+              value={startDate || ""} 
+              onChange={(e) => setEndDate(e.target.value || "")} 
+            />
           </label>
           <input
             type="text"

@@ -1,36 +1,54 @@
 // components/Login.jsx
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useContext } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import api from "../api";
 import { toast } from "react-toastify";
 import { MapPin, Phone, Globe, Instagram, Facebook } from "lucide-react";
 import "./styles/Login.css";
+import { AuthContext } from "../context/AuthContext";
 
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+  const location = useLocation();
+  const { setCurrentUser } = useContext(AuthContext);
 
-  const handleLogin = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await api.post("auth/login/", { username, password });
+      const res = await api.post("/auth/login/", { username, password });
 
+      // 🧠 Depending on your backend, adjust this:
+      // Example response: { access, refresh, user: { username, role, ... } }
+
+      const userData = res.data.user || {
+        username: res.data.username,
+        role: res.data.role,
+      };
+
+      // ✅ Store tokens
       localStorage.setItem("access_token", res.data.access);
       localStorage.setItem("refresh_token", res.data.refresh);
-      localStorage.setItem("role", res.data.role);
-      localStorage.setItem("username", res.data.username);
+      localStorage.setItem("user", JSON.stringify(userData));
 
-      toast.success(`Welcome ${res.data.username}!`);
+      // ✅ Update context state
+      setCurrentUser(userData);
 
-      if (res.data.role === "admin") navigate("/admin");
-      else if (res.data.role === "client") navigate("/client");
-      else navigate("/viewer");
+      toast.success(`Welcome ${userData.username}!`);
+
+      // ✅ Navigate based on role
+      const from = location.state?.from?.pathname || "/";
+      if (userData.role === "admin") navigate("/admin", { replace: true });
+      else if (userData.role === "client") navigate("/client", { replace: true });
+      else if (userData.role === "viewer") navigate("/viewer", { replace: true });
+      else navigate(from, { replace: true });
     } catch (err) {
-      console.error(err);
-      toast.error("Login failed. Check credentials.");
+      console.error("Login failed:", err);
+      toast.error("Invalid credentials or server error.");
     }
   };
+
 
   return (
     <div className="login-container">
@@ -50,12 +68,12 @@ export default function Login() {
       </nav>
 
       <img src="/src/ptc-logo.png" alt="App Logo" className="login-top-logo" />
+
       {/* Card */}
       <div className="login-card">
-        {/* Keep the title here */}
         <h1 className="login-title">Welcome! Please log in</h1>
 
-        <form onSubmit={handleLogin} className="login-form">
+        <form onSubmit={handleSubmit} className="login-form">
           {/* Username field */}
           <div className="input-group">
             <input
@@ -87,7 +105,9 @@ export default function Login() {
       {/* Footer */}
       <footer className="login-footer">
         <div className="footer-left">
-          <p><MapPin size={16} /> 2F 37 Bayani Road Build., #37 Bayani Road AFPOVAI, Fort Bonifacio, Western Bicutan, Taguig City</p>
+          <p>
+            <MapPin size={16} /> 2F 37 Bayani Road Build., #37 Bayani Road AFPOVAI, Fort Bonifacio, Western Bicutan, Taguig City
+          </p>
           <p><Phone size={16} /> 856-3553 | 808-9424 | 808-9282</p>
           <p><Globe size={16} /> www.pmgi.com.ph</p>
         </div>

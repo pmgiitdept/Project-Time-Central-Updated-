@@ -1,29 +1,120 @@
-import { createContext, useState, useEffect } from "react";
-import api from "../api"; // your axios instance or API helper
+// src/context/AuthContext.jsx
+import { createContext, useEffect, useState } from "react";
+import api from "../api";
+import { jwtDecode } from "jwt-decode"; // ✅ correct import
 
 export const AuthContext = createContext();
 
-export const AuthProvider = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState(null);
+let authInitialized = false;
+
+export function AuthProvider({ children }) {
+  // 🔹 Pre-fill currentUser from localStorage for instant render
+  const [currentUser, setCurrentUser] = useState(() => {
+    const userStr = localStorage.getItem("user");
+    return userStr ? JSON.parse(userStr) : null;
+  });
+
+  const [loading, setLoading] = useState(false); // start as false to avoid flash
+
+  // 🔍 Decode expiry timestamp
+  const getTokenExpiry = () => {
+    const token = localStorage.getItem("access_token");
+    if (!token) return null;
+    try {
+      const decoded = jwtDecode(token);
+      return decoded.exp * 1000;
+    } catch (err) {
+      console.warn("❌ Failed to decode token:", err);
+      return null;
+    }
+  };
+
+  // ♻️ Try silent refresh
+  const silentRefresh = async () => {
+    const refresh = localStorage.getItem("refresh_token");
+    if (!refresh) {
+      console.warn("No refresh token found");
+      return false;
+    }
+
+    try {
+      const res = await api.post("auth/token/refresh/", { refresh }); // ✅ remove leading slash
+      localStorage.setItem("access_token", res.data.access);
+
+      // 🧩 Also update axios header instantly
+      api.defaults.headers.common["Authorization"] = `Bearer ${res.data.access}`;
+
+      console.log("✅ Token silently refreshed (AuthContext)");
+      return true;
+    } catch (err) {
+      console.warn("❌ Silent refresh failed (AuthContext):", err);
+      return false;
+    }
+  };
 
   useEffect(() => {
-    // Try to fetch current user info from token
-    const token = localStorage.getItem("token"); // assuming you store JWT here
-    if (!token) return;
+    if (authInitialized) return;
+    authInitialized = true;
 
-    // Decode token or fetch user data from backend
-    api
-      .get("/auth/me", { headers: { Authorization: `Bearer ${token}` } })
-      .then((res) => setCurrentUser({ ...res.data, token }))
-      .catch((err) => {
-        console.error("Failed to fetch user:", err);
-        setCurrentUser(null);
-      });
+    const controller = new AbortController();
+    let isMounted = true;
+
+    const checkAuth = async () => {
+      console.log("🔹 Running AuthContext checkAuth...");
+      const access = localStorage.getItem("access_token");
+
+      if (!access) {
+        console.log("⚠️ No access token found");
+        if (isMounted) setCurrentUser(null);
+        return;
+      }
+
+      const exp = getTokenExpiry();
+      const now = Date.now();
+
+      if (exp && exp <= now) {
+        console.log("⚠️ Access token expired, trying silent refresh...");
+        const refreshed = await silentRefresh();
+        if (!refreshed) {
+          localStorage.clear();
+          if (isMounted) setCurrentUser(null);
+          return;
+        }
+      }
+
+      try {
+        console.log("🌐 Checking user at /auth/me/");
+        const res = await api.get("auth/me/");
+        console.log("✅ Auth verified, user:", res.data);
+        if (isMounted) {
+          setCurrentUser(res.data);
+          // 🔹 Persist user for instant next load
+          localStorage.setItem("user", JSON.stringify(res.data));
+        }
+      } catch (err) {
+        if (err.name === "CanceledError") {
+          console.warn("⚠️ Request canceled, skipping cleanup");
+          return;
+        }
+        console.warn("❌ Auth check failed:", err);
+        if (err.response?.status === 401) localStorage.clear();
+        if (isMounted) setCurrentUser(null);
+      } finally {
+        console.log("🔹 AuthContext check complete");
+      }
+    };
+
+    checkAuth();
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+    };
   }, []);
 
   return (
-    <AuthContext.Provider value={{ currentUser, setCurrentUser }}>
+    <AuthContext.Provider value={{ currentUser, setCurrentUser, loading }}>
       {children}
     </AuthContext.Provider>
   );
-};
+}

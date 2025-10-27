@@ -1,30 +1,30 @@
-#accounts/urls.py
+# accounts/urls.py
+
 from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
-from .views import (
-    RegisterView,
-    UserView,
-    AdminUserDetailView,
-    list_users,
-    custom_login,
-    user_stats,
-    MyTokenObtainPairView,
-    custom_logout,
-    user_ping,
-    create_test_admin,
-)
+from . import views
 
 urlpatterns = [
-    path("register/", RegisterView.as_view(), name="register"),
-    path("login/", custom_login, name="custom_login"),
-    path("logout/", custom_logout, name="custom_logout"),
-    path("token/", MyTokenObtainPairView.as_view(), name="token_obtain_pair"),
+    # 🔐 Authentication
+    path("register/", views.RegisterView.as_view(), name="register"),
+    path("login/", views.custom_login, name="custom_login"),
+    path("logout/", views.custom_logout, name="custom_logout"),
+
+    # JWT Endpoints
+    path("token/", views.MyTokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
 
-    path("me/", UserView.as_view(), name="me"),
-    path("ping/", user_ping, name="ping"),
-    path("users/", list_users, name="list_users"),  
-    path("users/<int:pk>/", AdminUserDetailView.as_view(), name="user_detail"),
-    path("user-stats/", user_stats, name="user_stats"),
-    path('create-test-admin/', create_test_admin, name="create_test_admin"),
+    # 👤 User Info
+    path("me/", views.UserView.as_view(), name="me"),
+    path("ping/", views.user_ping, name="ping"),
+
+    # 👥 Admin Controls
+    path("users/", views.list_users, name="list_users"),
+    path("users/<int:pk>/", views.AdminUserDetailView.as_view(), name="user_detail"),
+
+    # 📊 Analytics
+    path("user-stats/", views.user_stats, name="user_stats"),
+
+    # ⚙️ Utility
+    path("create-test-admin/", views.create_test_admin, name="create_test_admin"),
 ]

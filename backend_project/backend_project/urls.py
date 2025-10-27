@@ -1,21 +1,5 @@
-"""
-URL configuration for backend_project project.
+# backend_project/urls.py
 
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
-
-#backend_project/urls.py
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
@@ -24,17 +8,33 @@ from django.http import HttpResponse
 from accounts.views import MyTokenObtainPairView, user_stats
 from files.views import file_stats, compare_employees
 
-def home(request):
-    return HttpResponse("Project Time Central Backend is running!")
+def health_check(request):
+    """Simple endpoint to verify server is running."""
+    return HttpResponse("✅ Project Time Central Backend is running!")
 
 urlpatterns = [
-    path("", home, name='health_check'),
-    path('admin/', admin.site.urls),
+    # Health check / root route
+    path("", health_check, name="health_check"),
+
+    # Admin panel
+    path("admin/", admin.site.urls),
+
+    # Auth & Accounts
     path("api/auth/", include("accounts.urls")),
-    path('api/auth/login/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path("api/", include("files.urls")),
-    path("api/file-stats/", file_stats, name="file-stats"),
-    path("api/user-stats/", user_stats, name="user-stats"),
+    path("api/auth/login/", MyTokenObtainPairView.as_view(), name="token_obtain_pair"),
+
+    # File-related APIs
+    path("api/files/", include("files.urls")),
+    path("api/file-stats/", file_stats, name="file_stats"),
+    path("api/compare-employees/", compare_employees, name="compare_employees"),
+
+    # User-related stats
+    path("api/user-stats/", user_stats, name="user_stats"),
+
+    # Chat & WebSocket API endpoints
     path("api/chat/", include("chat.urls")),
-    path("api/compare-employees/", compare_employees, name="compare-employees"),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]
+
+# Serve media files (only in development)
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

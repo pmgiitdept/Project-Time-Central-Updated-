@@ -6,6 +6,9 @@ import ChatSection from "../components/ChatSections";
 import UserList from "../components/UserLists"; 
 import RoomList from "../components/RoomList"; 
 import DTRTable from "../components/DTRTable";
+import UserManualModal from "../components/UserManualModal";
+import AboutModal from "../components/AboutModal";
+import UploadedPDFs from "../components/UploadedPDFs";
 import UploadSection from "../components/UploadSection";
 import "../components/styles/ClientDashboard.css";
 import api from "../api";
@@ -33,10 +36,14 @@ export default function ClientDashboard() {
   const role = currentUser?.role || "client";
   const refreshFiles = () => setRefresh(!refresh);
 
+  const [manualOpen, setManualOpen] = useState(false);
+
+  const [aboutOpen, setAboutOpen] = useState(false);
+
   useEffect(() => {
     const fetchRejectedFiles = async () => {
       try {
-        const res = await api.get("/files/rejected");
+        const res = await api.get("files/rejected/");
         setNotifications(res.data);
       } catch (err) {
         console.error("Failed to fetch rejected files:", err);
@@ -55,12 +62,21 @@ export default function ClientDashboard() {
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
-    if (!token) return;
+    if (!token) {
+      setCurrentUser(null);
+      return;
+    }
 
-    api.get("/auth/me")
-      .then(res => setCurrentUser({ ...res.data, token }))
-      .catch(err => {
+    api
+      .get("/auth/me/", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => {
+        setCurrentUser({ ...res.data, token });
+      })
+      .catch((err) => {
         console.error("Auth/me failed:", err);
+        localStorage.clear();
         setCurrentUser(null);
       });
   }, [setCurrentUser]);
@@ -80,15 +96,20 @@ export default function ClientDashboard() {
   const handleNewMessage = (room, message) => {
     setMessages(prev => [...prev, message]);
 
+    // Skip if message is from self
     if (message.sender?.toLowerCase() === currentUser.username?.toLowerCase()) return;
-    if (room !== "general") {
-      setUnreadCounts(prev => ({
-        ...prev,
-        [room]: (prev[room] || 0) + 1,
-      }));
+
+    setUnreadCounts(prev => ({
+      ...prev,
+      [room]: (prev[room] || 0) + 1,
+    }));
+
+    // Show red dot in floating chat button only if popup is closed
+    if (!chatOpen) {
       setHasUnread(true);
     }
   };
+
 
   useEffect(() => {
     const fetchRooms = async () => {
@@ -102,18 +123,53 @@ export default function ClientDashboard() {
     fetchRooms();
   }, []);
 
+  const loadPDFFiles = () => {
+    // You can either just trigger a refresh
+    setRefresh(prev => !prev);
+
+    // OR, if you want to actually fetch PDFs:
+    // api.get("/files/pdfs/").then(res => setPdfFiles(res.data));
+  };
+
   return (
     <div className="dashboard-container">
       {/* Navbar */}
       <nav className="dashboard-navbar">
         <div className="navbar-left">
           <img src="/src/pmgi.png" alt="Logo" className="navbar-logo" />
-          <h1 className="dashboard-title">Client Dashboard</h1>
+          <h1 className="dashboard-title">
+            {currentUser ? `Hello, ${currentUser.username}!` : "Dashboard"}
+          </h1>
+          
         </div>
         <div className="navbar-right">
+          <button
+            className="manual-btn"
+            onClick={() => setManualOpen(true)}
+          >
+            📘 User Manual
+          </button>
+
+          <button
+            className="manual-btn"
+            onClick={() => setAboutOpen(true)}
+          >
+            ℹ️ About
+          </button>
+
           <img src="/src/sgslogos.png" alt="Right Logo" className="navbar-logo" />
           <LogoutButton />
         </div>
+
+        <UserManualModal
+          isOpen={manualOpen}
+          onClose={() => setManualOpen(false)}
+        />
+
+        <AboutModal
+          isOpen={aboutOpen}
+          onClose={() => setAboutOpen(false)}
+        />
       </nav>
 
       <motion.div
@@ -127,11 +183,21 @@ export default function ClientDashboard() {
         <div className="left-panel">
           <UploadSection
             refreshFiles={refreshFiles}
+            refreshPDFs={loadPDFFiles}
             refreshDTR={() => setRefresh(!refresh)}
           />
 
+          <div className="divider-hybrid">
+            <span>SUMMARY FORMS</span>
+          </div>
+
           <FileTable role="client" key={refresh} />
-          <DTRTable />
+
+          <div className="divider-hybrid">
+            <span>DTR REPORTS</span>
+          </div>
+
+          <UploadedPDFs refreshTrigger={refresh} />
         </div>
 
         {/* Floating Chat + Users List */}
@@ -237,6 +303,7 @@ export default function ClientDashboard() {
                               }}
                               joinedRooms={joinedRooms}
                               isVisible={true}
+                              unreadCounts={unreadCounts}
                             />
         
                           </motion.div>

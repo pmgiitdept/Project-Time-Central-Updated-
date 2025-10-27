@@ -26,7 +26,7 @@ export default function FileTable({ role, setSelectedFile }) {
     fetchFiles();
   }, []);
 
-  const fetchFiles = async (url = "dtr/files/") => {
+  const fetchFiles = async (url = "/files/dtr/files/") => {
     setLoading(true);
     try {
       const token = localStorage.getItem("access_token");
@@ -66,7 +66,7 @@ export default function FileTable({ role, setSelectedFile }) {
     try {
       const token = localStorage.getItem("access_token");
       await api.patch(
-        `dtr/files/${fileId}/`,
+        `/files/dtr/files/${fileId}/`,
         { status: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -101,7 +101,7 @@ export default function FileTable({ role, setSelectedFile }) {
     setDownloadLoading((prev) => ({ ...prev, [fileId]: true }));
     try {
       const token = localStorage.getItem("access_token");
-      const res = await api.get(`dtr/files/${fileId}/download/`, {
+      const res = await api.get(`/files/dtr/files/${fileId}/download/`, {
         headers: { Authorization: `Bearer ${token}` },
         responseType: "blob",
       });
@@ -147,7 +147,7 @@ export default function FileTable({ role, setSelectedFile }) {
 
       await Promise.all(
         fileIds.map((fileId) =>
-          api.delete(`dtr/files/${fileId}/`, { headers: { Authorization: `Bearer ${token}` } })
+          api.delete(`/files/dtr/files/${fileId}/`, { headers: { Authorization: `Bearer ${token}` } })
         )
       );
 
@@ -273,7 +273,7 @@ export default function FileTable({ role, setSelectedFile }) {
                         <th>Status</th>
                         <th>Start Date</th>
                         <th>End Date</th>
-                        {role === "admin" && <th>Actions</th>}
+                        {(role === "admin" || role === "viewer") && <th>Actions</th>}
                       </tr>
                     </thead>
                     <tbody>
@@ -321,7 +321,7 @@ export default function FileTable({ role, setSelectedFile }) {
                           <td>{file.start_date ? new Date(file.start_date).toLocaleDateString() : "-"}</td>
                           <td>{file.end_date ? new Date(file.end_date).toLocaleDateString() : "-"}</td>
 
-                          {role === "admin" && (
+                          {(role === "admin" || role === "viewer") && (
                             <td>
                               <button
                                 className="action-btn download"

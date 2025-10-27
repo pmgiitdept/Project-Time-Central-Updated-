@@ -21,7 +21,7 @@ const AddEmployee = React.memo(({ onAdded }) => {
       return toast.error("Employee code and name are required!");
     }
     try {
-      const res = await api.post("/add-employee/", employee);
+      const res = await api.post("/files/add-employee/", employee);
       toast.success(res.data.detail);
       setEmployee({ employee_code: "", employee_name: "" });
       onAdded(); 
@@ -67,7 +67,7 @@ const DeleteEmployee = React.memo(({ employees, onDeleted }) => {
 
   const handleDelete = async (employee_code) => {
     try {
-      await api.delete(`/delete-employee/${employee_code}/`);
+      await api.delete(`/files/delete-employee/${employee_code}/`);
       onDeleted(employee_code);
       alert("✅ Employee deleted successfully!");
     } catch (err) {
@@ -314,7 +314,7 @@ export default function EmployeeDirectory() {
         }
 
         try {
-          const res = await api.post("/upload-basic-employees/", { employees });
+          const res = await api.post("/files/upload-basic-employees/", { employees });
           toast.success(res.data.detail || "Employees uploaded!");
           fetchEmployees();
         } catch (err) {
@@ -497,13 +497,13 @@ export default function EmployeeDirectory() {
       if (startDate) params.start_date = startDate;
       if (endDate) params.end_date = endDate;
 
-      const res = await api.get("/employees/", { params });
+      const res = await api.get("/files/employees/", { params });
       const data = res.data.map(emp => ({
         ...emp,
         employee_code: emp.employee_code ? String(emp.employee_code).padStart(5, "0") : ""
       }));
 
-      console.log("Employees state:", employees);
+      //console.log("Employees state:", employees);
 
       setEmployees(data);
     } catch (err) {
@@ -515,8 +515,8 @@ export default function EmployeeDirectory() {
 
   const fetchDtrFiles = async () => {
     try {
-      const res = await api.get("/dtr/files/");
-      console.log("DTR response:", res.data);
+      const res = await api.get("/files/dtr/files/");
+      // console.log("DTR response:", res.data);
       setDtrFiles(res.data.results || []);
     } catch (err) {
       console.error("Failed to fetch DTR files", err);
@@ -525,7 +525,7 @@ export default function EmployeeDirectory() {
 
   const handleSyncAll = async () => {
     try {
-      const res = await api.post("/dtr/files/sync-all/");
+      const res = await api.post("/files/dtr/files/sync-all/");
       toast.success(res.data.detail || "Verified DTR files synced successfully!");
       fetchEmployees();
     } catch (error) {
@@ -546,7 +546,7 @@ export default function EmployeeDirectory() {
     formData.append("file", file);
     setUploading(true);
     try {
-      const res = await api.post("/upload-employee-excel/", formData, {
+      const res = await api.post("/files/upload-employee-excel/", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       toast.success(res.data.detail);
@@ -651,10 +651,10 @@ export default function EmployeeDirectory() {
         'nd_sh_on_rest_excess', 'leg_h_on_rest_day', 'nd_leg_h_on_restday',
         'ot_leg_h_on_rest_excess', 'nd_leg_h_on_rest_excess', 'vacleave_applied',
         'sickleave_applied', 'back_pay_vl', 'back_pay_sl', 'ot_regular_excess',
-        'nd_ot_reg_excess', 'legal_holiday', 'nd_legal_holiday', 'overnight_rate'
+        'nd_ot_reg_excess', 'legal_holiday', 'nd_legal_holiday', 'overnight_rate', 'date_covered'
       ];
 
-      const res = await api.post("/employees/flush-data/", { flush_columns: flushColumns });
+      const res = await api.post("/files/employees/flush-data/", { flush_columns: flushColumns });
       console.log(res.data.detail);
       toast.success("Employee data flushed successfully!");
     } catch (err) {
@@ -758,11 +758,7 @@ export default function EmployeeDirectory() {
       >
         
         <div className="employee-row">
-          <div className="top-controls">
-            <EmployeeDirectoryButton />
-          </div>
-        
-          <div className="employee-button-wrapper" ref={directoryBtnRef}>
+          {/* <div className="employee-button-wrapper" ref={directoryBtnRef}>
             <button className="employee-hide-btn" onClick={() => setOpen(!open)}>
               Employees
             </button>
@@ -823,99 +819,104 @@ export default function EmployeeDirectory() {
             >
               Compare Employees
             </button>
-          </div>
+          </div> */}
           
+          {/* === LEFT SECTION: EMPLOYEE MANAGEMENT === */}
+          <div className="employee-section-group">
+            <h3 className="employee-section-title">👥 Employee Management</h3>
+            <div className="employee-controls">
+              <div className="employee-button-wrapper">
+                <button className="employee-hide-btn" onClick={() => setAddOpen(!addOpen)}>
+                  ➕ Add Employee
+                </button>
+                {addOpen && <AddEmployee onAdded={() => { fetchEmployees(); setAddOpen(false); }} />}
+              </div>
 
-          <div className="employee-button-wrapper">
-            <button className="employee-hide-btn" onClick={() => setAddOpen(!addOpen)}>
-              Add Employee
-            </button>
-            {addOpen && <AddEmployee onAdded={() => { fetchEmployees(); setAddOpen(false); }} />}
-          </div>
-
-          <div className="employee-button-wrapper">
-            <button className="employee-hide-btn" onClick={() => setDeleteOpen(!deleteOpen)}>
-              Delete Employee
-            </button>
-            {deleteOpen && (
-              <DeleteEmployee
-                employees={employees}
-                onDeleted={(deletedCode) => {
-                  setEmployees((prev) => prev.filter((emp) => emp.employee_code !== deletedCode));
-                  setDeleteOpen(false);
-                }}
-              />
-            )}
-          </div>
-
-          {/* Project filter */}
-          <div className="employee-project-filter" ref={projectFilterRef} style={{ position: "relative" }}>
-            <button
-              className="employee-hide-btn"
-              onClick={() => setProjectFilterOpen(prev => !prev)}
-            >
-              {selectedProject || "Filter by Project"}
-            </button>
-            {projectFilterOpen && (
-              <div className="employee-hide-panel" style={{ maxHeight: "200px", overflowY: "auto" }}>
-                <label key="all">
-                  <input
-                    type="radio"
-                    name="project"
-                    checked={selectedProject === ""}
-                    onChange={() => setSelectedProject("")}
+              <div className="employee-button-wrapper">
+                <button className="employee-hide-btn" onClick={() => setDeleteOpen(!deleteOpen)}>
+                  🗑️ Delete Employee
+                </button>
+                {deleteOpen && (
+                  <DeleteEmployee
+                    employees={employees}
+                    onDeleted={(deletedCode) => {
+                      setEmployees((prev) => prev.filter((emp) => emp.employee_code !== deletedCode));
+                      setDeleteOpen(false);
+                    }}
                   />
-                  All
-                </label>
-                {uniqueProjects.map((proj) => (
-                  <label key={proj}>
-                    <input
-                      type="radio"
-                      name="project"
-                      checked={selectedProject === proj}
-                      onChange={() => setSelectedProject(proj)}
-                    />
-                    {proj}
-                  </label>
-                ))}
+                )}
               </div>
-            )}
+            </div>
           </div>
 
-           {/* Hide columns */}
-          <div className="employee-hide-column" ref={toggleRef}>
-            <button
-              className="employee-hide-btn"
-              onClick={() => setToggleOpen((prev) => !prev)}
-            >
-              Hide Columns
-            </button>
-            {toggleOpen && (
-              <div className="employee-hide-panel">
-                {columns.map((col) => (
-                  <label key={col.key}>
-                    <input
-                      type="checkbox"
-                      checked={!hiddenColumns.includes(col.key)}
-                      onChange={() => toggleColumn(col.key)}
-                    />
-                    {col.label}
-                  </label>
-                ))}
+          {/* === RIGHT SECTION: TOOLS === */}
+          <div className="employee-section-group">
+            <h3 className="employee-section-title">🛠️ Tools & Filters</h3>
+            <div className="employee-controls">
+
+              {/* Project Filter */}
+              <div className="employee-project-filter" ref={projectFilterRef} style={{ position: "relative" }}>
+                <button className="employee-hide-btn" onClick={() => setProjectFilterOpen(prev => !prev)}>
+                  {selectedProject || "🏗️ Filter by Project"}
+                </button>
+                {projectFilterOpen && (
+                  <div className="employee-hide-panel" style={{ maxHeight: "200px", overflowY: "auto" }}>
+                    <label key="all">
+                      <input
+                        type="radio"
+                        name="project"
+                        checked={selectedProject === ""}
+                        onChange={() => setSelectedProject("")}
+                      />
+                      All
+                    </label>
+                    {uniqueProjects.map((proj) => (
+                      <label key={proj}>
+                        <input
+                          type="radio"
+                          name="project"
+                          checked={selectedProject === proj}
+                          onChange={() => setSelectedProject(proj)}
+                        />
+                        {proj}
+                      </label>
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
 
-          <div className="employee-button-wrapper">
-            <button className="employee-hide-btn" onClick={handleExportExcel}>
-              📁 Export Excel
-            </button>
-          </div>
+              {/* Hide Columns */}
+              <div className="employee-hide-column" ref={toggleRef}>
+                <button className="employee-hide-btn" onClick={() => setToggleOpen(prev => !prev)}>
+                  👁️ Hide Columns
+                </button>
+                {toggleOpen && (
+                  <div className="employee-hide-panel">
+                    {columns.map((col) => (
+                      <label key={col.key}>
+                        <input
+                          type="checkbox"
+                          checked={!hiddenColumns.includes(col.key)}
+                          onChange={() => toggleColumn(col.key)}
+                        />
+                        {col.label}
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-          <div className="employee-button-wrapper">
-            <button className="employee-hide-btn" onClick={handlePrint}>
-              🖨️ Print
-            </button>
+              {/* Export & Print */}
+              <div className="employee-button-wrapper">
+                <button className="employee-hide-btn" onClick={handleExportExcel}>📁 Export Excel</button>
+              </div>
+              <div className="employee-button-wrapper">
+                <button className="employee-hide-btn" onClick={handlePrint}>🖨️ Print</button>
+              </div>
+              <div className="top-controls">
+                <EmployeeDirectoryButton />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -947,7 +948,7 @@ export default function EmployeeDirectory() {
                     if (startDate) payload.start_date = startDate;
                     if (endDate) payload.end_date = endDate;
 
-                    await api.post("/dtr/files/sync-all/", payload);
+                    await api.post("/files/dtr/files/sync-all/", payload);
                   }
                   fetchEmployees();
                 } catch (err) {
@@ -969,7 +970,7 @@ export default function EmployeeDirectory() {
             </button>
           </div>
           
-          <div className="employee-button-wrapper">
+           <div className="employee-button-wrapper">
             <button
               className="employee-hide-btn"
               onClick={handleFlushData}
@@ -1057,7 +1058,7 @@ export default function EmployeeDirectory() {
 
                   const paddedCode = String(updatedRow.employee_code).padStart(5, "0");
 
-                  await api.put(`/update-employee/${paddedCode}/`, payload);
+                  await api.put(`/files/update-employee/${paddedCode}/`, payload);
 
                   setEmployees((prev) =>
                     prev.map((e) => (e.id === updatedRow.id ? { ...e, ...payload } : e))

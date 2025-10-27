@@ -231,109 +231,106 @@ body::before {
   font-size: 0.75rem;
   color: #646cff;
 }
-
-/* ========== MOBILE RESPONSIVENESS ========== */
-@media (max-width: 1024px) {
-  .navbar-text h1 {
-    font-size: 1.2rem;
-  }
-
-  .navbar-text p {
-    font-size: 0.9rem;
-  }
-
-  .login-card {
-    width: 350px;
-    height: auto;
-    padding: 2rem 1.5rem;
-  }
-
-  .login-top-logo {
-    width: 250px;
-    margin-bottom: 20rem;
-  }
-
-  .login-form input,
-  .login-form button {
-    font-size: 0.95rem;
-    padding: 0.8rem;
-  }
-}
-
+/* ---------------------- Mobile Responsive ---------------------- */
 @media (max-width: 768px) {
-  .login-navbar {
-    flex-direction: column;
-    height: auto;
-    padding: 0.5rem 1rem;
-    gap: 0.3rem;
-    text-align: center;
-  }
 
-  .navbar-logo {
-    height: 60px;
-  }
-
-  .navbar-text h1 {
-    font-size: 1rem;
-  }
-
-  .navbar-text p {
-    font-size: 0.8rem;
-  }
-
+  /* Center the login container vertically and horizontally */
   .login-container {
-    margin-top: 80px;
-    margin-bottom: 80px;
-    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;       /* vertical center for the form + logo block */
+    align-items: center;           /* horizontal center */
+    height: calc(100vh - 130px);   /* full viewport minus navbar/footer */
+    margin: 0;
+    position: relative;
   }
 
+  /* Container for logo + form */
+  .login-card-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* App logo above the form */
+  .login-top-logo {
+    display: block;     
+    width: 100%;                   
+    max-width: 250px;
+    margin-bottom: 40vh;
+  }
+
+  /* Login card */
   .login-card {
     width: 100%;
     max-width: 320px;
-    padding: 1.5rem 1rem;
-    border-radius: 10px;
-  }
-
-  .login-top-logo {
-    width: 200px;
-    margin-bottom: 15rem;
-  }
-
-  .login-footer {
-    flex-direction: column;
     height: auto;
-    padding: 0.5rem 1rem;
-    font-size: 0.8rem;
+    padding: 1.5rem 1rem;
     text-align: center;
-    gap: 0.5rem;
-  }
-
-  .footer-left, 
-  .footer-right {
-    flex-direction: row;
+    box-sizing: border-box;
     justify-content: center;
-    width: 100%;
-  }
-}
-
-@media (max-width: 480px) {
-  .login-card {
-    max-width: 280px;
-    padding: 1.2rem 1rem;
+    align-items: center;
+    margin-top: 100px;
   }
 
+  /* Login title smaller */
   .login-title {
-    font-size: 1.3rem;
+    font-size: 1.2rem;
+    margin-bottom: 0.8rem;
   }
 
-  .login-form input,
+  /* Input fields */
+  .login-form input {
+    width: 100%;                    /* full width inside card */
+    box-sizing: border-box;
+    font-size: 0.9rem;
+    padding: 0.6rem;
+  }
+
+  /* Buttons */
   .login-form button {
-    font-size: 0.85rem;
-    padding: 0.7rem;
+    width: 100%;                    /* full width inside card */
+    box-sizing: border-box;
+    font-size: 0.9rem;
+    padding: 0.6rem;
   }
 
-  .login-top-logo {
-    width: 160px;
-    margin-bottom: 10rem;
+  /* Input labels */
+  .input-group label {
+    font-size: 0.75rem;
+  }
+
+  /* Navbar adjustments for mobile */
+  .login-navbar {
+    padding: 0.5rem 1rem;
+    height: 60px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between; 
+  
+  }
+
+  .navbar-logo {
+    height: 40px;
+  }
+
+  .navbar-text h1 {
+    font-size: .8rem;
+  }
+
+  .navbar-text p {
+    font-size: 0.7rem;
+  }
+
+  /* Footer adjustments */
+  .login-footer {
+    height: 60px;
+    font-size: 0.4rem;
+    flex-direction: row;
+  }
+
+  /* Body background adjustments */
+  body {
+    background-attachment: scroll; 
   }
 }

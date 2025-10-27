@@ -15,7 +15,7 @@ class ChatMessageListView(generics.ListAPIView):
 
     def get_queryset(self):
         room_name = self.kwargs["room_name"]
-        return ChatMessage.objects.filter(room=room_name).order_by("timestamp")
+        return ChatMessage.objects.filter(room__name=room_name).order_by("timestamp")
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -31,6 +31,7 @@ def get_messages(request, room_name):
 
 class IsCreatorOrReadOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
+        # Only allow creator to delete
         if request.method in permissions.SAFE_METHODS:
             return True
         return obj.created_by == request.user
@@ -40,6 +41,15 @@ class RoomViewSet(viewsets.ModelViewSet):
     serializer_class = RoomSerializer
     permission_classes = [permissions.IsAuthenticated, IsCreatorOrReadOnly]
 
+    def get_queryset(self):
+        user = self.request.user
+        # Include only public or joined rooms
+        return (
+            Room.objects.filter(participants=user)
+            .exclude(name__startswith="room_")  # hide private rooms
+            .distinct()
+        )
+    
     @action(detail=True, methods=["post"])
     def join(self, request, pk=None):
         room = get_object_or_404(Room, pk=pk)

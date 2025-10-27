@@ -268,7 +268,7 @@ export default function FileContent({ fileId, role }) {
     try {
       const token = localStorage.getItem("access_token");
 
-      const res = await api.get(`dtr/files/${fileId}/content/`, {
+      const res = await api.get(`/files/dtr/files/${fileId}/content/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -283,7 +283,7 @@ export default function FileContent({ fileId, role }) {
         }
       }
 
-      const metaRes = await api.get(`dtr/files/${fileId}/`, {
+      const metaRes = await api.get(`/files/dtr/files/${fileId}/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setFileInfo(metaRes.data);
@@ -364,7 +364,7 @@ export default function FileContent({ fileId, role }) {
       const structuredPages = preparePagesForBackend(pages);
       console.log("🕒 Auto-saving payload:", JSON.stringify({ pages: structuredPages }, null, 2));
 
-      await api.patch(`dtr/files/${fileId}/update-content/`, { pages: structuredPages })
+      await api.patch(`/files/dtr/files/${fileId}/update-content/`, { pages: structuredPages })
 
       console.log("✅ Auto-saved successfully");
     } catch (error) {
@@ -409,7 +409,7 @@ export default function FileContent({ fileId, role }) {
       const structuredPages = preparePagesForBackend(pages);
       console.log("🚀 Sending payload to backend:", JSON.stringify({ pages: structuredPages }, null, 2));
 
-      await api.patch(`dtr/files/${fileId}/update-content/`, { pages: structuredPages })
+      await api.patch(`/files/dtr/files/${fileId}/update-content/`, { pages: structuredPages })
 
       console.log("✅ Changes saved successfully");
       toast.success("Changes saved!");

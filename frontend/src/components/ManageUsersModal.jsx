@@ -20,7 +20,7 @@ export default function ManageUsersModal({
   const handleRemove = async (userId) => {
     try {
       await api.post(
-        `/chat/rooms/${roomId}/remove_user/`,
+        `/api/chat/rooms/${roomId}/remove_user/`,
         { user_id: userId },
         { headers: { Authorization: `Bearer ${currentUser.token}` } }
       );

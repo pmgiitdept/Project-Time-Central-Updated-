@@ -1,0 +1,262 @@
+/* styles/UserManualModal.css */
+.manual-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.manual-modal {
+  background: #fff;
+  color: #333;
+  border-radius: 16px;
+  padding: 2rem;
+  width: 70%;
+  max-height: 80vh;
+  max-width: 1200px;
+  height: 80vh; 
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+  font-family: "Inter", sans-serif;
+}
+
+.manual-content {
+  flex: 1;
+  overflow-y: auto; 
+  padding-right: 1rem;
+  margin-top: 0.5rem;
+}
+
+.manual-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.manual-content::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.manual-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.manual-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+  flex-shrink: 0;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  cursor: pointer;
+  color: #666;
+  transition: color 0.2s;
+}
+
+.close-btn:hover {
+  color: #e74c3c;
+}
+
+.manual-content section {
+  margin-bottom: 2rem;
+}
+
+.manual-content h3 {
+  color: #007bff;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.manual-content p,
+.manual-content li {
+  line-height: 1.7;
+  font-size: 0.98rem;
+}
+
+.manual-content ul {
+  padding-left: 1.2rem;
+  margin-top: 0.5rem;
+}
+
+.highlight {
+  background: #fff3cd;
+  padding: 0 0.3rem;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.highlight-btn {
+  background: #007bff;
+  color: #fff;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.tip-box,
+.warning-box {
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin: 1rem 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.tip-box {
+  background: #e7f4ff;
+  border-left: 4px solid #007bff;
+}
+
+.warning-box {
+  background: #fff5f5;
+  border-left: 4px solid #e74c3c;
+}
+
+.manual-img {
+  width: 100%;
+  max-width: 650px;
+  border-radius: 12px;
+  margin: 0.8rem 0 1.5rem;
+  display: block;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.manual-img:hover {
+  transform: scale(1.02);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+}
+
+.zoom-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  cursor: zoom-out;
+}
+
+.zoomed-img {
+  max-width: 90%;
+  max-height: 90%;
+  border-radius: 12px;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.5);
+}
+
+.manual-page {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+  scroll-behavior: smooth;
+}
+
+.manual-page::-webkit-scrollbar {
+  width: 6px;
+}
+.manual-page::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.manual-pagination {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+}
+
+.nav-btn {
+  background: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.3s ease;
+}
+
+.nav-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.nav-btn:hover:not(:disabled) {
+  background: #0056cc;
+}
+
+.page-indicator {
+  font-size: 0.95rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.about-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.about-logo {
+  width: 45px;
+  height: 45px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.version-badge {
+  display: inline-block;
+  background: #28a745;
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  margin-top: 0.2rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.manual-header h2 {
+  font-size: 1.2rem;
+  margin: 0;
+  color: white;
+}
+
+.manual-header {
+  background: #213547;
+  color: white;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}

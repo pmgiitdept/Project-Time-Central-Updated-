@@ -21,11 +21,13 @@ import ChatSection from "../components/ChatSections";
 import UserList from "../components/UserLists";
 import RoomList from "../components/RoomList";
 import DTRTable from "../components/DTRTable";
+import AboutModal from "../components/AboutModal";
 import EmployeeDirectory from '../components/EmployeeDirectory';
 import "../components/styles/AdminDashboard.css"; 
 import api from "../api";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
+import UploadedPDFs from "../components/UploadedPDFs";
 import { motion, AnimatePresence } from "framer-motion";
 import { UserPlus, UserMinus, PlusCircle, MinusCircle } from "lucide-react";
 
@@ -72,7 +74,11 @@ export default function AdminDashboard() {
   const [userTimeFilter, setUserTimeFilter] = useState("day");
   const [sortConfig, setSortConfig] = useState({ key: "timestamp", direction: "desc" });
 
+  const [aboutOpen, setAboutOpen] = useState(false);
+
   const role = "admin";
+
+  const [refresh, setRefresh] = useState(false);
 
   const activeThisWeek = users.filter(u => u.is_active).length;
   const inactiveUsers = users.filter(u => !u.is_active);
@@ -83,27 +89,93 @@ export default function AdminDashboard() {
   ];
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28"];
 
-  const sidebarItems = [
+  let sidebarItems = [
     { key: "dashboard", label: "Dashboard", icon: <FaTachometerAlt /> },
     { key: "files", label: "Files", icon: <FaFileAlt /> },
-    { key: "employeeDirectory",  label: "Employee Directory", icon: <FaUsers />},
-    { key: "users", label: "Users", icon: <FaUsers /> },
     { key: "audit", label: "Audit Logs", icon: <FaClipboardList /> },
-    { key: "reports", label: "Reports", icon: <FaChartBar /> },
     { key: "settings", label: "Settings", icon: <FaCog /> },
   ];
 
-  const handleNewMessage = (room, message) => {
-    setMessages((prev) => [...prev, message]);
+  // ✅ Dynamically adjust based on username
+  if (currentUser?.username === "itdept.pmgi") {
+    // IT Dept can access both Users and Employee Directory
+    sidebarItems.splice(2, 0, { key: "employeeDirectory", label: "Record Holdings", icon: <FaUsers /> });
+    sidebarItems.splice(3, 0, { key: "users", label: "Users", icon: <FaUsers /> });
+  } 
+  else if (currentUser?.username === "payroll.pmgi") {
+    // Payroll can only access Employee Directory
+    sidebarItems.splice(2, 0, { key: "employeeDirectory", label: "Record Holdings", icon: <FaUsers /> });
+  }
 
-    if (room !== roomName) {
-      setUnreadCounts((prev) => ({
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        // 1️⃣ First, check if user info is stored locally
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+          setCurrentUser(JSON.parse(storedUser));
+          return;
+        }
+
+        // 2️⃣ Otherwise, fetch from backend
+        const response = await api.get("/auth/me/");
+        setCurrentUser(response.data);
+        localStorage.setItem("user", JSON.stringify(response.data));
+      } catch (error) {
+        console.error("Error fetching current user:", error);
+        setCurrentUser(null);
+      }
+    };
+
+    fetchCurrentUser();
+  }, []);
+
+  const handleNewMessage = (room, message) => {
+    setMessages(prev => [...prev, message]);
+
+    if (message.sender?.toLowerCase() === currentUser.username?.toLowerCase()) return;
+    if (room !== "general") {
+      setUnreadCounts(prev => ({
         ...prev,
         [room]: (prev[room] || 0) + 1,
       }));
-      setHasUnread(true); 
+      setHasUnread(true);
     }
   };
+
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      setCurrentUser(null);
+      return;
+    }
+
+    api
+      .get("/auth/me/", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => {
+        setCurrentUser({ ...res.data, token });
+      })
+      .catch((err) => {
+        console.error("Auth/me failed:", err);
+        localStorage.clear();
+        setCurrentUser(null);
+      });
+  }, [setCurrentUser]);
+
+
+  useEffect(() => {
+    const fetchRooms = async () => {
+      try {
+        const res = await api.get("/chat/rooms"); 
+        setJoinedRooms(res.data);
+      } catch (err) {
+        console.error("Failed to fetch rooms:", err);
+      }
+    };
+    fetchRooms();
+  }, []);
 
   const sortedLogs = [...auditLogs].sort((a, b) => {
     if (!sortConfig.key) return 0;
@@ -179,7 +251,7 @@ export default function AdminDashboard() {
 
   const fetchFileStats = async (period = "day") => {
     try {
-      const response = await api.get(`/file-stats/?period=${period}`);
+      const response = await api.get(`/files/file-stats/?period=${period}`);
       const formatted = response.data.map(item => ({
         ...item,
         period: new Date(item.period).toLocaleDateString(), 
@@ -233,7 +305,7 @@ export default function AdminDashboard() {
 
   const fetchDashboardStats = async () => {
     try {
-      const response = await api.get("/dashboard-stats/");
+      const response = await api.get("/files/dashboard-stats/");
       setStats(response.data);
     } catch (error) {
       console.error("Error fetching stats:", error);
@@ -265,7 +337,7 @@ export default function AdminDashboard() {
 
   const fetchSettings = async () => {
     try {
-      const response = await api.get("/settings/"); 
+      const response = await api.get("/files/settings/"); 
       if (response.data.length) {
         const s = response.data[0];
         setSettings({
@@ -298,7 +370,7 @@ export default function AdminDashboard() {
           max_login_attempts: 5,
           enable_2fa: false
         };
-        const createResp = await api.post("/settings/", defaultSettings);
+        const createResp = await api.post("/files/settings/", defaultSettings);
         const s = createResp.data;
         setSettings({
           siteName: s.site_name,
@@ -350,7 +422,7 @@ export default function AdminDashboard() {
 
   const fetchAuditLogs = async () => {
     try {
-      const response = await api.get("/audit-logs/");
+      const response = await api.get("/files/audit-logs/");
 
       // console.log("Audit logs fetched:", response.data);
 
@@ -480,6 +552,12 @@ export default function AdminDashboard() {
       onCreate({ username, email, password, password2: password, role, phone_number: phoneNumber });
     };
 
+    useEffect(() => {
+      if (activeSection === "files") {
+        setRefresh((prev) => !prev);
+      }
+    }, [activeSection]);
+
     return (
       <div className="modal-overlays">
         <div className="modal">
@@ -550,19 +628,33 @@ export default function AdminDashboard() {
       <nav className="navbar">
         <div className="navbar-left">
           <img src="/src/pmgi.png" alt="Logo Left" className="navbar-logo" />
-          <h1 className="navbar-title">Admin Dashboard</h1>
+          <h1 className="navbar-title">
+            {currentUser ? `Hello, ${currentUser.username}` : "Dashboard"}
+          </h1>
         </div>
         <div className="navbar-right">
+          <button
+            className="manual-btn"
+            onClick={() => setAboutOpen(true)}
+          >
+            ℹ️ About
+          </button>
+
           <img src="/src/sgslogos.png" alt="Logo Right" className="navbar-logo" />
           <LogoutButton />
         </div>
+
+        <AboutModal
+          isOpen={aboutOpen}
+          onClose={() => setAboutOpen(false)}
+        />
       </nav>
 
       {/* Main Content */}
       <div className="dashboard-main">
         {/* Sidebar */}
         <div className={`sidebar ${sidebarOpen ? "" : "closed"}`}>
-          <h3>Admin Menu</h3>
+          <h3>Menu</h3>
           <div className="sidebar-buttons">
             {sidebarItems.map(item => (
               <button
@@ -708,13 +800,47 @@ export default function AdminDashboard() {
           {/* Files Section */}
           {activeSection === "files" && (
             <div className="tables-wrapper">
+              {/* 🔄 Optional: Refresh Button */}
+              <div
+                style={{
+                  position: "fixed",
+                  top: "100px",
+                  right: "40px",
+                }}
+              >
+                <button
+                  onClick={() => setRefresh(!refresh)}
+                  className="upload-button"
+                >
+                  🔄 Refresh DTR Standard
+                </button>
+              </div>
+              
+              <div className="divider-hybrid">
+                <span>SUMMARY FORMS</span>
+              </div>
+
+              {/* File Table + File Viewer */}
               <FileTable role={role} setSelectedFile={setSelectedFile} />
               {selectedFile && <FileContent fileId={selectedFile.id} role={role} />}
+
+              {/* 🌈 Divider before Uploaded PDFs */}
+              <div className="divider-hybrid">
+                <span>DTR REPORTS</span>
+              </div>
+
+              {/* Uploaded PDFs Section (DTRs) */}
+              <div style={{ marginTop: "2rem" }}>
+                <UploadedPDFs refreshTrigger={refresh} currentUser={currentUser}/>
+              </div>
+
+              <div className="divider-hybrid">
+              </div>
             </div>
           )}
 
           {/* Users Section */}
-          {activeSection === "users" && (
+          {activeSection === "users" && currentUser?.username === "itdept.pmgi" && (
             <motion.div
               className="users-card"
               initial={{ opacity: 0, y: 20 }}     
@@ -1396,9 +1522,6 @@ export default function AdminDashboard() {
         )}
       </AnimatePresence>
     </div>
-
-   
-
     </div>
   );
 }

@@ -1,17 +1,22 @@
-/* App.jsx */
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+// App.jsx
+import { Routes, Route } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import Login from "./components/Login.jsx";
 import ViewerDashboard from "./pages/ViewerDashboard.jsx";
 import ClientDashboard from "./pages/ClientDashboard.jsx";
 import AdminDashboard from "./pages/AdminDashboard.jsx";
 import useTokenExpiration from "./hooks/useTokenExpiration.jsx";
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import { AuthProvider } from "./context/AuthContext";
+import useAutoRefreshToken from "./hooks/useAutoRefreshToken.jsx";
+import useSessionManager from "./hooks/useSessionManager";
 
 function App() {
-  const { modalVisible, handleKeepLoggedIn, handleLogout } = useTokenExpiration();
+  const { modalVisible, handleKeepLoggedIn, handleLogout } = useSessionManager();
+  useAutoRefreshToken();
 
   return (
-    <>
+    <AuthProvider>
       {modalVisible && (
         <div className="modal-overlay">
           <div className="modal">
@@ -23,17 +28,42 @@ function App() {
         </div>
       )}
 
-      <Router>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/viewer" element={<ViewerDashboard />} />
-          <Route path="/client" element={<ClientDashboard />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="*" element={<Login />} />
-        </Routes>
-        <ToastContainer position="top-right" autoClose={3000} />
-      </Router>
-    </>
+      <Routes>
+        {/* Public route */}
+        <Route path="/login" element={<Login />} />
+
+        {/* Protected routes */}
+        <Route
+          path="/viewer"
+          element={
+            <ProtectedRoute>
+              <ViewerDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/client"
+          element={
+            <ProtectedRoute>
+              <ClientDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Default fallback */}
+        <Route path="*" element={<Login />} />
+      </Routes>
+
+      <ToastContainer position="top-right" autoClose={3000} />
+    </AuthProvider>
   );
 }
 

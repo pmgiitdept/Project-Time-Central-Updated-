@@ -1,8 +1,8 @@
 #files/views.py
 from rest_framework import viewsets, permissions, status
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
-from .models import File, AuditLog, SystemSettings, EmployeeDirectory, DTRFile, DTREntry, Employee
-from .serializers import FileSerializer, FileStatusSerializer, AuditLogSerializer, SystemSettingsSerializer, EmployeeDirectorySerializer, DTREntrySerializer, DTRFileSerializer, EmployeeSerializer
+from .models import File, AuditLog, SystemSettings, EmployeeDirectory, DTRFile, DTREntry, Employee, PDFFile
+from .serializers import FileSerializer, FileStatusSerializer, AuditLogSerializer, SystemSettingsSerializer, EmployeeDirectorySerializer, DTREntrySerializer, DTRFileSerializer, EmployeeSerializer, PDFFileSerializer
 from accounts.permissions import ReadOnlyForViewer, IsOwnerOrAdmin, CanEditStatus, IsAdmin
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
@@ -16,7 +16,7 @@ from django.db.models import Count, Q
 from django.db.models.functions import TruncDay, TruncWeek, TruncMonth
 from .utils import log_action, get_client_ip
 from django.core.exceptions import ValidationError
-from .utils import send_rejection_sms 
+from .utils import send_rejection_sms
 import pandas as pd
 from decimal import Decimal, InvalidOperation
 from datetime import timedelta
@@ -533,9 +533,9 @@ class FileViewSet(viewsets.ModelViewSet):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def dashboard_stats(request):
-    files_pending = File.objects.filter(status="pending").count()
-    files_rejected = File.objects.filter(status="rejected").count()
-    files_approved = File.objects.filter(status="verified").count()
+    files_pending = DTRFile.objects.filter(status="pending").count()
+    files_rejected = DTRFile.objects.filter(status="rejected").count()
+    files_approved = DTRFile.objects.filter(status="verified").count()
     active_users = User.objects.filter(is_active=True).count()
     
     return Response({
@@ -776,14 +776,32 @@ def delete_employee(request, employee_code):
     employee_code_str = str(employee_code)
     padded_code = employee_code_str.zfill(5)
 
-    try:
-        employee = EmployeeDirectory.objects.get(
-            Q(employee_code=padded_code) | Q(employee_code=employee_code_str)
+    # Fetch possible matches safely
+    matches = EmployeeDirectory.objects.filter(
+        Q(employee_code=padded_code) | Q(employee_code=employee_code_str)
+    )
+
+    count = matches.count()
+    if count == 0:
+        return Response(
+            {"detail": "Employee not found."},
+            status=status.HTTP_404_NOT_FOUND
         )
-        employee.delete()
-        return Response({"detail": "Employee deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
-    except EmployeeDirectory.DoesNotExist:
-        return Response({"detail": "Employee not found."}, status=status.HTTP_404_NOT_FOUND)
+    elif count > 1:
+        return Response(
+            {"detail": f"Duplicate entries found for employee code {employee_code_str}. Please resolve duplicates first."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Proceed to delete the single match
+    employee = matches.first()
+    employee.delete()
+
+    return Response(
+        {"detail": "Employee deleted successfully."},
+        status=status.HTTP_200_OK
+    )
+
 
 @api_view(['PUT'])
 @permission_classes([IsAdminUser])
@@ -864,55 +882,74 @@ class DTRFileViewSet(viewsets.ModelViewSet):
         dtr_file.entries.all().delete()
 
         try:
-            df = pd.read_excel(file_path, header=None)
+            # 🧠 Read ALL sheets in the Excel file
+            sheets = pd.read_excel(file_path, sheet_name=None, header=None)
 
-            start_date_val = df.iat[8, 3] if not pd.isna(df.iat[8, 3]) else None
-            end_date_val = df.iat[9, 3] if not pd.isna(df.iat[9, 3]) else None
+            parsed_sheets = 0
+            for sheet_name, df in sheets.items():
+                if df.empty:
+                    continue  # skip empty sheets
 
-            dtr_file.start_date = pd.to_datetime(start_date_val).date() if start_date_val else None
-            dtr_file.end_date = pd.to_datetime(end_date_val).date() if end_date_val else None
-            dtr_file.save()
+                parsed_sheets += 1
+                print(f"📄 Parsing sheet: {sheet_name}")
 
-            employee_df = df.iloc[14:, :]
+                # Extract date range
+                start_date_val = df.iat[8, 3] if not pd.isna(df.iat[8, 3]) else None
+                end_date_val = df.iat[9, 3] if not pd.isna(df.iat[9, 3]) else None
 
-            for _, row in employee_df.iterrows():
-                name = row[2] 
-                emp_no = row[3]  
+                dtr_file.start_date = pd.to_datetime(start_date_val).date() if start_date_val else None
+                dtr_file.end_date = pd.to_datetime(end_date_val).date() if end_date_val else None
+                dtr_file.save()
 
-                if pd.isna(name) or pd.isna(emp_no):
-                    continue
+                # Employees start from row 15 (index 14)
+                employee_df = df.iloc[14:, :]
 
-                emp_code = str(emp_no).strip()
-                if emp_code.startswith("PM"):
-                    emp_code = emp_code[2:]
-                emp_code = "".join(filter(str.isdigit, emp_code))
+                for _, row in employee_df.iterrows():
+                    name = row[2]
+                    emp_no = row[3]
 
-                daily_data = {}
-                if dtr_file.start_date:
-                    for idx, col in enumerate(range(7, 23)):  # H → W
-                        day = dtr_file.start_date + timedelta(days=idx)
-                        val = row[col]
-                        daily_data[str(day)] = None if pd.isna(val) else val
+                    if pd.isna(name) or pd.isna(emp_no):
+                        continue
 
-                DTREntry.objects.create(
-                    dtr_file=dtr_file,
-                    full_name=safe_string(name),
-                    employee_no=emp_code,
-                    position=safe_string(row[4]),  # E
-                    shift=safe_string(row[5]),     # F
-                    time=safe_string(row[6]),      # G
-                    daily_data=daily_data,
-                    total_days=safe_number(row[23]),         # X
-                    total_hours=safe_number(row[24]),        # Y
-                    undertime_minutes=safe_number(row[25]),  # Z
-                    regular_ot=safe_number(row[26]),         # AA
-                    legal_holiday=safe_number(row[27]),      # AB
-                    unworked_reg_holiday=safe_number(row[28]), # AC
-                    special_holiday=safe_number(row[29]),    # AD
-                    night_diff=safe_number(row[30]),         # AE
+                    emp_code = str(emp_no).strip()
+                    if emp_code.startswith("PM"):
+                        emp_code = emp_code[2:]
+                    emp_code = "".join(filter(str.isdigit, emp_code))
+
+                    # Generate daily data mapping (H → W)
+                    daily_data = {}
+                    if dtr_file.start_date:
+                        for idx, col in enumerate(range(7, 23)):
+                            day = dtr_file.start_date + timedelta(days=idx)
+                            val = row[col]
+                            daily_data[str(day)] = None if pd.isna(val) else val
+
+                    # Save DTR entry
+                    DTREntry.objects.create(
+                        dtr_file=dtr_file,
+                        full_name=safe_string(name),
+                        employee_no=emp_code,
+                        position=safe_string(row[4]),   # E
+                        shift=safe_string(row[5]),      # F
+                        time=safe_string(row[6]),       # G
+                        daily_data=daily_data,
+                        total_days=safe_number(row[23]),         # X
+                        total_hours=safe_number(row[24]),        # Y
+                        undertime_minutes=safe_number(row[25]),  # Z
+                        regular_ot=safe_number(row[26]),         # AA
+                        legal_holiday=safe_number(row[27]),      # AB
+                        unworked_reg_holiday=safe_number(row[28]), # AC
+                        special_holiday=safe_number(row[29]),    # AD
+                        night_diff=safe_number(row[30]),         # AE
+                    )
+
+            if parsed_sheets == 0:
+                return Response(
+                    {"message": "No valid sheets found to parse."},
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            return Response({"message": "DTR file parsed successfully."})
+            return Response({"message": f"Parsed {parsed_sheets} sheet(s) successfully."})
 
         except Exception as e:
             traceback.print_exc()
@@ -928,6 +965,22 @@ class DTRFileViewSet(viewsets.ModelViewSet):
             "end_date": dtr_file.end_date,
             "rows": serializer.data
         })
+    
+    @action(detail=True, methods=["get"], url_path="download")
+    def download(self, request, pk=None):
+        file = self.get_object()
+        settings = SystemSettings.objects.first()
+        
+        if settings.require_verification and file.status != "verified":
+            return Response({"detail": "File must be verified before download"}, status=403)
+        
+        if settings.log_downloads:
+            log_action(request.user, f"downloaded file {file.file.name}", ip_address=get_client_ip(request))
+        
+        try:
+            return FileResponse(file.file.open(), as_attachment=True, filename=file.file.name)
+        except FileNotFoundError:
+            raise Http404
 
     @action(detail=False, methods=["post"], url_path="sync-all")
     def sync_all_files(self, request):
@@ -957,6 +1010,13 @@ class DTRFileViewSet(viewsets.ModelViewSet):
 
         aggregated = {}
         for dtr_file in dtr_files:
+            uploader = dtr_file.uploaded_by 
+            project_name = (
+                f"{uploader.first_name} {uploader.last_name}".strip()
+                if uploader and (uploader.first_name or uploader.last_name)
+                else uploader.username if uploader else "Unknown Project"
+            )
+
             for entry in dtr_file.entries.all():
                 code = str(entry.employee_no).zfill(5) if entry.employee_no else None
                 name = entry.full_name.strip() if entry.full_name else None
@@ -966,6 +1026,7 @@ class DTRFileViewSet(viewsets.ModelViewSet):
                 if code not in aggregated:
                     aggregated[code] = {
                         "employee_name": name,
+                        "project": project_name,
                         "total_hours": 0,
                         "undertime": 0,
                         "ot_regular": 0,
@@ -1003,13 +1064,22 @@ class DTRFileViewSet(viewsets.ModelViewSet):
                 end_str = data["date_covered_end"].strftime("%b %d, %Y")
                 date_covered = f"{start_str} → {end_str}"
 
-            emp, is_created = EmployeeDirectory.objects.update_or_create(
-                employee_code=code,
-                defaults={
-                    **{k: v for k, v in data.items() if k not in ["date_covered_start", "date_covered_end"]},
-                    "date_covered": date_covered,
-                },
-            )
+            # 🔧 Handle duplicates safely
+            matches = EmployeeDirectory.objects.filter(employee_code=code)
+            if matches.count() > 1:
+                keep = matches.first()
+                matches.exclude(id=keep.id).delete()
+                emp = keep
+                is_created = False
+            else:
+                emp, is_created = EmployeeDirectory.objects.update_or_create(
+                    employee_code=code,
+                    defaults={
+                        **{k: v for k, v in data.items() if k not in ["date_covered_start", "date_covered_end"]},
+                        "date_covered": date_covered,
+                    },
+                )
+
             if is_created:
                 created += 1
             else:
@@ -1018,7 +1088,8 @@ class DTRFileViewSet(viewsets.ModelViewSet):
         return Response({
             "detail": f"Synced {created} new, {updated} updated (verified only)."
         })
-    
+
+        
     @action(detail=True, methods=["post"], url_path="update-rows")
     def update_rows(self, request, pk=None):
         dtr_file = self.get_object()
@@ -1066,11 +1137,15 @@ class DTREntryViewSet(viewsets.ModelViewSet):
 
         normalized = code.lstrip("0").upper()
 
-        qs = self.get_queryset().filter(
-            Q(employee_no=code) | 
-            Q(employee_no=normalized) | 
-            Q(employee_no__endswith=normalized),
-            dtr_file__status="verified"   
+        qs = (
+            self.get_queryset()
+            .filter(
+                Q(employee_no=code)
+                | Q(employee_no=normalized)
+                | Q(employee_no__endswith=normalized),
+                dtr_file__status="verified",
+            )
+            .select_related("dtr_file__uploaded_by")  # ✅ important for performance
         )
 
         if not qs.exists():
@@ -1079,16 +1154,31 @@ class DTREntryViewSet(viewsets.ModelViewSet):
         grouped = {}
         for entry in qs:
             dtr_file = entry.dtr_file
+
+            # ✅ Derive project name using same logic as sync_all_files
+            uploader = getattr(dtr_file, "uploaded_by", None)
+            project_name = (
+                f"{uploader.first_name} {uploader.last_name}".strip()
+                if uploader and (uploader.first_name or uploader.last_name)
+                else uploader.username if uploader else "Unknown Project"
+            )
+
             key = f"{dtr_file.start_date} → {dtr_file.end_date}"
+
             if key not in grouped:
                 grouped[key] = {
+                    "project": project_name,  # ✅ include here
                     "start_date": dtr_file.start_date,
                     "end_date": dtr_file.end_date,
-                    "rows": []
+                    "rows": [],
                 }
-            grouped[key]["rows"].append(DTREntrySerializer(entry).data)
+
+            serialized_entry = DTREntrySerializer(entry).data
+            serialized_entry["project"] = project_name  # ✅ ensure it’s attached per row too
+            grouped[key]["rows"].append(serialized_entry)
 
         return Response(list(grouped.values()))
+
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
@@ -1365,3 +1455,31 @@ def restore_employee_directory(request):
         return Response({
             "detail": f"Restore failed: {str(e)}"
         }, status=400)
+    
+class PDFFileViewSet(viewsets.ModelViewSet):
+    serializer_class = PDFFileSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_superuser:
+            return PDFFile.objects.all().order_by("-uploaded_at")
+        return PDFFile.objects.filter(uploaded_by=user).order_by("-uploaded_at")
+
+    @action(detail=True, methods=["put"], url_path="update-parsed")
+    def update_parsed(self, request, pk=None):
+        """Allow admins to edit and save parsed PDF data."""
+        pdf = self.get_object()
+
+        # ✅ Only superusers (admin role) can modify
+        if not request.user.is_superuser:
+            return Response({"detail": "Forbidden"}, status=status.HTTP_403_FORBIDDEN)
+
+        parsed_pages = request.data.get("parsed_pages")
+        if not parsed_pages:
+            return Response({"error": "Missing parsed_pages data"}, status=status.HTTP_400_BAD_REQUEST)
+
+        pdf.parsed_pages = parsed_pages
+        pdf.save()
+        return Response({"message": "✅ Parsed data updated successfully!"})
+        

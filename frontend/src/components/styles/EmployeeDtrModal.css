@@ -71,7 +71,6 @@
 .dtr-table th:nth-child(1){
   position: sticky;
   left: 0;
-  z-index: 3;
   background: linear-gradient(135deg, #41099b, #7528cc);
   font-weight: bold;
   min-width: 200px;
@@ -89,7 +88,6 @@
 .dtr-table th:nth-child(2){
   position: sticky;
   left: 210px; 
-  z-index: 3;
   background: linear-gradient(135deg, #41099b, #7528cc);
   min-width: 130px;
   font-weight: bold;
@@ -147,4 +145,14 @@
   font-size: 0.95rem;
   margin-bottom: 0.75rem;
   color: #555;
+}
+
+.dtr-modal {
+  backdrop-filter: blur(2px);
+  animation: fadeIn 0.25s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }

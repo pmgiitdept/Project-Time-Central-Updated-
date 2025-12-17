@@ -204,7 +204,7 @@ export default function DTRTable({ role , fileId}) {
   ];
 
   // Only show Edit column for this username
-  const canEditRow = currentUser?.username === "operations.pmgi";
+  const canEditRow = currentUser?.username === "operations.pmgi" || currentUser?.username === "operations.hk" || currentUser?.username === "operations.gl";
     // Add this new state near your other modals:
   const [isFullTableOpen, setIsFullTableOpen] = useState(false);
 
@@ -293,18 +293,18 @@ export default function DTRTable({ role , fileId}) {
           <h3 className="content-title">Summary Forms</h3>
 
           {/* 🔍 Search Bar */}
-<div className="search-bar">
-  <input
-    type="text"
-    placeholder="Search employee, position, or date..."
-    value={searchTerm}
-    onChange={(e) => setSearchTerm(e.target.value)}
-    className="search-input"
-  />
-  {searchTerm && (
-    <button onClick={() => setSearchTerm("")} className="clear-btn">✖</button>
-  )}
-</div>
+          <div className="search-bar">
+            <input
+              type="text"
+              placeholder="Search employee, position, or date..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="search-input"
+            />
+            {searchTerm && (
+              <button onClick={() => setSearchTerm("")} className="clear-btn">✖</button>
+            )}
+          </div>
 
           <div className="table-container">
             <table className="dtr-table">
@@ -520,18 +520,18 @@ export default function DTRTable({ role , fileId}) {
             </div>
 
             {/* 🔍 Search Bar */}
-<div className="search-bar">
-  <input
-    type="text"
-    placeholder="Search employee, position, or date..."
-    value={searchTerm}
-    onChange={(e) => setSearchTerm(e.target.value)}
-    className="search-input"
-  />
-  {searchTerm && (
-    <button onClick={() => setSearchTerm("")} className="clear-btn">✖</button>
-  )}
-</div>
+            <div className="search-bar">
+              <input
+                type="text"
+                placeholder="Search employee, position, or date..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="search-input"
+              />
+              {searchTerm && (
+                <button onClick={() => setSearchTerm("")} className="clear-btn">✖</button>
+              )}
+            </div>
 
             <div className="full-table-container">
               <table className="dtr-table full-view">

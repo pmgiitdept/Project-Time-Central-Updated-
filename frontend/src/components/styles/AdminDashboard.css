@@ -75,24 +75,63 @@
 
 .sidebar-toggle {
   position: absolute;
-  top: 1rem; 
+  top: 1rem;
   left: 290px;
-  width: 40px;
-  height: 40px;
-  background: #007bff;
-  color: white;
-  border-radius: 6px;
+  width: 44px;
+  height: 44px;
+  z-index: 900;
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
   cursor: pointer;
+
   display: flex;
-  align-items: center;
+  flex-direction: column;
   justify-content: center;
-  transition: left 0.3s ease, transform 0.3s ease;
+  align-items: center;
+
+  gap: 5px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.25);
+}
+
+.sidebar-toggle:hover {
+  background: linear-gradient(135deg, #0069d9, #004c9b);
+  transform: scale(1.08) rotate(5deg);
+  box-shadow: 0 6px 18px rgba(0, 123, 255, 0.35);
 }
 
 .sidebar-toggle:focus,
 .sidebar-toggle:active {
   outline: none;
-  box-shadow: none; 
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.4);
+  transform: scale(0.95);
+}
+
+/* Burger lines */
+.burger-line {
+  width: 20px;
+  height: 3px;
+  background-color: #fff;
+  border-radius: 2px;
+  transition: all 0.5s ease;
+}
+
+/* Morph animation when open */
+.sidebar-toggle.open .burger-line:nth-child(1) {
+  transform: rotate(45deg) translate(5px, 5px);
+  width: 22px;
+}
+
+.sidebar-toggle.open .burger-line:nth-child(2) {
+  opacity: 0;
+  transform: translateX(-10px);
+}
+
+.sidebar-toggle.open .burger-line:nth-child(3) {
+  transform: rotate(-45deg) translate(5px, -5px);
+  width: 22px;
 }
 
 .dashboard-content {
@@ -1158,10 +1197,9 @@
   width: 100%;
   margin: 2rem 0;
   text-align: center;
-  isolation: isolate; /* ensures glow effects stay within bounds */
+  isolation: isolate; 
 }
 
-/* Gradient Line */
 .divider-hybrid::before,
 .divider-hybrid::after {
   content: "";
@@ -1177,8 +1215,6 @@
   transition: all 0.4s ease;
 }
 
-
-/* Label Styling */
 .divider-hybrid span {
   padding: 0.4rem 1.2rem;
   margin: 0 0.5rem;
@@ -1196,7 +1232,6 @@
   transition: all 0.3s ease;
 }
 
-/* Subtle hover interaction */
 .divider-hybrid span:hover {
   color: #0056b3;
   background: linear-gradient(145deg, #e9f2ff, #ffffff);
@@ -1206,50 +1241,78 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 
-/* ================= SAFE MOBILE ADJUSTMENTS ================= */
-@media (max-width: 767px) {
-  body {
-    font-size: 14px;
-  }
+.charts-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-top: 2rem;
+}
 
-  .dashboard-main,
-  .dashboard-content,
-  .cards,
-  .charts-section,
-  .audit-cards,
-  .settings-container,
-  .additional-content {
-    flex-wrap: wrap;
-    grid-template-columns: 1fr !important;
-  }
+.enhanced-card {
+  background: #ffffff;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
 
-  .card,
-  .chart-card {
-    flex: 1 1 100%;
-    min-width: unset;
-    max-width: 100%;
-  }
+.enhanced-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+}
 
-  .users-table-wrapper,
-  .audit-table-wrapper {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-  .users-table,
-  .audit-table {
-    min-width: 600px;
-  }
+.enhanced-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 3px solid transparent;
+  border-image: linear-gradient(90deg, #007bff, #00c6ff);
+  border-image-slice: 1;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+}
 
-  .modal {
-    width: 95%;
-    max-height: 90vh;
-    overflow-y: auto;
-  }
+.chart-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin: 0;
+}
 
-  .chat-popup {
-    width: 95%;
-    max-height: 70vh;
-    right: 10px;
-    bottom: 80px;
-  }
+.chart-subtitle {
+  color: #555;
+  font-size: 0.9rem;
+  margin-top: 0.3rem;
+  max-width: 90%;
+}
+
+.filters {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filters-label {
+  font-size: 0.9rem;
+  color: #444;
+  font-weight: 500;
+}
+
+.filters-select {
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 0.9rem;
+  cursor: pointer;
+  background: #f7fafc;
+  transition: all 0.2s ease;
+}
+
+.filters-select:hover {
+  border-color: #007bff;
+}
+
+.filters-select:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 }

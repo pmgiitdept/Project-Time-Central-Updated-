@@ -1122,6 +1122,50 @@ class DTRFileViewSet(viewsets.ModelViewSet):
             entry.save()
 
         return Response({"message": "DTR entries updated successfully!"}, status=status.HTTP_200_OK)
+    
+    @action(detail=False, methods=["post"], url_path="manual")
+    def manual(self, request):
+        data = request.data
+
+        start_date = pd.to_datetime(data.get("start_date")).date()
+        end_date = pd.to_datetime(data.get("end_date")).date()
+        rows = data.get("rows", [])
+
+        if not rows:
+            return Response({"detail": "No rows provided"}, status=400)
+
+        # 1️⃣ Create DTRFile (same model Excel uses)
+        dtr_file = DTRFile.objects.create(
+            uploaded_by=request.user,
+            start_date=start_date,
+            end_date=end_date,
+            status="pending",  # same lifecycle
+        )
+
+        # 2️⃣ Create DTREntry rows (same fields parse() fills)
+        for row in rows:
+            DTREntry.objects.create(
+                dtr_file=dtr_file,
+                full_name=row.get("full_name"),
+                employee_no=row.get("employee_no"),
+                position=row.get("position"),
+                shift=row.get("shift"),
+                time=row.get("time"),
+                daily_data=row.get("daily_data", {}),
+                total_days=row.get("total_days"),
+                total_hours=row.get("total_hours"),
+                undertime_minutes=row.get("undertime_minutes"),
+                regular_ot=row.get("regular_ot"),
+                legal_holiday=row.get("legal_holiday"),
+                unworked_reg_holiday=row.get("unworked_reg_holiday"),
+                special_holiday=row.get("special_holiday"),
+                night_diff=row.get("night_diff"),
+            )
+
+        return Response(
+            {"message": "Manual DTR created successfully", "id": dtr_file.id},
+            status=201
+        )
 
 class DTREntryViewSet(viewsets.ModelViewSet):
     queryset = DTREntry.objects.all().order_by("full_name")
@@ -1482,4 +1526,3 @@ class PDFFileViewSet(viewsets.ModelViewSet):
         pdf.parsed_pages = parsed_pages
         pdf.save()
         return Response({"message": "✅ Parsed data updated successfully!"})
-        

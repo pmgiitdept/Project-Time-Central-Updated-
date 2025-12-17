@@ -251,14 +251,65 @@ export default function AdminDashboard() {
 
   const fetchFileStats = async (period = "day") => {
     try {
-      const response = await api.get(`/files/file-stats/?period=${period}`);
-      const formatted = response.data.map(item => ({
-        ...item,
-        period: new Date(item.period).toLocaleDateString(), 
-      }));
-      setFileStats(formatted);
-    } catch (error) {
-      console.error("Error fetching file stats:", error);
+      const token = localStorage.getItem("access_token");
+      const res = await api.get("/files/dtr/files/", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const files = Array.isArray(res.data.results) ? res.data.results : res.data;
+
+      // Helper: Format date based on selected period
+      const formatDate = (dateStr) => {
+        if (!dateStr) return "Unknown";
+
+        // Parse as UTC date to avoid timezone issues
+        const date = new Date(dateStr);
+        if (isNaN(date)) return "Unknown";
+
+        switch (period) {
+          case "day":
+            return `${date.getUTCMonth() + 1}/${date.getUTCDate()}/${date.getUTCFullYear()}`; // MM/DD/YYYY
+          case "week":
+            const weekStart = new Date(date);
+            const weekEnd = new Date(date);
+            weekEnd.setUTCDate(weekStart.getUTCDate() + 6);
+            return `${weekStart.getUTCMonth() + 1}/${weekStart.getUTCDate()} - ${weekEnd.getUTCMonth() + 1}/${weekEnd.getUTCDate()}`;
+          case "month":
+            return date.toLocaleDateString("en-US", { month: "short", year: "numeric" }); // Oct 2025
+          case "year":
+            return date.getFullYear().toString();
+          default:
+            return "Unknown";
+        }
+      };
+
+      // Group files by formatted date
+      const grouped = {};
+      files.forEach((file) => {
+        const periodKey = formatDate(file.uploaded_at);
+        const status = file.status?.toLowerCase() || "unknown";
+
+        if (!grouped[periodKey]) {
+          grouped[periodKey] = { period: periodKey, verified: 0, pending: 0, rejected: 0 };
+        }
+
+        if (status === "verified") grouped[periodKey].verified++;
+        else if (status === "pending") grouped[periodKey].pending++;
+        else if (status === "rejected") grouped[periodKey].rejected++;
+      });
+
+      const formattedStats = Object.values(grouped).sort(
+        (a, b) => new Date(a.period) - new Date(b.period)
+      );
+
+      setFileStats(
+        formattedStats.length > 0
+          ? formattedStats
+          : [{ period: "No Data", pending: 0, verified: 0, rejected: 0 }]
+      );
+    } catch (err) {
+      console.error("❌ Failed to load file stats:", err);
+      toast.error("Failed to load file stats");
     }
   };
 
@@ -670,7 +721,15 @@ export default function AdminDashboard() {
         </div>
 
         {/* Sidebar toggle */}
-        <button className="sidebar-toggle" onClick={() => setSidebarOpen(prev => !prev)}>➤</button>
+        <button
+          className={`sidebar-toggle ${sidebarOpen ? "open" : ""}`}
+          onClick={() => setSidebarOpen((prev) => !prev)}
+          aria-label="Toggle Sidebar"
+        >
+          <span className="burger-line"></span>
+          <span className="burger-line"></span>
+          <span className="burger-line"></span>
+        </button>
 
         {/* Dashboard Content */}
         <div className="dashboard-content">
@@ -722,10 +781,17 @@ export default function AdminDashboard() {
               </div>
 
               <div className="charts-section">
-                {/* Files Overview Chart */}
-                <div className="chart-card">
-                  <div className="chart-header">
-                    <h3>Files Overview</h3>
+                {/* ================= FILES OVERVIEW ================= */}
+                <div className="chart-card enhanced-card">
+                  <div className="chart-header enhanced-header">
+                    <div>
+                      <h3 className="chart-title">
+                        📂 Files Overview
+                      </h3>
+                      <p className="chart-subtitle">
+                        Track the number of <strong>Verified</strong>, <strong>Pending</strong>, and <strong>Rejected</strong> files over time.
+                      </p>
+                    </div>
                     <div className="filters">
                       <label className="filters-label">View By:</label>
                       <select
@@ -743,31 +809,42 @@ export default function AdminDashboard() {
                       </select>
                     </div>
                   </div>
-                  <ResponsiveContainer width="100%" height={250}>
+
+                  <ResponsiveContainer width="100%" height={280}>
                     <LineChart data={fileStats}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="period" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Line type="monotone" dataKey="pending" stroke="#f6ad55" />
-                      <Line type="monotone" dataKey="verified" stroke="#48bb78" />
-                      <Line type="monotone" dataKey="rejected" stroke="#c53636ff" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                      <XAxis dataKey="period" tick={{ fontSize: 12 }} />
+                      <YAxis tick={{ fontSize: 12 }} />
+                      <Tooltip
+                        contentStyle={{ background: "#fff", borderRadius: "10px", border: "1px solid #ddd" }}
+                        labelStyle={{ fontWeight: "bold" }}
+                      />
+                      <Legend verticalAlign="bottom" height={36} />
+                      <Line type="monotone" dataKey="pending" stroke="#f6ad55" strokeWidth={3} dot={{ r: 4 }} name="Pending Files" />
+                      <Line type="monotone" dataKey="verified" stroke="#48bb78" strokeWidth={3} dot={{ r: 4 }} name="Verified Files" />
+                      <Line type="monotone" dataKey="rejected" stroke="#e53e3e" strokeWidth={3} dot={{ r: 4 }} name="Rejected Files" />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
 
-                {/* Users Overview Chart */}
-                <div className="chart-card">
-                  <div className="chart-header">
-                    <h3>Users Overview</h3>
+                {/* ================= USERS OVERVIEW ================= */}
+                <div className="chart-card enhanced-card">
+                  <div className="chart-header enhanced-header">
+                    <div>
+                      <h3 className="chart-title">
+                        👥 Users Overview
+                      </h3>
+                      <p className="chart-subtitle">
+                        Visualize the number of <strong>active users</strong> in your system based on the selected time period.
+                      </p>
+                    </div>
                     <div className="filters">
                       <label className="filters-label">View By:</label>
                       <select
                         value={userTimeFilter}
                         onChange={(e) => {
                           setUserTimeFilter(e.target.value);
-                          fetchUserStats(e.target.value); 
+                          fetchUserStats(e.target.value);
                         }}
                         className="filters-select"
                       >
@@ -778,14 +855,18 @@ export default function AdminDashboard() {
                       </select>
                     </div>
                   </div>
-                  <ResponsiveContainer width="100%" height={250}>
+
+                  <ResponsiveContainer width="100%" height={280}>
                     <BarChart data={userStats}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="period" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Bar dataKey="active" fill="#4299e1" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                      <XAxis dataKey="period" tick={{ fontSize: 12 }} />
+                      <YAxis tick={{ fontSize: 12 }} />
+                      <Tooltip
+                        contentStyle={{ background: "#fff", borderRadius: "10px", border: "1px solid #ddd" }}
+                        labelStyle={{ fontWeight: "bold" }}
+                      />
+                      <Legend verticalAlign="bottom" height={36} />
+                      <Bar dataKey="active" fill="#3182ce" barSize={40} radius={[8, 8, 0, 0]} name="Active Users" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -806,6 +887,7 @@ export default function AdminDashboard() {
                   position: "fixed",
                   top: "100px",
                   right: "40px",
+                  zIndex: 500,
                 }}
               >
                 <button
@@ -1409,7 +1491,7 @@ export default function AdminDashboard() {
               )}
             </motion.button>
 
-            <motion.button
+            {/* <motion.button
               key="roomlist-toggle"
               className="roomlist-floating-toggle"
               onClick={() => setShowRooms(prev => !prev)}
@@ -1428,7 +1510,7 @@ export default function AdminDashboard() {
                   <PlusCircle size={18} /> Show Rooms
                 </span>
               )}
-            </motion.button>
+            </motion.button>*/}
           </>
         )}
       </AnimatePresence>
@@ -1445,7 +1527,7 @@ export default function AdminDashboard() {
           >
             <div className="chat-container">
               {/* RoomList */}
-              <AnimatePresence>
+              {/*<AnimatePresence>
                 {showRooms && (
                   <motion.div
                     key="roomlist"
@@ -1473,7 +1555,7 @@ export default function AdminDashboard() {
 
                   </motion.div>
                 )}
-              </AnimatePresence>
+              </AnimatePresence>*/}
 
               {/* UserList */}
               <AnimatePresence>

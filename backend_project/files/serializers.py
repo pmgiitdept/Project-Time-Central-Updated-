@@ -90,6 +90,7 @@ class DTRFileSerializer(serializers.ModelSerializer):
             "filename",
             "uploaded_at",
             "status",
+            "rejection_reason",
             "start_date",
             "end_date",
         ]

@@ -402,7 +402,6 @@
   box-shadow: none; 
 }
 
-/* ========== MOBILE RESPONSIVENESS ========== */
 @media (max-width: 768px) {
   .file-content-container {
     padding: 1rem;

@@ -49,6 +49,20 @@ export default function UploadedPDFs({ refreshTrigger , currentUser}) {
 
   const toggleCollapse = () => setIsCollapsed(!isCollapsed);
 
+  const handleDeletePDF = async (pdfId) => {
+    const confirmed = window.confirm("Are you sure you want to delete this PDF?");
+    if (!confirmed) return;
+
+    try {
+      await api.delete(`/files/pdfs/${pdfId}/`);
+      setPdfFiles(prev => prev.filter(p => p.id !== pdfId));
+      alert("PDF deleted successfully!");
+    } catch (err) {
+      console.error("Failed to delete PDF:", err);
+      alert("Failed to delete the PDF. Please try again.");
+    }
+  };
+
   return (
     <div className="dashboard-layout">
       {/* Left sidebar for PDFs */}
@@ -104,6 +118,20 @@ export default function UploadedPDFs({ refreshTrigger , currentUser}) {
                       >
                         📄 View PDF File
                       </button>
+                      {/* Delete Button - Only Visible to Admin */}
+                      {currentUser?.role === "admin" && (
+                        <button
+                          onClick={() => handleDeletePDF(pdf.id)}
+                          className="upload-button delete-btn"
+                          style={{
+                            background: "#e63946",
+                            color: "white",
+                            marginLeft: "0.5rem",
+                          }}
+                        >
+                          🗑️ Delete
+                        </button>
+                      )}
                     </div>
                   </motion.div>
                 ))}

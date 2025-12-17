@@ -452,9 +452,6 @@
   transition: all 0.2s ease-in-out;
 }
 
-/**************************************************
- * Employee Top Bar Layout
- **************************************************/
 .employee-top-bar {
   display: flex;
   flex-direction: column;

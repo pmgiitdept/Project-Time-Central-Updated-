@@ -113,6 +113,7 @@ class DTRFile(models.Model):
     start_date = models.DateField(blank=True, null=True)
     end_date = models.DateField(blank=True, null=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
+    rejection_reason = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return f"DTR: {self.file.name}"

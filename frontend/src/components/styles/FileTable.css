@@ -290,8 +290,8 @@
 
 .table-scroll-container {
   width: 100%;
-  overflow-x: auto;   /* Enables horizontal scroll */
-  overflow-y: hidden; /* Prevent vertical scroll bar */
+  overflow-x: auto;   
+  overflow-y: hidden; 
   margin-bottom: 1rem;
 }
 
@@ -383,11 +383,10 @@
   color: #555;
 }
 
-/* ========== MOBILE RESPONSIVENESS ========== */
 @media (max-width: 768px) {
   .file-table-wrapper {
     flex-direction: column;
-    gap: 1rem; /* spacing between sections */
+    gap: 1rem; 
   }
 
   .file-table-left,
@@ -419,12 +418,12 @@
 
   .date-range .date-inputs input {
     width: 100%;
-    box-sizing: border-box; /* prevent overflow */
+    box-sizing: border-box; 
   }
 
   .file-table {
     width: 100%;
-    overflow-x: auto; /* allow horizontal scroll if table is wide */
+    overflow-x: auto; 
   }
 
   .file-table th,
@@ -489,12 +488,10 @@
     padding: 0.5rem 0.75rem;
   }
 
-  /* Make table scrollable if needed */
   .file-table-wrapper {
     overflow-x: auto;
   }
 
-  /* Prevent filter inputs/buttons from overflowing */
   .filters input,
   .filters select,
   .filters button {
@@ -509,14 +506,14 @@
 
 .dtr-table-wrapper {
   width: 100%;
-  overflow-x: auto; /* enable horizontal scrolling on small screens */
+  overflow-x: auto;
 }
 
 .dtr-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  min-width: 1300px; /* allow scroll on smaller screens */
+  min-width: 1300px;
 }
 
 .dtr-table th,
@@ -528,7 +525,7 @@
   min-width: 120px;
   transition: background 0.2s ease;
   color: #1f2937;
-  white-space: nowrap; /* prevent text from wrapping in table cells */
+  white-space: nowrap; 
 }
 
 .dtr-table th {
@@ -582,7 +579,6 @@
   border-top-right-radius: 10px;
 }
 
-/* ---------------------- Mobile Responsive ---------------------- */
 @media (max-width: 1024px) {
   .dtr-table-wrapper {
     overflow-x: auto;
@@ -630,28 +626,64 @@
 }
 
 .table-container {
-  overflow-x: auto; /* allow horizontal scroll */
-  overflow-y: auto; /* vertical scroll if needed */
-  max-height: 500px; /* desktop max height */
+  overflow-x: auto; 
+  overflow-y: auto; 
+  max-height: 500px;
   border-radius: 10px;
   background: #ffffff;
   border: 1px solid #e2e8f0;
   box-shadow: 0 3px 12px rgba(0, 0, 0, 0.05);
   width: 100%;
-  -webkit-overflow-scrolling: touch; /* smooth scroll on iOS */
+  -webkit-overflow-scrolling: touch;
 }
 
-/* ---------------------- Mobile Responsive ---------------------- */
 @media (max-width: 768px) {
   .table-container {
-    max-height: 400px; /* reduce height on mobile */
+    max-height: 400px; 
     padding: 0.5rem;
   }
 }
 
 @media (max-width: 480px) {
   .table-container {
-    max-height: 300px; /* further reduce for small screens */
+    max-height: 300px; 
     padding: 0.3rem;
   }
+}
+
+.rejection-row td {
+  background: #fff5f5;
+  border-left: 4px solid #dc2626;
+}
+
+.rejection-reason {
+  padding: 10px 14px;
+  color: #7f1d1d;
+  font-size: 0.9rem;
+}
+
+.rejection-ellipsis {
+  max-width: 220px;
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  color: #b91c1c;
+  font-size: 0.85rem;
+}
+
+.rejection-ellipsis:hover {
+  text-decoration: underline;
+}
+
+.rejection-card {
+  background: #fff5f5;
+  border-left: 4px solid #dc2626;
+  padding: 14px;
+  border-radius: 6px;
+  max-height: 300px;
+  overflow-y: auto;
+  font-size: 0.95rem;
+  color: #7f1d1d;
 }

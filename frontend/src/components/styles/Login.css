@@ -231,28 +231,25 @@ body::before {
   font-size: 0.75rem;
   color: #646cff;
 }
-/* ---------------------- Mobile Responsive ---------------------- */
+
 @media (max-width: 768px) {
 
-  /* Center the login container vertically and horizontally */
   .login-container {
     display: flex;
     flex-direction: column;
-    justify-content: center;       /* vertical center for the form + logo block */
-    align-items: center;           /* horizontal center */
-    height: calc(100vh - 130px);   /* full viewport minus navbar/footer */
+    justify-content: center;      
+    align-items: center;           
+    height: calc(100vh - 130px);  
     margin: 0;
     position: relative;
   }
 
-  /* Container for logo + form */
   .login-card-wrapper {
     display: flex;
     flex-direction: column;
     align-items: center;
   }
 
-  /* App logo above the form */
   .login-top-logo {
     display: block;     
     width: 100%;                   
@@ -260,7 +257,6 @@ body::before {
     margin-bottom: 40vh;
   }
 
-  /* Login card */
   .login-card {
     width: 100%;
     max-width: 320px;
@@ -273,34 +269,29 @@ body::before {
     margin-top: 100px;
   }
 
-  /* Login title smaller */
   .login-title {
     font-size: 1.2rem;
     margin-bottom: 0.8rem;
   }
 
-  /* Input fields */
   .login-form input {
-    width: 100%;                    /* full width inside card */
+    width: 100%;                  
     box-sizing: border-box;
     font-size: 0.9rem;
     padding: 0.6rem;
   }
 
-  /* Buttons */
   .login-form button {
-    width: 100%;                    /* full width inside card */
+    width: 100%;                    
     box-sizing: border-box;
     font-size: 0.9rem;
     padding: 0.6rem;
   }
 
-  /* Input labels */
   .input-group label {
     font-size: 0.75rem;
   }
 
-  /* Navbar adjustments for mobile */
   .login-navbar {
     padding: 0.5rem 1rem;
     height: 60px;
@@ -322,14 +313,12 @@ body::before {
     font-size: 0.7rem;
   }
 
-  /* Footer adjustments */
   .login-footer {
     height: 60px;
     font-size: 0.4rem;
     flex-direction: row;
   }
 
-  /* Body background adjustments */
   body {
     background-attachment: scroll; 
   }

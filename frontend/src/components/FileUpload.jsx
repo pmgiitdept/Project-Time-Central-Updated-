@@ -12,8 +12,36 @@ export default function FileUpload({ refreshFiles, refreshPDFs }) {
   const [pdfFile, setPdfFile] = useState(null);
   const [uploadingPDF, setUploadingPDF] = useState(false);
 
+  /* ======== Cutoff Logic ======== */
+  const today = new Date();
+  const month = today.getMonth();
+  const year = today.getFullYear();
+
+  const firstCutoff = new Date(year, month, 15);
+  const secondCutoff = new Date(year, month, 30);
+
+  const firstCutoffEnd = new Date(firstCutoff);
+  firstCutoffEnd.setDate(firstCutoffEnd.getDate() + 3);
+
+  const secondCutoffEnd = new Date(secondCutoff);
+  secondCutoffEnd.setDate(secondCutoffEnd.getDate() + 3);
+
+  let canSubmit = false;
+  let message = "";
+
+  if (today >= firstCutoff && today <= firstCutoffEnd) {
+    canSubmit = true;
+    message = `Submission available until ${firstCutoffEnd.toLocaleDateString()}`;
+  } else if (today >= secondCutoff && today <= secondCutoffEnd) {
+    canSubmit = true;
+    message = `Submission available until ${secondCutoffEnd.toLocaleDateString()}`;
+  } else {
+    message = "Unavailable – wait for next cutoff";
+  }
+
   const handleDTRUpload = async (e) => {
     e.preventDefault();
+    if (!canSubmit) return toast.error("Submission is unavailable outside cutoff.");
     if (!dtrFile) return toast.error("Select a DTR file first.");
 
     setUploadingDTR(true);
@@ -39,6 +67,7 @@ export default function FileUpload({ refreshFiles, refreshPDFs }) {
   const handlePDFUpload = async (e) => {
     e.preventDefault();
     if (!pdfFile) return toast.error("Select a PDF first.");
+    if (!canSubmit) return toast.error("Submission is unavailable outside cutoff.");
     if (pdfFile.type !== "application/pdf") return toast.error("Only PDF files allowed!");
 
     setUploadingPDF(true);
@@ -69,28 +98,23 @@ export default function FileUpload({ refreshFiles, refreshPDFs }) {
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.5, ease: "easeInOut" }}
     >
-      <h2 className="upload-title">Upload Files</h2>
+      <h2 className="upload-title">Upload DTR Standard</h2>
+
+      <p
+        style={{
+          fontSize: "0.9rem",
+          color: canSubmit ? "green" : "red",
+          marginBottom: "1rem",
+        }}
+      >
+        {message}
+      </p>
 
       <div className="upload-side-by-side">
         {/* DTR Upload */}
-        <div className="upload-section">
-          <h3>Payroll Report</h3>
-          <form onSubmit={handleDTRUpload} className="upload-form">
-            <input
-              type="file"
-              onChange={(e) => setDtrFile(e.target.files[0])}
-              className="file-input"
-            />
-            <button type="submit" disabled={uploadingDTR} className="upload-button">
-              {uploadingDTR ? "Uploading..." : "Upload / Overwrite"}
-            </button>
-          </form>
-          {dtrFile && <p className="selected-file">📂 {dtrFile.name}</p>}
-        </div>
-
+        
         {/* PDF Upload */}
         <div className="upload-section">
-          <h3>DTR Standard</h3>
           <form onSubmit={handlePDFUpload} className="upload-form">
             <input
               type="file"
@@ -98,7 +122,11 @@ export default function FileUpload({ refreshFiles, refreshPDFs }) {
               onChange={(e) => setPdfFile(e.target.files[0])}
               className="file-input"
             />
-            <button type="submit" disabled={uploadingPDF} className="upload-button">
+            <button
+              type="submit"
+              disabled={uploadingPDF || !canSubmit}
+              className="upload-button"
+            >
               {uploadingPDF ? "Uploading..." : "Upload PDF"}
             </button>
           </form>

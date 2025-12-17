@@ -1,0 +1,129 @@
+/* Mobile layout (Android 373x601) */
+@media only screen and (max-width: 600px) {
+  /* Overall layout */
+  .dashboard-container {
+    padding: 0.5rem;
+  }
+
+  .dashboard-navbar {
+    flex-direction: column;
+    padding: 0.6rem 1rem;
+    text-align: center;
+  }
+
+  .dashboard-title {
+    font-size: 1.2rem;
+  }
+
+  .navbar-left,
+  .navbar-right {
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .navbar-logo {
+    height: 30px;
+  }
+
+  .main-section {
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    margin: 6rem auto 1rem auto;
+    width: 100%;
+  }
+
+  .left-panel,
+  .middle-panel,
+  .right-panel {
+    flex: unset;
+    width: 100%;
+    max-width: 95%;
+    margin: 0 auto;
+    margin-top: 5rem;
+  }
+
+  .upload-card,
+  .section-card,
+  .users-lists-wrapper {
+    width: 100%;
+    padding: 1rem;
+    border-radius: 10px;
+  }
+
+  .upload-title {
+    font-size: 1.5rem;
+  }
+
+  .upload-form,
+  .upload-form1 {
+    gap: 0.75rem;
+  }
+
+  .file-input {
+    padding: 0.8rem;
+    font-size: 0.9rem;
+  }
+
+  .upload-button {
+    width: 100%;
+    font-size: 0.95rem;
+    padding: 0.75rem 1.2rem;
+  }
+
+  .pdf-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .pdf-card {
+    padding: 1rem;
+    font-size: 0.9rem;
+  }
+
+  .pdf-name {
+    font-size: 1rem;
+  }
+
+  .pdf-info {
+    font-size: 0.85rem;
+  }
+
+  .pdf-modal-content {
+    width: 95%;
+    height: 90%;
+    padding: 0.5rem;
+  }
+
+  .divider-hybrid span {
+    font-size: 1.3rem;
+    padding: 0.3rem 0.8rem;
+  }
+
+  .manual-btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+  }
+
+  .manual-btn::after {
+    height: 30px;
+  }
+
+  .notification-container {
+    top: 70px;
+    left: 10px;
+    width: 90%;
+  }
+
+  .notification-card {
+    padding: 10px 12px;
+    font-size: 0.85rem;
+  }
+
+  .upload-card,
+  .pdf-card,
+  .section-card {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+  }
+}

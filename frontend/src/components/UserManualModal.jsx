@@ -17,17 +17,93 @@ export default function UserManualModal({ isOpen, onClose }) {
 
   const sections = [
     {
+      title: "0️⃣ About Project Time Central",
+      body: (
+        <>
+          <p>
+            <b>Project Time Central</b> is an all-in-one digital platform designed to
+            streamline employee attendance tracking, DTR (Daily Time Record)
+            management, and payroll reporting. It provides a centralized, automated
+            workspace where HR personnel, administrators, and employees can manage
+            time records efficiently and accurately.
+          </p>
+
+          <p>
+            The system acts as a <span className="highlight">central hub</span> for
+            all time-related data — connecting payroll reports, attendance logs,
+            and employee directories in one synchronized environment. By combining
+            automation and smart validation tools, it reduces manual errors and
+            improves productivity across the organization.
+          </p>
+
+          <p>
+            <b>Key Benefits:</b>
+          </p>
+          <ul>
+            <li>
+              🕒 <strong>Centralized Time Management</strong> — All attendance and
+              payroll data are stored in one system for easy access and review.
+            </li>
+            <li>
+              📊 <strong>Automated Data Validation</strong> — The system checks file
+              formats, employee names, and cutoff dates to prevent inconsistencies.
+            </li>
+            <li>
+              🔁 <strong>Real-Time Updates</strong> — Uploaded DTRs and payroll
+              reports instantly reflect in dashboards and employee directories.
+            </li>
+            <li>
+              💬 <strong>Integrated Communication</strong> — The built-in chat tool
+              allows employees and admins to coordinate and clarify data instantly.
+            </li>
+            <li>
+              🧾 <strong>Accurate Payroll Preparation</strong> — Generate verified,
+              ready-for-export summaries for payroll processing.
+            </li>
+          </ul>
+
+          <div className="tip-box">
+            💡 <strong>Tip:</strong> Think of Project Time Central as your company’s
+            “command center” for time and attendance. Every upload, record, or
+            report flows through one unified system — ensuring accuracy, traceability,
+            and collaboration.
+          </div>
+
+          <img
+            src="/manual_screens/system_overview.png"
+            alt="System overview"
+            className="manual-img"
+            onClick={() => handleImageClick("/manual_screens/system_overview.png")}
+          />
+        </>
+      ),
+    },
+    {
       title: "1️⃣ Uploading Payroll Report (Excel / CSV)",
       body: (
         <>
           <p>
-            Go to the <span className="highlight">Upload Summary Forms</span> section.
-            Beside <em>Upload Files</em>, click{" "}
-            <span className="highlight-btn">Choose File</span> and select your Excel or CSV file.
-            Then click <span className="highlight-btn">Upload DTR</span> to process your payroll data.
+            Begin by navigating to the{" "}
+            <span className="highlight">Upload Summary Forms</span> section on
+            your dashboard. This area allows you to upload payroll data in{" "}
+            <b>Excel (.xlsx)</b> or <b>CSV</b> format for processing.
+          </p>
+          <p>
+            Click <span className="highlight-btn">Choose File</span> and select
+            your desired payroll report from your computer. Once selected, press{" "}
+            <span className="highlight-btn">Upload DTR</span>. The system will
+            automatically read your file, parse its contents, and prepare it for
+            integration into the payroll database.
+          </p>
+          <p>
+            The uploaded file will then appear in your list of pending or
+            processed summaries. You’ll also see visual progress indicators while
+            the system validates data formatting and employee entries.
           </p>
           <div className="tip-box">
-            💡 <strong>Tip:</strong> Ensure your Excel file follows the company template to avoid parsing errors.
+            💡 <strong>Tip:</strong> Use the company’s standard Excel template for
+            consistent column mapping. Incorrect headers or missing fields may
+            cause the upload to be flagged for manual review.
           </div>
           <img
             src="/manual_screens/upload_excel.png"
@@ -43,11 +119,23 @@ export default function UserManualModal({ isOpen, onClose }) {
       body: (
         <>
           <p>
-            Under <span className="highlight">DTR Standard</span>, select your PDF and click{" "}
-            <span className="highlight-btn">Upload PDF</span>. The system will automatically extract attendance data and verify its structure.
+            To upload DTR records in PDF format, go to the{" "}
+            <span className="highlight">DTR Standard</span> section. Click{" "}
+            <span className="highlight-btn">Upload PDF</span> and choose the file
+            you wish to process. The system’s built-in parser will automatically
+            extract text data from the DTR and verify if it follows the official
+            company layout.
+          </p>
+          <p>
+            Once uploaded, each file undergoes a{" "}
+            <b>validation and verification process</b>. Only verified DTRs can be
+            synchronized with the Employee Directory, ensuring the accuracy of
+            recorded attendance and payroll calculations.
           </p>
           <div className="warning-box">
-            ⚠️ <strong>Note:</strong> Only verified PDF DTRs can be synced later into the Employee Directory.
+            ⚠️ <strong>Important:</strong> Avoid uploading scanned images that are
+            unclear or password-protected PDFs. The parser may not be able to
+            extract text correctly, resulting in incomplete DTR data.
           </div>
           <img
             src="/manual_screens/upload_pdf.png"
@@ -63,14 +151,31 @@ export default function UserManualModal({ isOpen, onClose }) {
       body: (
         <>
           <p>
-            In the <span className="highlight">Uploaded DTRs</span> panel:
+            After successfully uploading your files, you can review them under the{" "}
+            <span className="highlight">Uploaded DTRs</span> panel. This section
+            provides an overview of all processed and pending DTRs.
           </p>
           <ul>
-            <li>🧾 Click <b>“View DTR”</b> to open parsed data.</li>
-            <li>📄 Click <b>“View PDF File”</b> to preview the original document.</li>
+            <li>
+              🧾 Click <b>“View DTR”</b> to open the system-parsed data. This view
+              displays each employee’s attendance records, total hours worked, and
+              computed metrics.
+            </li>
+            <li>
+              📄 Click <b>“View PDF File”</b> to open the original uploaded
+              document in a built-in viewer. This lets you cross-check extracted
+              data against the actual DTR layout.
+            </li>
           </ul>
+          <p>
+            You can also use the search bar and date filters to quickly find
+            specific employees or reporting periods. This feature helps when
+            verifying historical data or investigating payroll discrepancies.
+          </p>
           <div className="tip-box">
-            🔍 Use filters or search to quickly locate DTRs by employee or date.
+            🔍 <strong>Tip:</strong> Use the project filter or employee name field
+            to instantly narrow down the results. Large datasets are automatically
+            paginated for smoother browsing.
           </div>
           <img
             src="/manual_screens/view_dtr.png"
@@ -86,15 +191,29 @@ export default function UserManualModal({ isOpen, onClose }) {
       body: (
         <>
           <p>
-            Each DTR entry summarizes{" "}
-            <span className="highlight">total hours</span>,{" "}
+            Each DTR report provides a breakdown of an employee’s daily time
+            records, summarizing key metrics such as{" "}
+            <span className="highlight">total work hours</span>,{" "}
             <span className="highlight">overtime</span>,{" "}
             <span className="highlight">undertime</span>, and{" "}
-            <span className="highlight">holiday pay</span> for each period.
+            <span className="highlight">holiday pay</span>.
           </p>
           <p>
-            These records are synced with the Employee Directory after the file is marked as <b>Verified</b>.
+            Once a report is <b>verified</b>, its data can be automatically synced
+            into the <span className="highlight">Employee Directory</span>, where
+            payroll and HR modules can further process it. This ensures all
+            records stay synchronized across the system.
           </p>
+          <p>
+            The report layout includes calculated summaries per cutoff period, and
+            managers can use this information for performance tracking, payroll
+            computation, or attendance analysis.
+          </p>
+          <div className="tip-box">
+            📊 <strong>Did you know?</strong> The summary report also includes
+            indicators for missing or incomplete DTRs, allowing quick corrective
+            actions before payroll generation.
+          </div>
           <img
             src="/manual_screens/summary_report.png"
             alt="DTR summary report example"
@@ -109,13 +228,22 @@ export default function UserManualModal({ isOpen, onClose }) {
       body: (
         <>
           <p>
-            Click the <span className="highlight">💬 Chat</span> button at
-            the bottom-right to send messages to the admin or HR team.
-            This supports both group and private messaging.
+            The built-in <span className="highlight">💬 Chat</span> feature allows
+            instant communication within your organization. Accessible at the
+            bottom-right corner of your dashboard, it supports{" "}
+            <b>group conversations</b> and <b>private messages</b> between
+            employees, HR personnel, and administrators.
+          </p>
+          <p>
+            Each chat is automatically categorized based on department or assigned
+            project, helping streamline collaboration across different teams.
+            Messages are timestamped, ensuring transparent and organized
+            discussions.
           </p>
           <div className="tip-box">
-            🗨️ <strong>Tip:</strong> The chat automatically groups messages
-            by department or project if enabled.
+            🗨️ <strong>Pro Tip:</strong> You can mention a user with “@” to notify
+            them directly or send attachments like screenshots for faster
+            clarification during audits or report reviews.
           </div>
           <img
             src="/manual_screens/chat_feature.png"
@@ -127,6 +255,7 @@ export default function UserManualModal({ isOpen, onClose }) {
       ),
     },
   ];
+
 
   const current = sections[page];
 

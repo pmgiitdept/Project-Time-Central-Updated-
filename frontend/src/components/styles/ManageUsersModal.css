@@ -208,7 +208,6 @@
   transform: translateY(-1px);
 }
 
-/* ========== MOBILE/TABLET RESPONSIVENESS ========== */
 @media (max-width: 1024px) {
   .manage-users-modal-overlay {
     bottom: auto;

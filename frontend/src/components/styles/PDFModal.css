@@ -11,7 +11,6 @@
   animation: fadeInOverlay 0.25s ease-in-out;
 }
 
-/* === Modal Container === */
 .pdf-modal-content {
   background: #fdfdfd;
   width: 95%;
@@ -24,12 +23,9 @@
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   overflow: hidden;
   animation: fadeIn 0.25s ease-in-out;
-
-  /* Centered perfectly */
   position: relative;
 }
 
-/* === Header === */
 .pdf-modal-header {
   position: sticky;
   top: 0;
@@ -51,7 +47,6 @@
   letter-spacing: 0.5px;
 }
 
-/* === Close Button === */
 .close-btn {
   background: #ff6b6b;
   color: white;
@@ -71,7 +66,6 @@
   transform: scale(1.05);
 }
 
-/* === Scrollable Page Area === */
 .pdf-page {
   flex: 1;
   overflow-y: auto;
@@ -82,7 +76,6 @@
   position: relative;
 }
 
-/* Scroll shadow indicators */
 .pdf-page::before,
 .pdf-page::after {
   content: "";
@@ -100,7 +93,6 @@
   background: linear-gradient(to top, rgba(0, 0, 0, 0.08), transparent);
 }
 
-/* === Text (above table) === */
 .pdf-header-text p {
   font-weight: bold;
   color: #1a2930;
@@ -110,21 +102,19 @@
   text-align: center;
 }
 
-/* === Table Container === */
 .table-container {
   border-radius: 10px;
   background: #fff;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   overflow-x: auto;
   overflow-y: auto;
-  max-height: 600px; /* Scroll for long tables */
+  max-height: 600px; 
   margin-top: 1rem;
   position: relative;
   scrollbar-width: thin;
   scrollbar-color: #bbb #f0f0f0;
 }
 
-/* Scrollbar Styling */
 .table-container::-webkit-scrollbar {
   height: 8px;
   width: 8px;
@@ -137,7 +127,6 @@
   background-color: #888;
 }
 
-/* === PDF Table === */
 .pdf-table {
   width: 100%;
   border-collapse: separate;
@@ -147,7 +136,7 @@
   border-radius: 10px;
   overflow: hidden;
   min-width: 800px;
-  border: 1px solid #ccc; /* overall border */
+  border: 1px solid #ccc; 
 }
 
 .pdf-table thead {
@@ -161,7 +150,6 @@
   z-index: 5;
 }
 
-/* === Fix two header rows === */
 .pdf-table thead tr:first-child th {
   position: sticky;
   top: 0;
@@ -171,23 +159,23 @@
 
 .pdf-table thead tr:nth-child(2) th {
   position: sticky;
-  top: 2.3rem; /* adjust based on your first header row height */
+  top: 2.3rem; 
   z-index: 5;
-  background: #2a56c6; /* slightly darker shade for distinction */
+  background: #2a56c6;
 }
 
 .pdf-table th,
 .pdf-table td {
   padding: 0.9rem 1rem;
   border-bottom: 1px solid #e0e0e0;
-  border-left: 1px solid #e0e0e0; /* vertical border between columns */
+  border-left: 1px solid #e0e0e0; 
   vertical-align: middle;
   white-space: nowrap;
 }
 
 .pdf-table th:first-child,
 .pdf-table td:first-child {
-  border-left: none; /* no border on the very left */
+  border-left: none; 
   position: sticky;
 }
 
@@ -202,7 +190,6 @@
   background: #fafafa;
 }
 
-/* === Pagination Section === */
 .pagination-controls1 {
   display: flex;
   justify-content: space-between;
@@ -246,7 +233,6 @@
   font-size: 0.95rem;
 }
 
-/* === Animations === */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(-10px); }
   to { opacity: 1; transform: translateY(0); }
@@ -257,7 +243,6 @@
   to { opacity: 1; }
 }
 
-/* === Meta Info === */
 .pdf-meta {
   background: #eef3f8;
   padding: 0.8rem 1.5rem;
@@ -271,16 +256,15 @@
   font-weight: bold;
 }
 
-/* Inline PDF viewer card */
 .pdf-card-container {
-  width: 100%;           /* take remaining space */
-  max-width: 1000px;      /* optional */
+  width: 100%;           
+  max-width: 1000px;      
   padding: 1rem;
   border: 1px solid #ddd;
   border-radius: 8px;
   background-color: #f9f9f9;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  margin-bottom: 1.5rem; /* spacing from other content */
+  margin-bottom: 1.5rem; 
 }
 
 .pdf-card-header h3 {
@@ -354,7 +338,7 @@
 
 .header-buttons {
   display: flex;
-  gap: 0.5rem; /* space between buttons */
+  gap: 0.5rem; 
 }
 
 .export-button {

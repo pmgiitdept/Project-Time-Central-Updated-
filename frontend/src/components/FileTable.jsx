@@ -1,10 +1,9 @@
 /* components/FileTable.jsx */
 import { FaSyncAlt } from "react-icons/fa";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import api from "../api";
 import DTRTable from "../components/DTRTable";
 import { toast } from "react-toastify";
-import FileContent from "./FileContent";
 import "./styles/FileTable.css";
 import { motion } from "framer-motion";
 
@@ -21,8 +20,15 @@ export default function FileTable({ role, setSelectedFile }) {
   const [deleteModal, setDeleteModal] = useState({ open: false, fileIds: [], message: "" });
   const [selectedFileId, setSelectedFileId] = useState(null);
   const [notifiedFiles, setNotifiedFiles] = useState([]);
+  const [rejectingFileId, setRejectingFileId] = useState(null);
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [viewingReason, setViewingReason] = useState(null);
+  const hasFetchedRef = useRef(false);
 
   useEffect(() => {
+    if (hasFetchedRef.current) return;
+    hasFetchedRef.current = true;
+
     fetchFiles();
   }, []);
 
@@ -49,7 +55,9 @@ export default function FileTable({ role, setSelectedFile }) {
       setFiles(fileList);
 
       if (unnotifiedFileIds.length) {
-        const fileNames = unnotifiedFiles.map(f => f.file.split("/").pop()).join(", ");
+        const fileNames = unnotifiedFiles
+          .map(f => (f.file ? f.file.split("/").pop() : `Manual DTR (${f.start_date} - ${f.end_date})`))
+          .join(", ");
         toast.success(`${unnotifiedFileIds.length} new DTR file(s) uploaded today: ${fileNames}`);
         setNotifiedFiles(prev => [...prev, ...unnotifiedFileIds]);
         setTimeout(() => setHighlightedFiles([]), 3000);
@@ -63,21 +71,29 @@ export default function FileTable({ role, setSelectedFile }) {
   };
 
   const handleStatusChange = async (fileId, newStatus) => {
+  if (newStatus === "rejected") {
+    setRejectingFileId(fileId);
+    return;
+  }
+
+  const token = localStorage.getItem("access_token");
     try {
-      const token = localStorage.getItem("access_token");
       await api.patch(
         `/files/dtr/files/${fileId}/`,
-        { status: newStatus },
+        { status: newStatus, rejection_reason: null },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
       setFiles(prev =>
         prev.map(file =>
-          file.id === fileId ? { ...file, status: newStatus } : file
+          file.id === fileId
+            ? { ...file, status: newStatus, rejection_reason: null }
+            : file
         )
       );
+
       toast.success(`Status updated to ${newStatus}`);
-    } catch (err) {
-      console.error(err);
+    } catch {
       toast.error("Failed to update status");
     }
   };
@@ -201,6 +217,74 @@ export default function FileTable({ role, setSelectedFile }) {
         </div>
       )}
 
+      {rejectingFileId && (
+        <div className="modal-overlay5" onClick={() => setRejectingFileId(null)}>
+          <div className="modal-wrapper5" onClick={e => e.stopPropagation()}>
+            <h3>Reject DTR File</h3>
+            <textarea
+              placeholder="Enter reason for rejection..."
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+              rows={4}
+              style={{ width: "100%", marginBottom: "1rem" }}
+            />
+
+            <div className="modal-actions">
+              <button onClick={() => setRejectingFileId(null)}>Cancel</button>
+              <button
+                className="action-btn delete"
+                onClick={async () => {
+                  try {
+                    const token = localStorage.getItem("access_token");
+                    await api.patch(
+                      `/files/dtr/files/${rejectingFileId}/`,
+                      {
+                        status: "rejected",
+                        rejection_reason: rejectionReason,
+                      },
+                      { headers: { Authorization: `Bearer ${token}` } }
+                    );
+
+                    setFiles(prev =>
+                      prev.map(file =>
+                        file.id === rejectingFileId
+                          ? { ...file, status: "rejected", rejection_reason: rejectionReason }
+                          : file
+                      )
+                    );
+
+                    toast.success("File rejected");
+                  } catch {
+                    toast.error("Failed to reject file");
+                  } finally {
+                    setRejectingFileId(null);
+                    setRejectionReason("");
+                  }
+                }}
+              >
+                Reject
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {viewingReason && (
+        <div className="modal-overlay5" onClick={() => setViewingReason(null)}>
+          <div className="modal-wrapper5" onClick={(e) => e.stopPropagation()}>
+            <h3>Rejection Reason</h3>
+
+            <div className="rejection-card">
+              <p>{viewingReason.rejection_reason}</p>
+            </div>
+
+            <div className="modal-actions">
+              <button onClick={() => setViewingReason(null)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <motion.div
         className="file-table-wrapper"
         initial={{ opacity: 0, y: 20 }}
@@ -252,9 +336,9 @@ export default function FileTable({ role, setSelectedFile }) {
             </div>
           )}
 
-         {/* Tables by Status */}
+          {/* Tables by Status */}
           {["verified", "pending", "rejected"].map((status) => {
-            const filtered = getFilteredFiles().filter(f => f.status === status);
+            const filtered = filteredFiles.filter(f => f.status === status);
             if (filtered.length === 0) return null;
 
             return (
@@ -274,72 +358,105 @@ export default function FileTable({ role, setSelectedFile }) {
                         <th>Start Date</th>
                         <th>End Date</th>
                         {(role === "admin" || role === "viewer") && <th>Actions</th>}
+                        <th>For Rejection</th>
                       </tr>
                     </thead>
                     <tbody>
                       {filtered.map(file => (
-                        <tr
-                          key={file.id}
-                          className={`clickable-row ${selectedFileId === file.id ? "selected" : ""} ${highlightedFiles.includes(file.id) ? "highlighted" : ""}`}
-                          onClick={(e) => {
-                            if (e.target.tagName === "INPUT" || e.target.closest(".action-btn")) return;
-                            setSelectedFileId(file.id);
-                          }}
-                        >
-                          {role === "admin" && (
-                            <td>
-                              <input
-                                type="checkbox"
-                                checked={selectedFiles.includes(file.id)}
-                                onChange={(e) => {
-                                  if (e.target.checked) setSelectedFiles([...selectedFiles, file.id]);
-                                  else setSelectedFiles(selectedFiles.filter(id => id !== file.id));
-                                }}
-                                onClick={(e) => e.stopPropagation()}
-                              />
-                            </td>
-                          )}
-                          <td>{file.uploaded_by?.username || "N/A"}</td>
-                          <td>{new Date(file.uploaded_at).toLocaleString()}</td>
-                          <td>
-                            {(role === "admin" || role === "viewer") ? (
-                              <select
-                                value={file.status}
-                                onChange={(e) => handleStatusChange(file.id, e.target.value)}
-                                className={`status-select ${file.status}`}
-                              >
-                                <option value="pending">Pending</option>
-                                <option value="verified">Verified</option>
-                                <option value="rejected">Rejected</option>
-                              </select>
-                            ) : (
-                              <span className={`status-badge status-${file.status}`}>
-                                {file.status}
-                              </span>
+                        <>
+                          <tr
+                            key={file.id}
+                            className={`clickable-row ${selectedFileId === file.id ? "selected" : ""} ${
+                              highlightedFiles.includes(file.id) ? "highlighted" : ""
+                            } ${!file.file ? "manual-dtr" : ""}`}
+                            onClick={(e) => {
+                              if (e.target.tagName === "INPUT" || e.target.closest(".action-btn")) return;
+                              setSelectedFileId(file.id);
+                            }}
+                          >
+                            {role === "admin" && (
+                              <td>
+                                <input
+                                  type="checkbox"
+                                  checked={selectedFiles.includes(file.id)}
+                                  onChange={(e) => {
+                                    if (e.target.checked) setSelectedFiles([...selectedFiles, file.id]);
+                                    else setSelectedFiles(selectedFiles.filter(id => id !== file.id));
+                                  }}
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                              </td>
                             )}
-                          </td>
-                          <td>{file.start_date ? new Date(file.start_date).toLocaleDateString() : "-"}</td>
-                          <td>{file.end_date ? new Date(file.end_date).toLocaleDateString() : "-"}</td>
 
-                          {(role === "admin" || role === "viewer") && (
+                            <td>{file.uploaded_by?.username || "N/A"}</td>
+                            <td>{new Date(file.uploaded_at).toLocaleString()}</td>
+
                             <td>
-                              <button
-                                className="action-btn download"
-                                onClick={(e) => { e.stopPropagation(); handleDownload(file.id, file.file.split("/").pop()); }}
-                                disabled={downloadLoading[file.id]}
-                              >
-                                {downloadLoading[file.id] ? "Downloading..." : "Download"}
-                              </button>
-                              <button
-                                className="action-btn delete"
-                                onClick={(e) => { e.stopPropagation(); handleDeleteClick(file.id); }}
-                                disabled={deleting[file.id]}
-                              >
-                                {deleting[file.id] ? "Deleting..." : "Delete"}
-                              </button>
+                              {(role === "admin" || role === "viewer") ? (
+                                <select
+                                  value={file.status}
+                                  onChange={(e) => handleStatusChange(file.id, e.target.value)}
+                                  className={`status-select ${file.status}`}
+                                >
+                                  <option value="pending">Pending</option>
+                                  <option value="verified">Verified</option>
+                                  <option value="rejected">Rejected</option>
+                                </select>
+                              ) : (
+                                <span className={`status-badge status-${file.status}`}>
+                                  {file.status}
+                                </span>
+                              )}
                             </td>
-                          )}
-                        </tr>
+
+                            <td>{file.start_date ? new Date(file.start_date).toLocaleDateString() : "-"}</td>
+                            <td>{file.end_date ? new Date(file.end_date).toLocaleDateString() : "-"}</td>
+
+                            {(role === "admin" || role === "viewer") && (
+                              <td>
+                                <button
+                                  className="action-btn download"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDownload(file.id, file.file?.split("/").pop());
+                                  }}
+                                  disabled={!file.file || downloadLoading[file.id]}
+                                >
+                                  {downloadLoading[file.id] ? "Downloading..." : "Download"}
+                                </button>
+
+                                <button
+                                  className="action-btn delete"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteClick(file.id);
+                                  }}
+                                  disabled={deleting[file.id]}
+                                >
+                                  {deleting[file.id] ? "Deleting..." : "Delete"}
+                                </button>
+                              </td>
+                            )}
+
+                            {/* ✅ Ellipsis Rejection Cell */}
+                            <td>
+                              {file.status === "rejected" && file.rejection_reason ? (
+                                <span
+                                  className="rejection-ellipsis"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setViewingReason(file);
+                                  }}
+                                  title="Click to view full reason"
+                                >
+                                  {file.rejection_reason}
+                                </span>
+                              ) : (
+                                "-"
+                              )}
+                            </td>
+                          </tr>
+                        </>
                       ))}
                     </tbody>
                   </table>
@@ -348,9 +465,10 @@ export default function FileTable({ role, setSelectedFile }) {
             );
           })}
         </div>
-          <div className="file-content-right"> 
-           <DTRTable role={role} fileId={selectedFileId} />
-          </div>
+
+        <div className="file-content-right">
+          <DTRTable role={role} fileId={selectedFileId} />
+        </div>
       </motion.div>
     </>
   );

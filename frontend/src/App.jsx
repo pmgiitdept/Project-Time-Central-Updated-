@@ -62,7 +62,15 @@ function App() {
         <Route path="*" element={<Login />} />
       </Routes>
 
-      <ToastContainer position="top-right" autoClose={3000} />
+      <ToastContainer
+        position="bottom-right"
+        autoClose={10000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+        draggable
+      />
     </AuthProvider>
   );
 }

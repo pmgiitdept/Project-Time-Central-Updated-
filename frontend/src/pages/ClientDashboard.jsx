@@ -11,6 +11,7 @@ import AboutModal from "../components/AboutModal";
 import UploadedPDFs from "../components/UploadedPDFs";
 import UploadSection from "../components/UploadSection";
 import "../components/styles/ClientDashboard.css";
+import "../components/styles/ClientDashboard.mobile.css";
 import api from "../api";
 import { AuthContext } from "../context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -239,7 +240,7 @@ export default function ClientDashboard() {
                       )}
                     </motion.button>
         
-                    <motion.button
+                    {/*<motion.button
                       key="roomlist-toggle"
                       className="roomlist-floating-toggle"
                       onClick={() => setShowRooms(prev => !prev)}
@@ -258,7 +259,7 @@ export default function ClientDashboard() {
                           <PlusCircle size={18} /> Show Rooms
                         </span>
                       )}
-                    </motion.button>
+                    </motion.button>*/}
                   </>
                 )}
               </AnimatePresence>
@@ -275,7 +276,7 @@ export default function ClientDashboard() {
                   >
                     <div className="chat-container">
                       {/* RoomList */}
-                      <AnimatePresence>
+                      {/*<AnimatePresence>
                         {showRooms && (
                           <motion.div
                             key="roomlist"
@@ -308,7 +309,7 @@ export default function ClientDashboard() {
         
                           </motion.div>
                         )}
-                      </AnimatePresence>
+                      </AnimatePresence>*/}
         
                       {/* UserList */}
                       <AnimatePresence>

@@ -303,9 +303,6 @@
   100% { transform: scale(0.95); opacity: 0.8; }
 }
 
-
-/* ===================== RESPONSIVE ===================== */
-
 @media (max-width: 1024px) {
   .room-list-wrapper {
     width: 220px;

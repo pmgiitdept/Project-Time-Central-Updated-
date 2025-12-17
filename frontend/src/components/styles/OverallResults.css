@@ -394,7 +394,144 @@
   to { transform: rotate(360deg); }
 }
 
-/* ===================== RESPONSIVE ===================== */
+.file-content-container {
+  padding: 1.5rem;
+}
+
+.table-card {
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  padding: 1.5rem;
+}
+
+.chart-section {
+  margin-top: 2rem;
+  background: #fafafa;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.btn-refresh {
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+.btn-refresh:disabled {
+  background: #b0b0b0;
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.chart-caption {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: #555;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.header-section {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.summary-subtitle {
+  color: #555;
+  font-size: 1rem;
+  margin-bottom: 1.2rem;
+}
+
+.chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+
+.chart-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #333;
+  position: relative;
+}
+
+.multi-pie-wrapper {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2rem;
+  margin-top: 1rem;
+}
+
+.mini-pie-card {
+  flex: 1 1 250px;
+  text-align: center;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  padding: 1.2rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mini-pie-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+.mini-pie-value {
+  font-weight: bold;
+  color: #444;
+  margin-top: 0.5rem;
+}
+
+.dropdown-wrapper {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.chart-dropdown {
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+  background-color: #fff;
+  transition: box-shadow 0.2s;
+}
+
+.chart-dropdown:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(23,162,184,0.3);
+}
+
+.highlight {
+  color: #007bff;
+  font-weight: 600;
+}
+
+.chart-section::-webkit-scrollbar {
+  height: 8px;
+}
+.chart-section::-webkit-scrollbar-thumb {
+  background: #007bff;
+  border-radius: 10px;
+}
+.chart-section::-webkit-scrollbar-thumb:hover {
+  background: #0056b3;
+}
 
 @media (max-width: 1024px) {
   .modal-wrapper2 {

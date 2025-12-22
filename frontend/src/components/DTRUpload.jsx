@@ -20,10 +20,10 @@ export default function DTRUpload({ refreshDTR }) {
   const secondCutoff = new Date(year, month, 30);
 
   const firstCutoffEnd = new Date(firstCutoff);
-  firstCutoffEnd.setDate(firstCutoffEnd.getDate() + 3);
+  firstCutoffEnd.setDate(firstCutoffEnd.getDate() + 10);
 
   const secondCutoffEnd = new Date(secondCutoff);
-  secondCutoffEnd.setDate(secondCutoffEnd.getDate() + 3);
+  secondCutoffEnd.setDate(secondCutoffEnd.getDate() + 10);
 
   let canSubmit = false;
   let message = "";
@@ -145,10 +145,10 @@ function ManualDTRCard({ onClose, onSuccess }) {
   const secondCutoff = new Date(year, month, 30);
 
   const firstCutoffEnd = new Date(firstCutoff);
-  firstCutoffEnd.setDate(firstCutoffEnd.getDate() + 3);
+  firstCutoffEnd.setDate(firstCutoffEnd.getDate() + 10);
 
   const secondCutoffEnd = new Date(secondCutoff);
-  secondCutoffEnd.setDate(secondCutoffEnd.getDate() + 3);
+  secondCutoffEnd.setDate(secondCutoffEnd.getDate() + 10);
 
   let cutoffStart = null;
   let cutoffEnd = null;
@@ -271,7 +271,7 @@ function ManualDTRCard({ onClose, onSuccess }) {
             <h4>Date Range</h4>
               <div className="manual-dates">
                 <input
-                  type="date"
+                  type="date"  
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
                 />

@@ -117,7 +117,7 @@ export default function FileTable({ role, setSelectedFile }) {
     setDownloadLoading((prev) => ({ ...prev, [fileId]: true }));
     try {
       const token = localStorage.getItem("access_token");
-      const res = await api.get(`/files/dtr/files/${fileId}/download/`, {
+      const res = await api.get(`/files/dtr/files/${fileId}/export/`, {
         headers: { Authorization: `Bearer ${token}` },
         responseType: "blob",
       });
@@ -363,17 +363,16 @@ export default function FileTable({ role, setSelectedFile }) {
                     </thead>
                     <tbody>
                       {filtered.map(file => (
-                        <>
-                          <tr
-                            key={file.id}
-                            className={`clickable-row ${selectedFileId === file.id ? "selected" : ""} ${
-                              highlightedFiles.includes(file.id) ? "highlighted" : ""
-                            } ${!file.file ? "manual-dtr" : ""}`}
-                            onClick={(e) => {
-                              if (e.target.tagName === "INPUT" || e.target.closest(".action-btn")) return;
-                              setSelectedFileId(file.id);
-                            }}
-                          >
+                        <tr
+                          key={file.id}
+                          className={`clickable-row ${selectedFileId === file.id ? "selected" : ""} ${
+                            highlightedFiles.includes(file.id) ? "highlighted" : ""
+                          } ${!file.file ? "manual-dtr" : ""}`}
+                          onClick={(e) => {
+                            if (e.target.tagName === "INPUT" || e.target.closest(".action-btn")) return;
+                            setSelectedFileId(file.id);
+                          }}
+                        >
                             {role === "admin" && (
                               <td>
                                 <input
@@ -418,9 +417,9 @@ export default function FileTable({ role, setSelectedFile }) {
                                   className="action-btn download"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    handleDownload(file.id, file.file?.split("/").pop());
+                                    handleDownload(file.id, `DTR_${file.id}.xlsx`);
                                   }}
-                                  disabled={!file.file || downloadLoading[file.id]}
+                                  disabled={downloadLoading[file.id]}
                                 >
                                   {downloadLoading[file.id] ? "Downloading..." : "Download"}
                                 </button>
@@ -456,7 +455,6 @@ export default function FileTable({ role, setSelectedFile }) {
                               )}
                             </td>
                           </tr>
-                        </>
                       ))}
                     </tbody>
                   </table>

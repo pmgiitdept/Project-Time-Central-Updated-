@@ -82,7 +82,7 @@ CHANNEL_LAYERS = {
 # CORS
 CORS_ALLOWED_ORIGINS = config(
     "CORS_ALLOWED_ORIGINS",
-    default="http://localhost:5173,http://192.168.100.135:3000",
+    default="http://localhost:5173,http://192.168.100.135:3000,http://192.168.1.89:3000",
     cast=lambda v: [s.strip() for s in v.split(",")]
 )
 
@@ -95,6 +95,7 @@ CSRF_COOKIE_SAMESITE = "Lax"
 
 CSRF_TRUSTED_ORIGINS = [
     "http://192.168.100.135:3000",
+    "http://192.168.1.89:3000",
 ]
 
 # Database

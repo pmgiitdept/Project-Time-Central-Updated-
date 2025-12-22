@@ -8,7 +8,7 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from django.http import FileResponse, Http404, HttpResponse
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
-from openpyxl import load_workbook
+from openpyxl import load_workbook, Workbook
 import io, re, logging, csv, math, traceback
 from accounts.models import User
 from reportlab.pdfgen import canvas
@@ -23,6 +23,10 @@ from datetime import timedelta
 from fuzzywuzzy import fuzz
 from django.core.exceptions import FieldDoesNotExist
 from datetime import datetime
+from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+from openpyxl.drawing.image import Image
+from openpyxl.utils import get_column_letter
+import os
 
 def log_action(user, action, status="success", ip_address=None):
     AuditLog.objects.create(
@@ -1166,6 +1170,371 @@ class DTRFileViewSet(viewsets.ModelViewSet):
             {"message": "Manual DTR created successfully", "id": dtr_file.id},
             status=201
         )
+
+    @action(detail=True, methods=["get"], url_path="export")
+    def export(self, request, pk=None):
+        dtr = self.get_object()
+
+        # Return original uploaded file if exists
+        if dtr.file:
+            response = HttpResponse(
+                dtr.file.open("rb"),
+                content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+            response["Content-Disposition"] = f'attachment; filename="{os.path.basename(dtr.file.name)}"'
+            return response
+
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Attendance Summary"
+
+        # ----------------------------
+        # 🎨 Styles
+        # ----------------------------
+        bold = Font(name="Leelawadee", bold=True)
+        title_font = Font(name="Leelawadee", size=14, bold=True)
+        subtitle_font = Font(name="Leelawadee", size=12, bold=True)
+        center = Alignment(horizontal="center", vertical="center")
+        left = Alignment(horizontal="left", vertical="center")
+        right = Alignment(horizontal="right", vertical="center")
+
+        # Daily value fills
+        blank_fill = PatternFill("solid", fgColor="4F81BD")   # Blue
+        absent_fill = PatternFill("solid", fgColor="FF0000") # Red
+        dayoff_fill = PatternFill("solid", fgColor="00B050") # Green
+
+        # Daily data header color
+        daily_header_fill = PatternFill("solid", fgColor="4F81BD")
+        daily_header_font = Font(name="Leelawadee", color="FFFFFF", bold=True)
+
+        thin = Side(style="thin")
+        border = Border(left=thin, right=thin, top=thin, bottom=thin)
+
+        # ----------------------------
+        # 🧱 HEADER
+        # ----------------------------
+        ws.merge_cells("A1:C4")
+        logo_path = os.path.join("media", "pmgi.png")
+        if os.path.exists(logo_path):
+            img = Image(logo_path)
+            img.height = 80
+            img.width = 120
+            ws.add_image(img, "C1")
+
+        total_columns = 6 + (dtr.end_date - dtr.start_date).days + 1 + 7
+
+        # Main header
+        ws.merge_cells(start_row=1, start_column=4, end_row=2, end_column=total_columns)
+        ws["D1"] = "PROFESSIONAL MAINTENANCE GROUP, INC."
+        ws["D1"].font = title_font
+        ws["D1"].alignment = center
+        for row in ws.iter_rows(min_row=1, max_row=2, min_col=4, max_col=total_columns):
+            for cell in row:
+                cell.border = border
+
+        # Subheader
+        ws.merge_cells(start_row=3, start_column=4, end_row=3, end_column=total_columns)
+        ws["D3"] = "ATTENDANCE SUMMARY FORM"
+        ws["D3"].font = subtitle_font
+        ws["D3"].alignment = center
+        for row in ws.iter_rows(min_row=3, max_row=3, min_col=4, max_col=total_columns):
+            for cell in row:
+                cell.border = border
+
+        # OPS-FRM code
+        ws.merge_cells(start_row=4, start_column=4, end_row=4, end_column=total_columns - 2)
+        ws["D4"] = "OPS-FRM009-01-100125"
+        ws["D4"].font = bold
+        ws["D4"].alignment = center
+        for row in ws.iter_rows(min_row=4, max_row=4, min_col=4, max_col=total_columns-2):
+            for cell in row:
+                cell.border = border
+
+        # Edition
+        col_edition = total_columns - 1
+        col_number = total_columns
+        ws.cell(row=4, column=col_edition, value="Edition").font = bold
+        ws.cell(row=4, column=col_number, value="3").font = bold
+        ws.cell(row=4, column=col_edition).alignment = center
+        ws.cell(row=4, column=col_number).alignment = center
+        ws.cell(row=4, column=col_edition).border = border
+        ws.cell(row=4, column=col_number).border = border
+
+        # ----------------------------
+        # 🧾 META INFO (Updated)
+        # ----------------------------
+        meta_row = 6
+        uploader = dtr.uploaded_by.username if dtr.uploaded_by else "N/A"
+
+        # "Project" label
+        ws[f"D{meta_row}"] = "PROJECT"
+        ws[f"D{meta_row}"].font = bold
+        ws[f"D{meta_row}"].alignment = left
+        ws[f"D{meta_row}"].border = border
+
+        # Project name below "PROJECT"
+        ws[f"D{meta_row+1}"] = uploader
+        ws[f"D{meta_row+1}"].font = bold
+        ws[f"D{meta_row+1}"].alignment = left
+        ws[f"D{meta_row+1}"].border = border
+
+        # FROM date
+        from_text = dtr.start_date.strftime("%B %d, %Y")  # "September 16, 2025"
+        ws[f"C{meta_row+2}"] = "FROM:"
+        ws[f"C{meta_row+2}"].font = bold
+        ws[f"C{meta_row+2}"].alignment = right
+        ws[f"C{meta_row+2}"].border = border
+
+        ws[f"D{meta_row+2}"] = from_text
+        ws[f"D{meta_row+2}"].font = bold
+        ws[f"D{meta_row+2}"].alignment = left
+        ws[f"D{meta_row+2}"].border = border
+
+        # TO date
+        to_text = dtr.end_date.strftime("%B %d, %Y")  # "September 20, 2025"
+        ws[f"C{meta_row+3}"] = "TO:"
+        ws[f"C{meta_row+3}"].font = bold
+        ws[f"C{meta_row+3}"].alignment = right
+        ws[f"C{meta_row+3}"].border = border
+
+        ws[f"D{meta_row+3}"] = to_text
+        ws[f"D{meta_row+3}"].font = bold
+        ws[f"D{meta_row+3}"].alignment = left
+        ws[f"D{meta_row+3}"].border = border
+
+        # ----------------------------
+        # 📅 DATES
+        # ----------------------------
+        dates = []
+        cur = dtr.start_date
+        while cur <= dtr.end_date:
+            dates.append(cur)
+            cur += timedelta(days=1)
+
+        table_start = meta_row + 6
+        headers_left = ["NO.", "EMPLOYEE NAME", "PM NO.", "POSITION", "SHIFT", "TIME"]
+        headers_right = ["Total Days", "Total Hours", "Undertime", "OT", "Legal Hol", "Special Hol", "Night Diff"]
+
+        # Left headers
+        for i, header in enumerate(headers_left, start=1):
+            ws.merge_cells(start_row=table_start, start_column=i, end_row=table_start+1, end_column=i)
+            cell = ws.cell(row=table_start, column=i, value=header)
+            cell.font = bold
+            cell.alignment = center
+            cell.border = border
+
+        # Right headers
+        col_idx = 6 + len(dates) + 1
+        for header in headers_right:
+            ws.merge_cells(start_row=table_start, start_column=col_idx, end_row=table_start+1, end_column=col_idx)
+            cell = ws.cell(row=table_start, column=col_idx, value=header)
+            cell.font = bold
+            cell.alignment = center
+            cell.border = border
+            col_idx += 1
+
+        # ----------------------------
+        # Daily headers
+        # ----------------------------
+        daily_start_col = 7
+        for d in dates:
+            fill = daily_header_fill
+            font = daily_header_font
+            if d.weekday() == 6:  # Sunday
+                fill = PatternFill("solid", fgColor="FFFF00")
+                font = Font(name="Leelawadee", color="000000", bold=True)
+
+            # Day name
+            cell = ws.cell(row=table_start, column=daily_start_col, value=d.strftime("%a"))
+            cell.font = font
+            cell.fill = fill
+            cell.alignment = center
+            cell.border = border
+
+            # Day number
+            cell = ws.cell(row=table_start+1, column=daily_start_col, value=d.day)
+            cell.font = font
+            cell.fill = fill
+            cell.alignment = center
+            cell.border = border
+
+            daily_start_col += 1
+
+        # ----------------------------
+        # 📊 DATA ROWS
+        # ----------------------------
+        totals = [0] * (total_columns)
+        row_idx = table_start + 2
+        max_col_lengths = [len(str(h)) for h in headers_left + [d.strftime("%a") for d in dates] + headers_right]
+
+        for idx, entry in enumerate(dtr.entries.all(), start=1):
+            daily_vals = [entry.daily_data.get(str(d), "") for d in dates]
+            values = [idx, entry.full_name, entry.employee_no, entry.position, entry.shift, entry.time] \
+                    + daily_vals \
+                    + [entry.total_days, entry.total_hours, entry.undertime_minutes, entry.regular_ot,
+                    entry.legal_holiday, entry.special_holiday, entry.night_diff]
+
+            for c, v in enumerate(values, start=1):
+                cell = ws.cell(row=row_idx, column=c, value=v)
+                cell.font = Font(name="Leelawadee")
+                cell.border = border
+                cell.alignment = center if c != 2 else left
+
+                # 🎨 DAILY VALUE COLORING
+                daily_col_start = 7
+                daily_col_end = daily_col_start + len(dates) - 1
+
+                if daily_col_start <= c <= daily_col_end:
+                    if v in ("", None):
+                        cell.fill = blank_fill
+                    elif str(v).upper() == "A":
+                        cell.fill = absent_fill
+                    elif str(v).upper() == "D":
+                        cell.fill = dayoff_fill
+
+                    # DAILY TOTALS: only sum if numeric
+                    if isinstance(v, (int, float)):
+                        totals[c-1] += v  # Sum numeric daily values
+                    # otherwise, do not count non-numeric values
+
+                # RIGHT-SIDE TOTALS: only sum if numeric
+                elif c >= daily_col_end + 1:
+                    if isinstance(v, (int, float)):
+                        totals[c-1] += v
+
+                max_col_lengths[c-1] = max(max_col_lengths[c-1], len(str(v)) if v is not None else 0)
+
+            ws.row_dimensions[row_idx].height = 18
+            row_idx += 1
+
+        # ----------------------------
+        # 🔢 GRAND TOTAL ROW (Per Column)
+        # ----------------------------
+        ws.cell(row=row_idx, column=1, value="GRAND TOTAL")
+        ws.cell(row=row_idx, column=1).font = bold
+        ws.cell(row=row_idx, column=1).alignment = left
+        ws.cell(row=row_idx, column=1).border = border
+
+        daily_start_col = 7
+        daily_end_col = daily_start_col + len(dates) - 1
+        right_start_col = daily_end_col + 1
+        right_end_col = daily_end_col + len(headers_right)
+
+        # Daily totals (count non-empty, exclude empty strings or None)
+        for col in range(daily_start_col, daily_end_col + 1):
+            total_value = totals[col - 1]  # Already counted as 1 per non-empty value
+            cell = ws.cell(row=row_idx, column=col)
+            cell.border = border
+            cell.alignment = center
+            if total_value > 0:
+                cell.value = total_value
+                cell.font = bold
+
+        # Right-side totals (Total Days → Night Diff)
+        for col in range(right_start_col, right_end_col + 1):
+            raw_total = totals[col - 1]
+            total_value = raw_total if isinstance(raw_total, (int, float)) else 0
+
+            cell = ws.cell(row=row_idx, column=col)
+            cell.border = border
+            cell.alignment = center
+
+            if total_value > 0:
+                cell.value = total_value
+                cell.font = bold
+
+        ws.row_dimensions[row_idx].height = 22
+
+
+        # ----------------------------
+        # ✍ SIGNATURES ROWS
+        # ----------------------------
+        row_idx += 2  # leave one empty row below GRAND TOTAL
+
+        # First row: Titles
+        titles = ["Prepared By:", "Checked By:", "Noted By:"]
+        col_positions = [2, 6, 12]  # B, F, L
+
+        for col, title in zip(col_positions, titles):
+            cell = ws.cell(row=row_idx, column=col, value=title)
+            cell.font = bold
+            cell.alignment = left
+
+        sig_title_row = row_idx
+        row_idx += 3
+
+        # Second row: Signature lines
+        for col in col_positions:
+            cell = ws.cell(row=row_idx, column=col, value="___________________________")
+            cell.font = bold
+            cell.alignment = left
+
+        row_idx += 1
+
+        # Third row: Designations
+        designations = ["Supervisor", "Operation Officer", "Client Representative"]
+        for col, des in zip(col_positions, designations):
+            cell = ws.cell(row=row_idx, column=col, value=des)
+            cell.font = Font(name="Leelawadee", bold=True)
+            cell.alignment = left
+
+        # Adjust row heights
+        ws.row_dimensions[sig_title_row].height = 20
+        ws.row_dimensions[sig_title_row + 3].height = 20
+        ws.row_dimensions[sig_title_row + 4].height = 20
+
+
+        # ----------------------------
+        # 📚 LEGENDS (Beside Noted By)
+        # ----------------------------
+        legend_start_row = sig_title_row
+        legend_col = col_positions[2] + 13  # 3 columns to the right of "Noted By"
+
+        # LEGENDS title
+        cell = ws.cell(row=legend_start_row, column=legend_col, value="LEGENDS:")
+        cell.font = bold
+        cell.alignment = left
+
+        legend_entries = [
+            "A = ABSENT",
+            "D = DAY-OFF",
+            "L = LEAVE",
+            "LR = LEAVE W/ RELIEVER",
+            "RH = REGULAR HOLIDAY (8)",
+            "RS = RESIGNED",
+            "SH = SPECIAL HOLIDAY (8)",
+            "T = TRANSFERRED",
+            "R = RELIEVED",
+            "S = SUSPENDED W/O RELIEVER",
+            "SR = SUSPENDED W/ RELIEVER",
+        ]
+
+        for i, entry in enumerate(legend_entries, start=1):
+            cell = ws.cell(row=legend_start_row + i, column=legend_col, value=entry)
+            cell.font = Font(name="Leelawadee")
+            cell.alignment = left
+
+
+        # ----------------------------
+        # 📏 AUTO WIDTH
+        # ----------------------------
+        for col_idx, max_len in enumerate(max_col_lengths, start=1):
+            letter = get_column_letter(col_idx)
+            ws.column_dimensions[letter].width = max(max_len + 2, 8)
+
+        ws.freeze_panes = f"A{table_start + 2}"
+
+        # ----------------------------
+        # 📥 RESPONSE
+        # ----------------------------
+        response = HttpResponse(
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+        response["Content-Disposition"] = (
+            f'attachment; filename="Attendance_{dtr.start_date}_to_{dtr.end_date}.xlsx"'
+        )
+        wb.save(response)
+        return response
 
 class DTREntryViewSet(viewsets.ModelViewSet):
     queryset = DTREntry.objects.all().order_by("full_name")

@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from django.http import FileResponse, Http404, HttpResponse
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from openpyxl import load_workbook, Workbook
-import io, re, logging, csv, math, traceback
+import io, re, logging, csv, math, traceback, os, numbers
 from accounts.models import User
 from reportlab.pdfgen import canvas
 from django.db.models import Count, Q
@@ -26,7 +26,6 @@ from datetime import datetime
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from openpyxl.drawing.image import Image
 from openpyxl.utils import get_column_letter
-import os
 
 def log_action(user, action, status="success", ip_address=None):
     AuditLog.objects.create(
@@ -1210,97 +1209,161 @@ class DTRFileViewSet(viewsets.ModelViewSet):
         thin = Side(style="thin")
         border = Border(left=thin, right=thin, top=thin, bottom=thin)
 
-        # ----------------------------
-        # 🧱 HEADER
-        # ----------------------------
-        ws.merge_cells("A1:C4")
-        logo_path = os.path.join("media", "pmgi.png")
-        if os.path.exists(logo_path):
-            img = Image(logo_path)
-            img.height = 80
-            img.width = 120
-            ws.add_image(img, "C1")
-
         total_columns = 6 + (dtr.end_date - dtr.start_date).days + 1 + 7
 
-        # Main header
-        ws.merge_cells(start_row=1, start_column=4, end_row=2, end_column=total_columns)
-        ws["D1"] = "PROFESSIONAL MAINTENANCE GROUP, INC."
-        ws["D1"].font = title_font
-        ws["D1"].alignment = center
-        for row in ws.iter_rows(min_row=1, max_row=2, min_col=4, max_col=total_columns):
+        # ----------------------------
+        # 🧱 HEADER (Logo + Main/Sub Headers)
+        # ----------------------------
+        table_first_col = 2      # Table starts at column A
+        logo_cols_span = 2       # Logo width in columns
+        logo_rows_span = 5       # Logo height in rows
+        header_start_col = table_first_col + logo_cols_span
+        header_end_col = total_columns  # Total table columns
+
+        from openpyxl.drawing.image import Image as XLImage
+        logo_path = os.path.join("media", "pmgi.png")
+
+        # ----------------------------
+        # Merge logo area
+        # ----------------------------
+        ws.merge_cells(
+            start_row=1, start_column=table_first_col,
+            end_row=logo_rows_span, end_column=table_first_col + logo_cols_span - 1
+        )
+
+        # ----------------------------
+        # Insert logo and scale to exact merged cell area
+        # ----------------------------
+        if os.path.exists(logo_path):
+            img = XLImage(logo_path)
+            
+            # Calculate merged cell width in pixels
+            cell_width = sum(
+                (ws.column_dimensions[get_column_letter(c)].width or 8) for c in range(table_first_col, table_first_col + logo_cols_span)
+            ) * 7.7  # approximate pixels
+
+            # Calculate merged cell height in pixels
+            cell_height = sum(
+                (ws.row_dimensions[r].height or 18) for r in range(1, logo_rows_span + 1)
+            ) * 1.09  # approximate pixels
+
+            # Slightly scale up to fill merged area
+            scale_factor = 1.06
+            img.width = int(cell_width * scale_factor)
+            img.height = int(cell_height * scale_factor)
+
+            # Insert image at top-left of merged cells
+            ws.add_image(img, ws.cell(row=1, column=table_first_col).coordinate)
+
+        # ----------------------------
+        # Main header (rows 1-2)
+        # ----------------------------
+        ws.merge_cells(
+            start_row=1, start_column=header_start_col,
+            end_row=2, end_column=header_end_col
+        )
+        main_header_cell = ws.cell(row=1, column=header_start_col, value="PROFESSIONAL MAINTENANCE GROUP, INC.")
+        main_header_cell.font = title_font
+        main_header_cell.alignment = center
+
+        # ----------------------------
+        # Subheader (row 3)
+        # ----------------------------
+        ws.merge_cells(
+            start_row=3, start_column=header_start_col,
+            end_row=4, end_column=header_end_col
+        )
+        subheader_cell = ws.cell(row=3, column=header_start_col, value="ATTENDANCE SUMMARY FORM")
+        subheader_cell.font = subtitle_font
+        subheader_cell.alignment = center
+
+        # ----------------------------
+        # OPS-FRM code (row 4)
+        # ----------------------------
+        ws.merge_cells(
+            start_row=5, start_column=header_start_col,
+            end_row=5, end_column=header_end_col - 2
+        )
+        ops_cell = ws.cell(row=5, column=header_start_col, value="OPS-FRM009-01-100125")
+        ops_cell.alignment = center
+
+        # ----------------------------
+        # Edition (row 4, rightmost columns)
+        # ----------------------------
+        col_edition = header_end_col - 1
+        col_number = header_end_col
+        ws.cell(row=5, column=col_edition, value="Edition").font = bold
+        ws.cell(row=5, column=col_number, value="3").font = bold
+        ws.cell(row=5, column=col_edition).alignment = center
+        ws.cell(row=5, column=col_number).alignment = center
+
+        # ----------------------------
+        # Apply borders to all header cells (including logo area)
+        # ----------------------------
+        for row in ws.iter_rows(min_row=1, max_row=logo_rows_span,
+                                min_col=table_first_col, max_col=header_end_col):
             for cell in row:
                 cell.border = border
-
-        # Subheader
-        ws.merge_cells(start_row=3, start_column=4, end_row=3, end_column=total_columns)
-        ws["D3"] = "ATTENDANCE SUMMARY FORM"
-        ws["D3"].font = subtitle_font
-        ws["D3"].alignment = center
-        for row in ws.iter_rows(min_row=3, max_row=3, min_col=4, max_col=total_columns):
-            for cell in row:
-                cell.border = border
-
-        # OPS-FRM code
-        ws.merge_cells(start_row=4, start_column=4, end_row=4, end_column=total_columns - 2)
-        ws["D4"] = "OPS-FRM009-01-100125"
-        ws["D4"].font = bold
-        ws["D4"].alignment = center
-        for row in ws.iter_rows(min_row=4, max_row=4, min_col=4, max_col=total_columns-2):
-            for cell in row:
-                cell.border = border
-
-        # Edition
-        col_edition = total_columns - 1
-        col_number = total_columns
-        ws.cell(row=4, column=col_edition, value="Edition").font = bold
-        ws.cell(row=4, column=col_number, value="3").font = bold
-        ws.cell(row=4, column=col_edition).alignment = center
-        ws.cell(row=4, column=col_number).alignment = center
-        ws.cell(row=4, column=col_edition).border = border
-        ws.cell(row=4, column=col_number).border = border
 
         # ----------------------------
         # 🧾 META INFO (Updated)
         # ----------------------------
-        meta_row = 6
+        meta_row = 7
         uploader = dtr.uploaded_by.username if dtr.uploaded_by else "N/A"
 
-        # "Project" label
-        ws[f"D{meta_row}"] = "PROJECT"
+        # PROJECT label (column D)
+        ws[f"D{meta_row}"] = "PROJECT:"
         ws[f"D{meta_row}"].font = bold
-        ws[f"D{meta_row}"].alignment = left
+        ws[f"D{meta_row}"].alignment = right  # label stays left-aligned
         ws[f"D{meta_row}"].border = border
 
-        # Project name below "PROJECT"
-        ws[f"D{meta_row+1}"] = uploader
+        # Project name / uploaded by (merge E and F)
+        start_col = 5  # column E
+        end_col = 6    # merge E and F
+        ws.merge_cells(start_row=meta_row, start_column=start_col, end_row=meta_row, end_column=end_col)
+        ws[f"E{meta_row}"] = uploader
+        ws[f"E{meta_row}"].font = bold
+        ws[f"E{meta_row}"].alignment = Alignment(horizontal="center", vertical="center")  # center in merged cell
+
+        # Apply border to all merged cells
+        for col in range(start_col, end_col + 1):
+            ws.cell(row=meta_row, column=col).border = border
+
+        # FROM label and date (next row)
+        from_text = dtr.start_date.strftime("%B %d, %Y")  # "September 16, 2025"
+        ws[f"D{meta_row+1}"] = "FROM:"
         ws[f"D{meta_row+1}"].font = bold
-        ws[f"D{meta_row+1}"].alignment = left
+        ws[f"D{meta_row+1}"].alignment = right
         ws[f"D{meta_row+1}"].border = border
 
-        # FROM date
-        from_text = dtr.start_date.strftime("%B %d, %Y")  # "September 16, 2025"
-        ws[f"C{meta_row+2}"] = "FROM:"
-        ws[f"C{meta_row+2}"].font = bold
-        ws[f"C{meta_row+2}"].alignment = right
-        ws[f"C{meta_row+2}"].border = border
+        # Merge E and F for the date
+        start_col = 5
+        end_col = 6
+        ws.merge_cells(start_row=meta_row+1, start_column=start_col, end_row=meta_row+1, end_column=end_col)
+        ws[f"E{meta_row+1}"] = from_text
+        ws[f"E{meta_row+1}"].font = bold
+        ws[f"E{meta_row+1}"].alignment = Alignment(horizontal="center", vertical="center")  # center text in merged cell
 
-        ws[f"D{meta_row+2}"] = from_text
+        # Apply border to all merged cells
+        for col in range(start_col, end_col + 1):
+            ws.cell(row=meta_row+1, column=col).border = border
+
+        # TO label and date (row after FROM)
+        to_text = dtr.end_date.strftime("%B %d, %Y")  # "September 20, 2025"
+        ws[f"D{meta_row+2}"] = "TO:"
         ws[f"D{meta_row+2}"].font = bold
-        ws[f"D{meta_row+2}"].alignment = left
+        ws[f"D{meta_row+2}"].alignment = right
         ws[f"D{meta_row+2}"].border = border
 
-        # TO date
-        to_text = dtr.end_date.strftime("%B %d, %Y")  # "September 20, 2025"
-        ws[f"C{meta_row+3}"] = "TO:"
-        ws[f"C{meta_row+3}"].font = bold
-        ws[f"C{meta_row+3}"].alignment = right
-        ws[f"C{meta_row+3}"].border = border
+        # Merge E and F for TO date
+        ws.merge_cells(start_row=meta_row+2, start_column=start_col, end_row=meta_row+2, end_column=end_col)
+        ws[f"E{meta_row+2}"] = to_text
+        ws[f"E{meta_row+2}"].font = bold
+        ws[f"E{meta_row+2}"].alignment = Alignment(horizontal="center", vertical="center")  # center text
 
-        ws[f"D{meta_row+3}"] = to_text
-        ws[f"D{meta_row+3}"].font = bold
-        ws[f"D{meta_row+3}"].alignment = left
-        ws[f"D{meta_row+3}"].border = border
+        # Apply border to all merged cells
+        for col in range(start_col, end_col + 1):
+            ws.cell(row=meta_row+2, column=col).border = border
 
         # ----------------------------
         # 📅 DATES
@@ -1363,16 +1426,37 @@ class DTRFileViewSet(viewsets.ModelViewSet):
         # ----------------------------
         # 📊 DATA ROWS
         # ----------------------------
-        totals = [0] * (total_columns)
+        totals = [0] * total_columns
         row_idx = table_start + 2
-        max_col_lengths = [len(str(h)) for h in headers_left + [d.strftime("%a") for d in dates] + headers_right]
+        max_col_lengths = [
+            len(str(h)) for h in headers_left + [d.strftime("%a") for d in dates] + headers_right
+        ]
+
+        daily_col_start = 7
+        daily_col_end = daily_col_start + len(dates) - 1
+
+        def to_number(val):
+            """Convert to float if possible, else return None"""
+            try:
+                return float(val)
+            except (TypeError, ValueError):
+                return None
 
         for idx, entry in enumerate(dtr.entries.all(), start=1):
             daily_vals = [entry.daily_data.get(str(d), "") for d in dates]
-            values = [idx, entry.full_name, entry.employee_no, entry.position, entry.shift, entry.time] \
-                    + daily_vals \
-                    + [entry.total_days, entry.total_hours, entry.undertime_minutes, entry.regular_ot,
-                    entry.legal_holiday, entry.special_holiday, entry.night_diff]
+            values = (
+                [idx, entry.full_name, entry.employee_no, entry.position, entry.shift, entry.time]
+                + daily_vals
+                + [
+                    entry.total_days,
+                    entry.total_hours,
+                    entry.undertime_minutes,
+                    entry.regular_ot,
+                    entry.legal_holiday,
+                    entry.special_holiday,
+                    entry.night_diff,
+                ]
+            )
 
             for c, v in enumerate(values, start=1):
                 cell = ws.cell(row=row_idx, column=c, value=v)
@@ -1381,9 +1465,6 @@ class DTRFileViewSet(viewsets.ModelViewSet):
                 cell.alignment = center if c != 2 else left
 
                 # 🎨 DAILY VALUE COLORING
-                daily_col_start = 7
-                daily_col_end = daily_col_start + len(dates) - 1
-
                 if daily_col_start <= c <= daily_col_end:
                     if v in ("", None):
                         cell.fill = blank_fill
@@ -1392,59 +1473,76 @@ class DTRFileViewSet(viewsets.ModelViewSet):
                     elif str(v).upper() == "D":
                         cell.fill = dayoff_fill
 
-                    # DAILY TOTALS: only sum if numeric
-                    if isinstance(v, (int, float)):
-                        totals[c-1] += v  # Sum numeric daily values
-                    # otherwise, do not count non-numeric values
+                # ✅ GRAND TOTALS
+                if daily_col_start <= c <= daily_col_end:
+                    if to_number(v) is not None:
+                        totals[c - 1] += 1
+                elif c > daily_col_end:
+                    num = to_number(v)
+                    if num is not None:
+                        totals[c - 1] += num
 
-                # RIGHT-SIDE TOTALS: only sum if numeric
-                elif c >= daily_col_end + 1:
-                    if isinstance(v, (int, float)):
-                        totals[c-1] += v
-
-                max_col_lengths[c-1] = max(max_col_lengths[c-1], len(str(v)) if v is not None else 0)
+                # Update max column length for auto width
+                max_col_lengths[c - 1] = max(
+                    max_col_lengths[c - 1],
+                    len(str(v)) if v is not None else 0
+                )
 
             ws.row_dimensions[row_idx].height = 18
             row_idx += 1
 
         # ----------------------------
+        # AUTO-FIT POSITION COLUMN WIDTH
+        # ----------------------------
+        # Adjust column 4 (Position) width based on max content length
+        position_col_index = 4
+        ws.column_dimensions[get_column_letter(position_col_index)].width = max_col_lengths[position_col_index - 1] + 2
+
+       # ----------------------------
         # 🔢 GRAND TOTAL ROW (Per Column)
         # ----------------------------
-        ws.cell(row=row_idx, column=1, value="GRAND TOTAL")
-        ws.cell(row=row_idx, column=1).font = bold
-        ws.cell(row=row_idx, column=1).alignment = left
-        ws.cell(row=row_idx, column=1).border = border
 
-        daily_start_col = 7
-        daily_end_col = daily_start_col + len(dates) - 1
-        right_start_col = daily_end_col + 1
-        right_end_col = daily_end_col + len(headers_right)
+        # Place "GRAND TOTAL" right before daily totals
+        grand_total_col = daily_col_start - 1  # column just before daily totals
+        top_left_col = grand_total_col - 1     # top-left of merged range (merge 2 columns for nicer display)
 
-        # Daily totals (count non-empty, exclude empty strings or None)
-        for col in range(daily_start_col, daily_end_col + 1):
-            total_value = totals[col - 1]  # Already counted as 1 per non-empty value
+        # Merge two columns for GRAND TOTAL
+        ws.merge_cells(
+            start_row=row_idx, start_column=top_left_col,
+            end_row=row_idx, end_column=grand_total_col
+        )
+
+        # Write text in top-left cell only
+        cell = ws.cell(row=row_idx, column=top_left_col, value="GRAND TOTAL")
+        cell.font = bold
+        cell.alignment = Alignment(horizontal="right", vertical="center")
+
+        # Apply border to all merged cells
+        for col in range(top_left_col, grand_total_col + 1):
+            ws.cell(row=row_idx, column=col).border = border
+
+        right_start_col = daily_col_end + 1
+        right_end_col = daily_col_end + len(headers_right)
+
+        # Daily totals → count of numeric values
+        for col in range(daily_col_start, daily_col_end + 1):
             cell = ws.cell(row=row_idx, column=col)
             cell.border = border
             cell.alignment = center
-            if total_value > 0:
-                cell.value = total_value
+            if totals[col - 1] > 0:
+                cell.value = totals[col - 1]  # count of numeric entries
                 cell.font = bold
 
-        # Right-side totals (Total Days → Night Diff)
+        # Right-side totals → sum numeric values
         for col in range(right_start_col, right_end_col + 1):
-            raw_total = totals[col - 1]
-            total_value = raw_total if isinstance(raw_total, (int, float)) else 0
-
             cell = ws.cell(row=row_idx, column=col)
             cell.border = border
             cell.alignment = center
-
-            if total_value > 0:
-                cell.value = total_value
+            if totals[col - 1] > 0:
+                cell.value = totals[col - 1]
                 cell.font = bold
 
         ws.row_dimensions[row_idx].height = 22
-
 
         # ----------------------------
         # ✍ SIGNATURES ROWS

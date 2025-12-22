@@ -1,0 +1,4 @@
+FROM backend_project
+
+# Run Celery worker
+CMD ["celery", "-A", "backend_project", "worker", "-l", "info"]

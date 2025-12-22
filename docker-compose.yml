@@ -1,0 +1,51 @@
+version: "3.9"
+
+services:
+  backend:
+    build: ./backend_project
+    env_file:
+      - ./backend_project/.env
+    depends_on:
+      - redis
+      - db
+    volumes:
+      - media:/app/media
+    restart: always
+    ports:
+      - "8000:8000"
+
+  celery:
+    build: ./backend_project
+    command: celery -A backend_project worker -l info
+    env_file:
+      - ./backend_project/.env
+    depends_on:
+      - backend
+      - redis
+    volumes:
+      - media:/app/media
+    restart: always
+
+  redis:
+    image: redis:7
+    restart: always
+
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: yourdb
+      POSTGRES_USER: youruser
+      POSTGRES_PASSWORD: yourpassword
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: always
+
+  frontend:
+    build: ./frontend
+    restart: always
+    ports:
+      - "80:80"
+
+volumes:
+  pgdata:
+  media:

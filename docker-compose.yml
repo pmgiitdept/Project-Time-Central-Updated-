@@ -8,7 +8,7 @@ services:
     environment:
       POSTGRES_DB: project_time_central
       POSTGRES_USER: ptc_user
-      POSTGRES_PASSWORD: ptc@pass.pmgi
+      POSTGRES_PASSWORD: ptc%40pass.pmgi   # URL-encoded @
     volumes:
       - pgdata:/var/lib/postgresql/data
     restart: always
@@ -32,7 +32,7 @@ services:
       SECRET_KEY: "django-insecure-p=igja**a%y#yy&b#1ttv13k+2gx&%7(g3&&@=nf=x2%(ihgtb"
       DEBUG: "False"
       ALLOWED_HOSTS: "*"
-      DATABASE_URL: "postgres://ptc_user:ptc@pass.pmgi@db:5432/project_time_central"
+      DATABASE_URL: "postgres://ptc_user:ptc%40pass.pmgi@db:5432/project_time_central"
       REDIS_URL: "redis://redis:6379/0"
       CELERY_BROKER_URL: "redis://redis:6379/0"
       CELERY_RESULT_BACKEND: "redis://redis:6379/0"
@@ -50,7 +50,9 @@ services:
     volumes:
       - media:/app/media
     environment:
-      DATABASE_URL: "postgres://ptc_user:ptc@pass.pmgi@db:5432/project_time_central"
+      DJANGO_SETTINGS_MODULE: backend_project.settings
+      SECRET_KEY: "django-insecure-p=igja**a%y#yy&b#1ttv13k+2gx&%7(g3&&@=nf=x2%(ihgtb"
+      DATABASE_URL: "postgres://ptc_user:ptc%40pass.pmgi@db:5432/project_time_central"
       REDIS_URL: "redis://redis:6379/0"
       CELERY_BROKER_URL: "redis://redis:6379/0"
       CELERY_RESULT_BACKEND: "redis://redis:6379/0"
@@ -66,6 +68,8 @@ services:
       context: ./frontend
     container_name: ptc-frontend
     restart: always
+    ports:
+      - "80:80"   # Optional if you want to access directly
 
 volumes:
   pgdata:

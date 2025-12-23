@@ -1,31 +1,30 @@
+version: "3.9"
+
 services:
-  backend:
-    build: ./backend_project
-    command: daphne -b 0.0.0.0 -p 8000 backend_project.asgi:application
-    depends_on:
-      - redis
-      - db
-    volumes:
-      - media:/app/media
-    ports:
-      - "8000:8000"
+  # PostgreSQL Database
+  db:
+    image: postgres:16
+    container_name: ptc-db
     environment:
-      DJANGO_SETTINGS_MODULE: backend_project.settings
-      SECRET_KEY: "django-insecure-p=igja**a%y#yy&b#1ttv13k+2gx&%7(g3&&@=nf=x2%(ihgtb"
-      DEBUG: "False"
-      ALLOWED_HOSTS: "*"
-      DATABASE_URL: postgres://ptc_user:ptc@pass.pmgi@db:5432/project_time_central
-      REDIS_URL: redis://redis:6379/0
-      CELERY_BROKER_URL: redis://redis:6379/0
-      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      POSTGRES_DB: project_time_central
+      POSTGRES_USER: ptc_user
+      POSTGRES_PASSWORD: ptc@pass.pmgi
+    volumes:
+      - pgdata:/var/lib/postgresql/data
     restart: always
 
-  celery:
-    build: ./backend_project
-    command: celery -A backend_project worker -l info
-    depends_on:
-      - redis
-      - db
+  # Redis for Celery
+  redis:
+    image: redis:7
+    container_name: ptc-redis
+    restart: always
+
+  # Django Backend
+  backend:
+    build:
+      context: ./backend_project
+    container_name: ptc-backend
+    command: daphne -b 0.0.0.0 -p 8000 backend_project.asgi:application
     volumes:
       - media:/app/media
     environment:
@@ -33,8 +32,41 @@ services:
       SECRET_KEY: "django-insecure-p=igja**a%y#yy&b#1ttv13k+2gx&%7(g3&&@=nf=x2%(ihgtb"
       DEBUG: "False"
       ALLOWED_HOSTS: "*"
-      DATABASE_URL: postgres://ptc_user:ptc@pass.pmgi@db:5432/project_time_central
-      REDIS_URL: redis://redis:6379/0
-      CELERY_BROKER_URL: redis://redis:6379/0
-      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      DATABASE_URL: "postgres://ptc_user:ptc@pass.pmgi@db:5432/project_time_central"
+      REDIS_URL: "redis://redis:6379/0"
+      CELERY_BROKER_URL: "redis://redis:6379/0"
+      CELERY_RESULT_BACKEND: "redis://redis:6379/0"
+    depends_on:
+      - db
+      - redis
     restart: always
+
+  # Celery Worker
+  celery:
+    build:
+      context: ./backend_project
+    container_name: ptc-celery
+    command: celery -A backend_project worker -l info
+    volumes:
+      - media:/app/media
+    environment:
+      DATABASE_URL: "postgres://ptc_user:ptc@pass.pmgi@db:5432/project_time_central"
+      REDIS_URL: "redis://redis:6379/0"
+      CELERY_BROKER_URL: "redis://redis:6379/0"
+      CELERY_RESULT_BACKEND: "redis://redis:6379/0"
+    depends_on:
+      - db
+      - redis
+      - backend
+    restart: always
+
+  # Frontend (Vite/React built with Nginx)
+  frontend:
+    build:
+      context: ./frontend
+    container_name: ptc-frontend
+    restart: always
+
+volumes:
+  pgdata:
+  media:

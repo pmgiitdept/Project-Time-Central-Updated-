@@ -68,9 +68,6 @@ services:
       context: ./frontend
     container_name: ptc-frontend
     restart: always
-    ports:
-      - "80:80"   # Optional if you want to access directly
-
 volumes:
   pgdata:
   media:

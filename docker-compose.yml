@@ -1,25 +1,22 @@
-version: "3.9"
-
 services:
   backend:
-    backend:
-      build: ./backend_project
+    build: ./backend_project
+    command: daphne -b 0.0.0.0 -p 8000 backend_project.asgi:application
     depends_on:
       - redis
       - db
     volumes:
       - media:/app/media
-    restart: always
     ports:
       - "8000:8000"
+    restart: always
 
   celery:
     build: ./backend_project
     command: celery -A backend_project worker -l info
-    env_file: backend_project/.env
     depends_on:
-      - backend
       - redis
+      - db
     volumes:
       - media:/app/media
     restart: always
@@ -40,9 +37,9 @@ services:
 
   frontend:
     build: ./frontend
-    restart: always
     ports:
       - "80:80"
+    restart: always
 
 volumes:
   pgdata:

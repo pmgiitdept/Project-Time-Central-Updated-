@@ -12,7 +12,7 @@ from channels.security.websocket import AllowedHostsOriginValidator
 
 os.environ.setdefault(
     "DJANGO_SETTINGS_MODULE",
-    os.getenv("DJANGO_SETTINGS_MODULE", "backend_project.settings.dev")
+    os.getenv("DJANGO_SETTINGS_MODULE", "backend_project.settings.prod")
 )
 
 django.setup()

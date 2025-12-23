@@ -9,6 +9,15 @@ services:
       - media:/app/media
     ports:
       - "8000:8000"
+    environment:
+      DJANGO_SETTINGS_MODULE: backend_project.settings
+      SECRET_KEY: "django-insecure-p=igja**a%y#yy&b#1ttv13k+2gx&%7(g3&&@=nf=x2%(ihgtb"
+      DEBUG: "False"
+      ALLOWED_HOSTS: "*"
+      DATABASE_URL: postgres://ptc_user:ptc@pass.pmgi@db:5432/project_time_central
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
     restart: always
 
   celery:
@@ -19,26 +28,13 @@ services:
       - db
     volumes:
       - media:/app/media
-    restart: always
-
-  redis:
-    image: redis:7
-    restart: always
-
-  db:
-    image: postgres:16
     environment:
-      POSTGRES_DB: project_time_central
-      POSTGRES_USER: ptc_user
-      POSTGRES_PASSWORD: ptc@pass.pmgi
-    volumes:
-      - pgdata:/var/lib/postgresql/data
+      DJANGO_SETTINGS_MODULE: backend_project.settings
+      SECRET_KEY: "django-insecure-p=igja**a%y#yy&b#1ttv13k+2gx&%7(g3&&@=nf=x2%(ihgtb"
+      DEBUG: "False"
+      ALLOWED_HOSTS: "*"
+      DATABASE_URL: postgres://ptc_user:ptc@pass.pmgi@db:5432/project_time_central
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
     restart: always
-
-  frontend:
-    build: ./frontend
-    restart: always
-
-volumes:
-  pgdata:
-  media:

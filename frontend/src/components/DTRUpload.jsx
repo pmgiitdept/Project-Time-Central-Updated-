@@ -10,6 +10,7 @@ export default function DTRUpload({ refreshDTR }) {
   const [uploading, setUploading] = useState(false);
   const [showManual, setShowManual] = useState(false);
   const fileInputRef = useRef(null);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
 
   /* ======== Cutoff Logic ======== */
   const today = new Date();
@@ -64,6 +65,7 @@ export default function DTRUpload({ refreshDTR }) {
       });
 
       toast.success("DTR file uploaded successfully!");
+      setHasSubmitted(true);
       setFile(null);
       if (fileInputRef.current) fileInputRef.current.value = null;
       refreshDTR();
@@ -89,8 +91,16 @@ export default function DTRUpload({ refreshDTR }) {
             onChange={(e) => setFile(e.target.files[0])}
             className="file-input"
           />
-          <button type="submit" disabled={uploading || !canSubmit} className="upload-button">
-            {uploading ? "Uploading..." : "Upload Excel Form"}
+          <button
+            type="submit"
+            disabled={uploading || !canSubmit || hasSubmitted}
+            className="upload-button"
+          >
+            {hasSubmitted
+              ? "DTR Already Submitted"
+              : uploading
+              ? "Uploading..."
+              : "Upload Excel Form"}
           </button>
         </form>
 
@@ -100,14 +110,26 @@ export default function DTRUpload({ refreshDTR }) {
           type="button"
           className="upload-button1 secondary"
           onClick={() => setShowManual(true)}
-          disabled={!canSubmit}
+          disabled={!canSubmit || hasSubmitted}
         >
-          {canSubmit ? "Enter DTR Manually" : "Unavailable – wait for next cutoff"}
+          {hasSubmitted
+            ? "DTR Already Submitted"
+            : canSubmit
+            ? "Enter DTR Manually"
+            : "Unavailable – wait for next cutoff"}
         </button>
       </motion.div>
 
       <AnimatePresence>
-        {showManual && <ManualDTRCard onClose={() => setShowManual(false)} onSuccess={refreshDTR} />}
+        {showManual && (
+          <ManualDTRCard
+            onClose={() => setShowManual(false)}
+            onSuccess={() => {
+              setHasSubmitted(true); // 🔒 lock submission
+              refreshDTR();          // 🔄 refresh list
+            }}
+          />
+        )}
       </AnimatePresence>
     </>
   );

@@ -357,7 +357,7 @@ export default function FileTable({ role, setSelectedFile }) {
                         <th>Status</th>
                         <th>Start Date</th>
                         <th>End Date</th>
-                        {(role === "admin" || role === "viewer") && <th>Actions</th>}
+                        {(role === "admin" || role === "viewer" || role === "client") && <th>Actions</th>}
                         <th>For Rejection</th>
                       </tr>
                     </thead>
@@ -411,29 +411,33 @@ export default function FileTable({ role, setSelectedFile }) {
                             <td>{file.start_date ? new Date(file.start_date).toLocaleDateString() : "-"}</td>
                             <td>{file.end_date ? new Date(file.end_date).toLocaleDateString() : "-"}</td>
 
-                            {(role === "admin" || role === "viewer") && (
+                            {(role === "admin" || role === "viewer" || role === "client") && (
                               <td>
-                                <button
-                                  className="action-btn download"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDownload(file.id, `DTR_${file.id}.xlsx`);
-                                  }}
-                                  disabled={downloadLoading[file.id]}
-                                >
-                                  {downloadLoading[file.id] ? "Downloading..." : "Download"}
-                                </button>
+                                {(role === "admin" || role === "viewer" || role === "client") && (
+                                  <button
+                                    className="action-btn download"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDownload(file.id, `DTR_${file.id}.xlsx`);
+                                    }}
+                                    disabled={downloadLoading[file.id]}
+                                  >
+                                    {downloadLoading[file.id] ? "Downloading..." : "Download"}
+                                  </button>
+                                )}
 
-                                <button
-                                  className="action-btn delete"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDeleteClick(file.id);
-                                  }}
-                                  disabled={deleting[file.id]}
-                                >
-                                  {deleting[file.id] ? "Deleting..." : "Delete"}
-                                </button>
+                                {(role === "admin" || role === "viewer") && (
+                                  <button
+                                    className="action-btn delete"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteClick(file.id);
+                                    }}
+                                    disabled={deleting[file.id]}
+                                  >
+                                    {deleting[file.id] ? "Deleting..." : "Delete"}
+                                  </button>
+                                )}
                               </td>
                             )}
 

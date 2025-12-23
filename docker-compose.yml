@@ -8,7 +8,7 @@ services:
     environment:
       POSTGRES_DB: project_time_central
       POSTGRES_USER: ptc_user
-      POSTGRES_PASSWORD: ptc%40pass.pmgi   # URL-encoded @
+      POSTGRES_PASSWORD: ptc-pass.pmgi   # URL-encoded @
     volumes:
       - pgdata:/var/lib/postgresql/data
     restart: always

@@ -2,9 +2,8 @@ version: "3.9"
 
 services:
   backend:
-    build: ./backend_project
-    env_file:
-      - ./backend_project/.env
+    backend:
+      build: ./backend_project
     depends_on:
       - redis
       - db
@@ -17,8 +16,7 @@ services:
   celery:
     build: ./backend_project
     command: celery -A backend_project worker -l info
-    env_file:
-      - ./backend_project/.env
+    env_file: backend_project/.env
     depends_on:
       - backend
       - redis

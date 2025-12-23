@@ -8,12 +8,12 @@ services:
     environment:
       POSTGRES_DB: project_time_central
       POSTGRES_USER: ptc_user
-      POSTGRES_PASSWORD: "ptc@pass.pmgi"
+      POSTGRES_PASSWORD: ptc%40pass.pmgi   # URL-encoded @
     volumes:
       - pgdata:/var/lib/postgresql/data
     restart: always
 
-  # Redis for Channels & Celery
+  # Redis for Celery
   redis:
     image: redis:7
     container_name: ptc-redis
@@ -27,8 +27,15 @@ services:
     command: daphne -b 0.0.0.0 -p 8000 backend_project.asgi:application
     volumes:
       - media:/app/media
-    env_file:
-      - .env.prod
+    environment:
+      DJANGO_SETTINGS_MODULE: backend_project.settings.prod
+      SECRET_KEY: "django-insecure-p=igja**a%y#yy&b#1ttv13k+2gx&%7(g3&&@=nf=x2%(ihgtb"
+      DEBUG: "False"
+      ALLOWED_HOSTS: "*"
+      DATABASE_URL: "postgres://ptc_user:ptc%40pass.pmgi@db:5432/project_time_central"
+      REDIS_URL: "redis://redis:6379/0"
+      CELERY_BROKER_URL: "redis://redis:6379/0"
+      CELERY_RESULT_BACKEND: "redis://redis:6379/0"
     depends_on:
       - db
       - redis
@@ -42,21 +49,25 @@ services:
     command: celery -A backend_project worker -l info
     volumes:
       - media:/app/media
-    env_file:
-      - .env.prod
+    environment:
+      DJANGO_SETTINGS_MODULE: backend_project.settings
+      SECRET_KEY: "django-insecure-p=igja**a%y#yy&b#1ttv13k+2gx&%7(g3&&@=nf=x2%(ihgtb"
+      DATABASE_URL: "postgres://ptc_user:ptc%40pass.pmgi@db:5432/project_time_central"
+      REDIS_URL: "redis://redis:6379/0"
+      CELERY_BROKER_URL: "redis://redis:6379/0"
+      CELERY_RESULT_BACKEND: "redis://redis:6379/0"
     depends_on:
       - db
       - redis
       - backend
     restart: always
 
-  # Frontend (Vite/React + Nginx)
+  # Frontend (Vite/React built with Nginx)
   frontend:
     build:
       context: ./frontend
     container_name: ptc-frontend
     restart: always
-
 volumes:
   pgdata:
   media:

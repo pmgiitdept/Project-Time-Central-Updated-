@@ -7,7 +7,7 @@ services:
     container_name: ptc-db
     environment:
       POSTGRES_DB: project_time_central
-      POSTGRES_USER: ptc_user
+      POSTGRES_USER: ptc-user
       POSTGRES_PASSWORD: ptc-pass.pmgi   # URL-encoded @
     volumes:
       - pgdata:/var/lib/postgresql/data

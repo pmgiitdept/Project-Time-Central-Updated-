@@ -4,7 +4,7 @@ services:
   # PostgreSQL Database
   db:
     image: postgres:16
-    container_name: ptc-db
+    container_name: project-time-central-my-database-qrmt56.1.w1a0y2prrsw1rsawh25swn8q2
     environment:
       POSTGRES_DB: project_time_central
       POSTGRES_USER: postgres

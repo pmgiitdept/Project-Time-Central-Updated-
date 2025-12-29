@@ -35,7 +35,7 @@ SECRET_KEY = config("SECRET_KEY")
 
 DEBUG = config("DEBUG", default=False, cast=bool)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["project-time-central.cloud"]
 
 
 # Application definition
@@ -98,6 +98,8 @@ CHANNEL_LAYERS = {
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
+    "http://project-time-central.cloud",
+    "https://project-time-central.cloud",
 ]
 
 # Database

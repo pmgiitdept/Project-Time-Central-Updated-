@@ -74,7 +74,7 @@ services:
     volumes:
       - staticfiles:/usr/share/nginx/html/static  # <-- serve Django static files via Nginx
     ports:
-      - "80:80"
+      - "3000:80"
     depends_on:
       - backend
     restart: always

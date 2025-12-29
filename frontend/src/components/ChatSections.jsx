@@ -50,24 +50,26 @@ export default function ChatSection({
 
     try {
       let allMessages = [];
-      // Use dynamic backend host
-      const backendHost =
+
+      // Determine backend base URL dynamically
+      const backendBase =
         window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
-          ? "http://127.0.0.1:8000/api"
-          : `https://${window.location.hostname}/api`;
+          ? "http://127.0.0.1:8000/api" // local dev
+          : "https://api.project-time-central.cloud/api"; // production
+
       let url = `/chat/messages/${roomName}/`;
 
       while (url) {
         const res = await api.get(url, {
-          baseURL: backendHost, // dynamically set backend base
+          baseURL: backendBase,
           headers: { Authorization: `Bearer ${currentUser.token}` },
         });
 
         const data = res.data;
         allMessages = [...allMessages, ...data.results];
 
-        // Update URL for next page, keep it relative
-        url = data.next ? data.next.replace(backendHost, "") : null;
+        // Update URL for next page; make it relative
+        url = data.next ? data.next.replace(backendBase, "") : null;
       }
 
       allMessages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
@@ -95,22 +97,27 @@ export default function ChatSection({
 
   useEffect(() => {
     if (!currentUser?.token) return;
-
     if (ws.current) return; // already initialized
 
     // Determine protocol automatically
     const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
 
-    // Use the same host as the frontend for WebSocket
-    const backendHost = window.location.hostname; // dynamic host
-    const backendPort = window.location.protocol === "https:" ? "" : ":8000"; // only add port if http
+    // Determine backend host dynamically:
+    // - localhost or 127.0.0.1 for local dev
+    // - production uses api.project-time-central.cloud
+    let backendHost;
+    if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+      backendHost = "127.0.0.1:8000"; // local Docker backend
+    } else {
+      backendHost = "api.project-time-central.cloud"; // production backend
+    }
 
     const token =
       currentUser?.token ||
       localStorage.getItem("access_token") ||
       localStorage.getItem("token");
 
-    const wsUrl = `${wsScheme}://${backendHost}${backendPort}/ws/chat/${roomName}/?token=${token}`;
+    const wsUrl = `${wsScheme}://${backendHost}/ws/chat/${roomName}/?token=${token}`;
     console.log("🧠 Attempting WebSocket connection:", wsUrl);
 
     try {
@@ -153,7 +160,6 @@ export default function ChatSection({
       ws.current = null;
     };
   }, [currentUser?.token, roomName]);
-
 
   useEffect(() => {
     if (!loading && messages.length > 0) {

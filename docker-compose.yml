@@ -50,15 +50,16 @@ services:
       - dokploy-network
     labels:
       - "traefik.enable=true"
-      # Traefik routing
+      # Backend router for /api/*
       - "traefik.http.routers.ptc-backend.rule=Host(`api.project-time-central.cloud`)"
       - "traefik.http.routers.ptc-backend.entrypoints=websecure"
       - "traefik.http.routers.ptc-backend.tls.certresolver=myresolver"
       - "traefik.http.services.ptc-backend.loadbalancer.server.port=8000"
-      # Redirect root to frontend
+      # Redirect only root /api root requests (optional)
+      - "traefik.http.routers.ptc-backend-root.rule=Host(`api.project-time-central.cloud`) && Path(`/`)"
+      - "traefik.http.routers.ptc-backend-root.middlewares=api-redirect"
       - "traefik.http.middlewares.api-redirect.redirectregex.regex=^https://api.project-time-central.cloud/$"
       - "traefik.http.middlewares.api-redirect.redirectregex.replacement=https://app.project-time-central.cloud/"
-      - "traefik.http.routers.ptc-backend.middlewares=api-redirect"
 
   # Celery Worker
   celery:
@@ -84,7 +85,7 @@ services:
     networks:
       - default
 
-  # Frontend (Vite/React built with Nginx)
+  # Frontend (Vite/React with Nginx)
   frontend:
     build:
       context: ./frontend

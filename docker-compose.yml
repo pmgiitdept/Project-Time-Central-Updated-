@@ -8,7 +8,7 @@ services:
     environment:
       POSTGRES_DB: project_time_central
       POSTGRES_USER: ptc_user
-      POSTGRES_PASSWORD: ptc-pass.pmgi  # URL-encoded @
+      POSTGRES_PASSWORD: ptc-pass.pmgi
     volumes:
       - pgdata:/var/lib/postgresql/data
     restart: always
@@ -25,6 +25,8 @@ services:
       context: ./backend_project
     container_name: ptc-backend
     command: daphne -b 0.0.0.0 -p 8000 backend_project.asgi:application
+    ports:
+      - "8000:8000"  # <-- expose backend to host
     volumes:
       - media:/app/media
     environment:
@@ -68,6 +70,7 @@ services:
       context: ./frontend
     container_name: ptc-frontend
     restart: always
+
 volumes:
   pgdata:
   media:

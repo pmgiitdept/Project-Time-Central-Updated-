@@ -3,7 +3,7 @@ version: "3.9"
 services:
   # PostgreSQL Database
   db:
-    image: postgres:15
+    image: postgres:16
     container_name: ptc-db
     environment:
       POSTGRES_DB: project_time_central

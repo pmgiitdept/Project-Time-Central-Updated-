@@ -26,9 +26,10 @@ services:
     container_name: ptc-backend
     command: daphne -b 0.0.0.0 -p 8000 backend_project.asgi:application
     ports:
-      - "8000:8000"  # <-- expose backend to host
+      - "8000:8000"  # expose backend to host
     volumes:
       - media:/app/media
+      - staticfiles:/app/staticfiles  # <-- add staticfiles volume
     environment:
       DJANGO_SETTINGS_MODULE: backend_project.settings.prod
       SECRET_KEY: "django-insecure-p=igja**a%y#yy&b#1ttv13k+2gx&%7(g3&&@=nf=x2%(ihgtb"
@@ -51,6 +52,7 @@ services:
     command: celery -A backend_project worker -l info
     volumes:
       - media:/app/media
+      - staticfiles:/app/staticfiles  # <-- same volume as backend
     environment:
       DJANGO_SETTINGS_MODULE: backend_project.settings
       SECRET_KEY: "django-insecure-p=igja**a%y#yy&b#1ttv13k+2gx&%7(g3&&@=nf=x2%(ihgtb"
@@ -69,8 +71,13 @@ services:
     build:
       context: ./frontend
     container_name: ptc-frontend
+    volumes:
+      - staticfiles:/usr/share/nginx/html/static  # <-- serve Django static files via Nginx
+    ports:
+      - "80:80"
     restart: always
 
 volumes:
   pgdata:
   media:
+  staticfiles:

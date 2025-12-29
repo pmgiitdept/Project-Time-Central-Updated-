@@ -28,7 +28,6 @@ INSTALLED_APPS = [
     # Third-party
     'rest_framework',
     'rest_framework_simplejwt',
-    'corsheaders',
     'django_celery_beat',
     'channels',
 

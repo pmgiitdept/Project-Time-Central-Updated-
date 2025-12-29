@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
   # PostgreSQL Database
   db:
@@ -10,12 +12,16 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     restart: always
+    networks:
+      - default
 
   # Redis for Celery
   redis:
     image: redis:7
     container_name: ptc-redis
     restart: always
+    networks:
+      - default
 
   # Django Backend
   backend:
@@ -39,16 +45,19 @@ services:
       - db
       - redis
     restart: always
+    networks:
+      - default
+      - dokploy-network
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.ptc-backend.rule=Host(`api.project-time-central.cloud`)"
       - "traefik.http.routers.ptc-backend.entrypoints=web,websecure"
       - "traefik.http.routers.ptc-backend.tls=true"
-      - "traefik.http.services.ptc-backend.loadbalancer.server.port=8000"
-      # Redirect from API root to frontend
+      # Redirect root to frontend
       - "traefik.http.middlewares.api-redirect.redirectregex.regex=^https://api.project-time-central.cloud/$"
       - "traefik.http.middlewares.api-redirect.redirectregex.replacement=https://app.project-time-central.cloud/"
       - "traefik.http.routers.ptc-backend.middlewares=api-redirect"
+      - "traefik.http.services.ptc-backend.loadbalancer.server.port=8000"
 
   # Celery Worker
   celery:
@@ -71,6 +80,8 @@ services:
       - redis
       - backend
     restart: always
+    networks:
+      - default
 
   # Frontend (Vite/React built with Nginx)
   frontend:
@@ -78,10 +89,13 @@ services:
       context: ./frontend
     container_name: ptc-frontend
     volumes:
-      - staticfiles:/usr/share/nginx/html/static  # serve Django static files via Nginx
+      - staticfiles:/usr/share/nginx/html/static
     depends_on:
       - backend
     restart: always
+    networks:
+      - default
+      - dokploy-network
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.ptc-frontend.rule=Host(`app.project-time-central.cloud`)"
@@ -93,3 +107,9 @@ volumes:
   pgdata:
   media:
   staticfiles:
+
+networks:
+  default:
+    name: project-time-central-ptc-eqf3pc_default
+  dokploy-network:
+    external: true

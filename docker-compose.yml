@@ -57,6 +57,7 @@ services:
       - "traefik.http.middlewares.api-redirect.redirectregex.regex=^https://api.project-time-central.cloud/$"
       - "traefik.http.middlewares.api-redirect.redirectregex.replacement=https://app.project-time-central.cloud/"
       - "traefik.http.routers.ptc-backend.middlewares=api-redirect"
+      - "traefik.http.services.ptc-backend.loadbalancer.server.port=8000"
 
   # Celery Worker
   celery:

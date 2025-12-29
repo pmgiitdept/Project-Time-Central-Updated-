@@ -97,7 +97,7 @@ export default function AdminDashboard() {
   ];
 
   // ✅ Dynamically adjust based on username
-  if (currentUser?.username === "itdept.pmgi" && currentUser?.username === "adminuser") {
+  if (currentUser?.username === "itdept.pmgi") {
     // IT Dept can access both Users and Employee Directory
     sidebarItems.splice(2, 0, { key: "employeeDirectory", label: "Record Holdings", icon: <FaUsers /> });
     sidebarItems.splice(3, 0, { key: "users", label: "Users", icon: <FaUsers /> });
@@ -922,7 +922,7 @@ export default function AdminDashboard() {
           )}
 
           {/* Users Section */}
-          {activeSection === "users" && currentUser?.username === "itdept.pmgi" &&  currentUser?.username === "adminuser"(
+          {activeSection === "users" && currentUser?.username === "itdept.pmgi" && (
             <motion.div
               className="users-card"
               initial={{ opacity: 0, y: 20 }}     

@@ -53,6 +53,7 @@ services:
       - "traefik.http.routers.ptc-backend.rule=Host(`api.project-time-central.cloud`)"
       - "traefik.http.routers.ptc-backend.entrypoints=web,websecure"
       - "traefik.http.routers.ptc-backend.tls=true"
+      - "traefik.http.services.ptc-backend.loadbalancer.server.port=8000"
       # Redirect root to frontend
       - "traefik.http.middlewares.api-redirect.redirectregex.regex=^https://api.project-time-central.cloud/$"
       - "traefik.http.middlewares.api-redirect.redirectregex.replacement=https://app.project-time-central.cloud/"

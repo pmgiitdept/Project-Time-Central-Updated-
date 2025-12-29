@@ -50,17 +50,24 @@ export default function ChatSection({
 
     try {
       let allMessages = [];
+      // Use dynamic backend host
+      const backendHost =
+        window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+          ? "http://127.0.0.1:8000/api"
+          : `https://${window.location.hostname}/api`;
       let url = `/chat/messages/${roomName}/`;
 
       while (url) {
         const res = await api.get(url, {
+          baseURL: backendHost, // dynamically set backend base
           headers: { Authorization: `Bearer ${currentUser.token}` },
         });
+
         const data = res.data;
         allMessages = [...allMessages, ...data.results];
-        url = data.next
-          ? data.next.replace("http://127.0.0.1:8000/api", "")
-          : null;
+
+        // Update URL for next page, keep it relative
+        url = data.next ? data.next.replace(backendHost, "") : null;
       }
 
       allMessages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
@@ -87,26 +94,24 @@ export default function ChatSection({
   }, [currentUser?.token, roomName]);
 
   useEffect(() => {
-    //console.log("⚡ Setting up WebSocket effect...");
-    if (!currentUser?.token) {
-      //console.warn("⛔ No token, skipping WebSocket setup.");
-      return;
-    }
+    if (!currentUser?.token) return;
 
-    if (ws.current) {
-      //console.log("ℹ️ WebSocket already initialized, skipping re-init.");
-      return;
-    }
+    if (ws.current) return; // already initialized
 
+    // Determine protocol automatically
     const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
-    const backendHost = "192.168.100.135:8000"; // ✅ backend only
+
+    // Use the same host as the frontend for WebSocket
+    const backendHost = window.location.hostname; // dynamic host
+    const backendPort = window.location.protocol === "https:" ? "" : ":8000"; // only add port if http
+
     const token =
       currentUser?.token ||
       localStorage.getItem("access_token") ||
       localStorage.getItem("token");
 
-    const wsUrl = `${wsScheme}://${backendHost}/ws/chat/${roomName}/?token=${token}`;
-    //console.log("🧠 Attempting to connect WebSocket:", wsUrl);
+    const wsUrl = `${wsScheme}://${backendHost}${backendPort}/ws/chat/${roomName}/?token=${token}`;
+    console.log("🧠 Attempting WebSocket connection:", wsUrl);
 
     try {
       ws.current = new WebSocket(wsUrl);
@@ -116,12 +121,11 @@ export default function ChatSection({
     }
 
     ws.current.onopen = () => {
-      //console.log("✅ WebSocket connected!");
+      console.log("✅ WebSocket connected!");
       setConnected(true);
     };
 
     ws.current.onmessage = (e) => {
-      //console.log("📨 WS message received:", e.data);
       try {
         const data = JSON.parse(e.data);
         setMessages((prev) => {
@@ -145,11 +149,11 @@ export default function ChatSection({
     };
 
     return () => {
-      //console.log("🔌 Cleaning up WebSocket...");
       ws.current?.close();
       ws.current = null;
     };
   }, [currentUser?.token, roomName]);
+
 
   useEffect(() => {
     if (!loading && messages.length > 0) {

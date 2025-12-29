@@ -15,6 +15,7 @@ def health_check(request):
 urlpatterns = [
     # Health check / root route
     path("", health_check, name="health_check"),
+    path("api/health/", health_check, name="health_check_api"),
 
     # Admin panel
     path("admin/", admin.site.urls),

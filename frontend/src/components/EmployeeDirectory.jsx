@@ -758,7 +758,7 @@ export default function EmployeeDirectory() {
       >
         
         <div className="employee-row">
-           <div className="employee-button-wrapper" ref={directoryBtnRef}>
+          {/* <div className="employee-button-wrapper" ref={directoryBtnRef}>
             <button className="employee-hide-btn" onClick={() => setOpen(!open)}>
               Employees
             </button>
@@ -819,7 +819,7 @@ export default function EmployeeDirectory() {
             >
               Compare Employees
             </button>
-          </div> 
+          </div> */}
           
           {/* === LEFT SECTION: EMPLOYEE MANAGEMENT === */}
           <div className="employee-section-group">

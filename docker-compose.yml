@@ -1,7 +1,8 @@
-version: "3.9"
-
+# docker-compose.yml
 services:
+  # ------------------------
   # PostgreSQL Database
+  # ------------------------
   db:
     image: postgres:16
     container_name: ptc-db
@@ -15,7 +16,9 @@ services:
     networks:
       - default
 
+  # ------------------------
   # Redis for Celery
+  # ------------------------
   redis:
     image: redis:7
     container_name: ptc-redis
@@ -23,7 +26,9 @@ services:
     networks:
       - default
 
+  # ------------------------
   # Django Backend
+  # ------------------------
   backend:
     build:
       context: ./backend_project
@@ -50,18 +55,20 @@ services:
       - dokploy-network
     labels:
       - "traefik.enable=true"
-      # Backend router for /api/*
+      # Backend router
       - "traefik.http.routers.ptc-backend.rule=Host(`api.project-time-central.cloud`)"
       - "traefik.http.routers.ptc-backend.entrypoints=websecure"
       - "traefik.http.routers.ptc-backend.tls.certresolver=myresolver"
       - "traefik.http.services.ptc-backend.loadbalancer.server.port=8000"
-      # Redirect only root /api root requests (optional)
+      # Redirect / root requests
       - "traefik.http.routers.ptc-backend-root.rule=Host(`api.project-time-central.cloud`) && Path(`/`)"
       - "traefik.http.routers.ptc-backend-root.middlewares=api-redirect"
       - "traefik.http.middlewares.api-redirect.redirectregex.regex=^https://api.project-time-central.cloud/$"
       - "traefik.http.middlewares.api-redirect.redirectregex.replacement=https://app.project-time-central.cloud/"
 
+  # ------------------------
   # Celery Worker
+  # ------------------------
   celery:
     build:
       context: ./backend_project
@@ -71,7 +78,7 @@ services:
       - media:/app/media
       - staticfiles:/app/staticfiles
     environment:
-      DJANGO_SETTINGS_MODULE: backend_project.settings
+      DJANGO_SETTINGS_MODULE: backend_project.settings.prod
       SECRET_KEY: "django-insecure-p=igja**a%y#yy&b#1ttv13k+2gx&%7(g3&&@=nf=x2%(ihgtb"
       DATABASE_URL: "postgresql://ptc_user:ptc-pass.pmgi@db:5432/project_time_central"
       REDIS_URL: "redis://redis:6379/0"
@@ -85,13 +92,15 @@ services:
     networks:
       - default
 
-  # Frontend (Vite/React with Nginx)
+  # ------------------------
+  # Frontend (React + Nginx)
+  # ------------------------
   frontend:
     build:
       context: ./frontend
     container_name: ptc-frontend
     volumes:
-      - staticfiles:/usr/share/nginx/html/static
+      - ./frontend/dist:/usr/share/nginx/html  # Serve Vite build correctly
     depends_on:
       - backend
     restart: always
@@ -105,13 +114,19 @@ services:
       - "traefik.http.routers.ptc-frontend.tls.certresolver=myresolver"
       - "traefik.http.services.ptc-frontend.loadbalancer.server.port=80"
 
+# ------------------------
+# Volumes
+# ------------------------
 volumes:
   pgdata:
   media:
   staticfiles:
 
+# ------------------------
+# Networks
+# ------------------------
 networks:
   default:
-    name: project-time-central-ptc-eqf3pc_default
+    external: true  # Use existing Docker network to remove warnings
   dokploy-network:
     external: true

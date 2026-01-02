@@ -5,6 +5,22 @@ import api from "../api";
 import { toast } from "react-toastify";
 import "./styles/EmployeeDtrModal.css";
 
+const getDateRange = (start, end) => {
+  const dates = [];
+  const current = new Date(start);
+  const last = new Date(end);
+
+  current.setHours(0, 0, 0, 0);
+  last.setHours(0, 0, 0, 0);
+
+  while (current <= last) {
+    dates.push(current.toISOString().slice(0, 10)); // YYYY-MM-DD
+    current.setDate(current.getDate() + 1);
+  }
+
+  return dates;
+};
+
 const formatDate = (dateStr) => {
   if (!dateStr) return "";
   const options = { year: "numeric", month: "long", day: "numeric" };
@@ -123,10 +139,7 @@ export default function EmployeeDtrModal({
                     const rows = group.rows;
                     if (!rows || rows.length === 0) return null;
 
-                    const sample = rows[0];
-                    const dailyDates = sample.daily_data
-                      ? Object.keys(sample.daily_data)
-                      : [];
+                    const dailyDates = getDateRange(group.start_date, group.end_date);
 
                     const headers = [
                       { key: "full_name", label: "Full Name" },

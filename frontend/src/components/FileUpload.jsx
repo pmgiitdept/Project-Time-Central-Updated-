@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import "./styles/ClientDashboard.css"; 
 import { motion } from "framer-motion";
 
-/* ======== Cutoff Logic Function ======== */
+/* ======== Cutoff Logic ======== */
 function getDTRCutoffStatus() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -46,69 +46,54 @@ function getDTRCutoffStatus() {
 }
 
 export default function FileUpload({ refreshFiles, refreshPDFs }) {
-  const [dtrFile, setDtrFile] = useState(null);
-  const [uploadingDTR, setUploadingDTR] = useState(false);
-  const [hasSubmittedDTR, setHasSubmittedDTR] = useState(false);
+  const [file, setFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
 
-  const [pdfFile, setPdfFile] = useState(null);
-  const [uploadingPDF, setUploadingPDF] = useState(false);
-  const [hasSubmittedPDF, setHasSubmittedPDF] = useState(false);
-
-  /* ======== Cutoff Status ======== */
   const { canSubmit, message } = getDTRCutoffStatus();
 
-  /* ======== DTR Upload ======== */
-  const handleDTRUpload = async (e) => {
+  const handleUpload = async (e) => {
     e.preventDefault();
     if (!canSubmit) return toast.error("Submission is unavailable outside cutoff.");
-    if (!dtrFile) return toast.error("Select a DTR file first.");
+    if (!file) return toast.error("Select a file first.");
 
-    setUploadingDTR(true);
-    const token = localStorage.getItem("access_token");
-    const formData = new FormData();
-    formData.append("file", dtrFile);
+    const fileType = file.type;
+    const isExcel = /\.(xlsx|xls|csv)$/i.test(file.name);
+    const isPDF = fileType === "application/pdf";
 
-    try {
-      await api.post("/files/files/", formData, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      toast.success("DTR uploaded successfully!");
-      setHasSubmittedDTR(true); // 🔒 lock after submission
-      setDtrFile(null);
-      refreshFiles();
-    } catch (err) {
-      console.error(err);
-      toast.error("DTR upload failed.");
-    } finally {
-      setUploadingDTR(false);
+    if (!isExcel && !isPDF) {
+      return toast.error("Only Excel (.xlsx, .xls, .csv) or PDF files allowed!");
     }
-  };
 
-  /* ======== PDF Upload ======== */
-  const handlePDFUpload = async (e) => {
-    e.preventDefault();
-    if (!canSubmit) return toast.error("Submission is unavailable outside cutoff.");
-    if (!pdfFile) return toast.error("Select a PDF first.");
-    if (pdfFile.type !== "application/pdf") return toast.error("Only PDF files allowed!");
-
-    setUploadingPDF(true);
+    setUploading(true);
     const token = localStorage.getItem("access_token");
     const formData = new FormData();
-    formData.append("file", pdfFile);
+    formData.append("file", file);
 
     try {
-      await api.post("/files/pdfs/", formData, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      toast.success("PDF uploaded successfully!");
-      setHasSubmittedPDF(true); // 🔒 lock after submission
-      setPdfFile(null);
-      refreshPDFs();
+      if (isExcel) {
+        // Upload Excel
+        const res = await api.post("/files/files/", formData, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        toast.success("Excel DTR uploaded successfully!");
+        refreshFiles();
+      } else if (isPDF) {
+        // Upload PDF
+        await api.post("/files/pdfs/", formData, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        toast.success("PDF uploaded successfully!");
+        refreshPDFs();
+      }
+
+      setHasSubmitted(true); // 🔒 lock after submission
+      setFile(null);
     } catch (err) {
       console.error(err);
-      toast.error("PDF upload failed.");
+      toast.error("File upload failed.");
     } finally {
-      setUploadingPDF(false);
+      setUploading(false);
     }
   };
 
@@ -120,7 +105,7 @@ export default function FileUpload({ refreshFiles, refreshPDFs }) {
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.5, ease: "easeInOut" }}
     >
-      <h2 className="upload-title">Upload DTR Standard</h2>
+      <h2 className="upload-title">Upload DTR / PDF</h2>
 
       <p
         style={{
@@ -132,55 +117,27 @@ export default function FileUpload({ refreshFiles, refreshPDFs }) {
         {message}
       </p>
 
-      <div className="upload-side-by-side">
-        {/* DTR Upload */}
-        <div className="upload-section">
-          <form onSubmit={handleDTRUpload} className="upload-form">
-            <input
-              type="file"
-              accept=".xlsx,.xls,.csv"
-              onChange={(e) => setDtrFile(e.target.files[0])}
-              className="file-input"
-            />
-            <button
-              type="submit"
-              disabled={uploadingDTR || !canSubmit || hasSubmittedDTR}
-              className="upload-button"
-            >
-              {hasSubmittedDTR
-                ? "DTR Already Submitted"
-                : uploadingDTR
-                ? "Uploading..."
-                : "Upload DTR"}
-            </button>
-          </form>
-          {dtrFile && <p className="selected-file">📊 {dtrFile.name}</p>}
-        </div>
+      <form onSubmit={handleUpload} className="upload-form">
+        <input
+          type="file"
+          accept=".xlsx,.xls,.csv,application/pdf"
+          onChange={(e) => setFile(e.target.files[0])}
+          className="file-input"
+        />
+        <button
+          type="submit"
+          disabled={uploading || !canSubmit || hasSubmitted}
+          className="upload-button"
+        >
+          {hasSubmitted
+            ? "Already Submitted"
+            : uploading
+            ? "Uploading..."
+            : "Upload File"}
+        </button>
+      </form>
 
-        {/* PDF Upload */}
-        <div className="upload-section">
-          <form onSubmit={handlePDFUpload} className="upload-form">
-            <input
-              type="file"
-              accept="application/pdf"
-              onChange={(e) => setPdfFile(e.target.files[0])}
-              className="file-input"
-            />
-            <button
-              type="submit"
-              disabled={uploadingPDF || !canSubmit || hasSubmittedPDF}
-              className="upload-button"
-            >
-              {hasSubmittedPDF
-                ? "PDF Already Submitted"
-                : uploadingPDF
-                ? "Uploading..."
-                : "Upload PDF"}
-            </button>
-          </form>
-          {pdfFile && <p className="selected-file">📂 {pdfFile.name}</p>}
-        </div>
-      </div>
+      {file && <p className="selected-file">📂 {file.name}</p>}
     </motion.div>
   );
 }

@@ -60,11 +60,6 @@ services:
       - "traefik.http.routers.ptc-backend-root.middlewares=api-redirect"
       - "traefik.http.middlewares.api-redirect.redirectregex.regex=^https://api.project-time-central.cloud/$"
       - "traefik.http.middlewares.api-redirect.redirectregex.replacement=https://app.project-time-central.cloud/"
-      # Media files (/media/*)
-      - "traefik.http.routers.ptc-media.rule=Host(`api.project-time-central.cloud`) && PathPrefix(`/media/`)"
-      - "traefik.http.routers.ptc-media.entrypoints=websecure"
-      - "traefik.http.routers.ptc-media.tls.certresolver=myresolver"
-      - "traefik.http.services.ptc-media.loadbalancer.server.port=8000"
 
   # Celery Worker
   celery:

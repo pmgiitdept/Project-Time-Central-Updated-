@@ -1,7 +1,5 @@
-version: "3.9"
-
 services:
-  # PostgreSQL Database
+  # ---------------- PostgreSQL Database ----------------
   db:
     image: postgres:16
     container_name: ptc-db
@@ -15,7 +13,7 @@ services:
     networks:
       - default
 
-  # Redis for Celery
+  # ---------------- Redis for Celery ----------------
   redis:
     image: redis:7
     container_name: ptc-redis
@@ -23,7 +21,7 @@ services:
     networks:
       - default
 
-  # Django Backend
+  # ---------------- Django Backend ----------------
   backend:
     build:
       context: ./backend_project
@@ -50,18 +48,12 @@ services:
       - dokploy-network
     labels:
       - "traefik.enable=true"
-      # Backend router for /api/*
       - "traefik.http.routers.ptc-backend.rule=Host(`api.project-time-central.cloud`)"
       - "traefik.http.routers.ptc-backend.entrypoints=websecure"
       - "traefik.http.routers.ptc-backend.tls.certresolver=myresolver"
       - "traefik.http.services.ptc-backend.loadbalancer.server.port=8000"
-      # Redirect only root /api root requests (optional)
-      - "traefik.http.routers.ptc-backend-root.rule=Host(`api.project-time-central.cloud`) && Path(`/`)"
-      - "traefik.http.routers.ptc-backend-root.middlewares=api-redirect"
-      - "traefik.http.middlewares.api-redirect.redirectregex.regex=^https://api.project-time-central.cloud/$"
-      - "traefik.http.middlewares.api-redirect.redirectregex.replacement=https://app.project-time-central.cloud/"
 
-  # Celery Worker
+  # ---------------- Celery Worker ----------------
   celery:
     build:
       context: ./backend_project
@@ -85,7 +77,7 @@ services:
     networks:
       - default
 
-  # Frontend (Vite/React with Nginx)
+  # ---------------- Frontend (React/Vite + Nginx) ----------------
   frontend:
     build:
       context: ./frontend
@@ -105,11 +97,35 @@ services:
       - "traefik.http.routers.ptc-frontend.tls.certresolver=myresolver"
       - "traefik.http.services.ptc-frontend.loadbalancer.server.port=80"
 
+  # ---------------- Traefik Reverse Proxy ----------------
+  traefik:
+    image: traefik:v2.12
+    container_name: ptc-traefik
+    command:
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.email=YOUR_EMAIL_HERE"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "traefik-lets:/letsencrypt"
+    networks:
+      - dokploy-network
+    restart: always
+
+# ---------------- Volumes ----------------
 volumes:
   pgdata:
   media:
   staticfiles:
+  traefik-lets:
 
+# ---------------- Networks ----------------
 networks:
   default:
     name: project-time-central-ptc-eqf3pc_default

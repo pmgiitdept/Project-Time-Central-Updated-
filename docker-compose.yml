@@ -99,7 +99,7 @@ services:
 
   # ---------------- Traefik Reverse Proxy ----------------
   traefik:
-    image: traefik:v2.12
+    image: traefik:latest
     container_name: ptc-traefik
     command:
       - "--providers.docker=true"

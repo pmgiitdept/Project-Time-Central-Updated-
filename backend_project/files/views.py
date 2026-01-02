@@ -882,81 +882,100 @@ class DTRFileViewSet(viewsets.ModelViewSet):
     def parse(self, request, pk=None):
         dtr_file = self.get_object()
         file_path = dtr_file.file.path
-        dtr_file.entries.all().delete()
+        dtr_file.entries.all().delete()  # clear existing entries
+
+        sheets_parsed = 0
+        sheet_errors = []
 
         try:
-            # 🧠 Read ALL sheets in the Excel file
+            # Read all sheets
             sheets = pd.read_excel(file_path, sheet_name=None, header=None)
 
-            parsed_sheets = 0
             for sheet_name, df in sheets.items():
                 if df.empty:
                     continue  # skip empty sheets
 
-                parsed_sheets += 1
-                print(f"📄 Parsing sheet: {sheet_name}")
+                try:
+                    sheets_parsed += 1
+                    print(f"📄 Parsing sheet: {sheet_name}")
 
-                # Extract date range
-                start_date_val = df.iat[8, 3] if not pd.isna(df.iat[8, 3]) else None
-                end_date_val = df.iat[9, 3] if not pd.isna(df.iat[9, 3]) else None
+                    # Safely extract start/end dates
+                    start_date_val = df.iat[8, 3] if df.shape[0] > 8 and df.shape[1] > 3 else None
+                    end_date_val = df.iat[9, 3] if df.shape[0] > 9 and df.shape[1] > 3 else None
 
-                dtr_file.start_date = pd.to_datetime(start_date_val).date() if start_date_val else None
-                dtr_file.end_date = pd.to_datetime(end_date_val).date() if end_date_val else None
-                dtr_file.save()
+                    dtr_file.start_date = pd.to_datetime(start_date_val).date() if start_date_val else None
+                    dtr_file.end_date = pd.to_datetime(end_date_val).date() if end_date_val else None
+                    dtr_file.save()
 
-                # Employees start from row 15 (index 14)
-                employee_df = df.iloc[14:, :]
+                    # Employees start from row 15 (index 14)
+                    employee_df = df.iloc[14:, :]
 
-                for _, row in employee_df.iterrows():
-                    name = row[2]
-                    emp_no = row[3]
+                    for _, row in employee_df.iterrows():
+                        try:
+                            name = row[2] if len(row) > 2 else None
+                            emp_no = row[3] if len(row) > 3 else None
+                            if pd.isna(name) or pd.isna(emp_no):
+                                continue
 
-                    if pd.isna(name) or pd.isna(emp_no):
-                        continue
+                            emp_code = str(emp_no).strip()
+                            if emp_code.startswith("PM"):
+                                emp_code = emp_code[2:]
+                            emp_code = "".join(filter(str.isdigit, emp_code))
 
-                    emp_code = str(emp_no).strip()
-                    if emp_code.startswith("PM"):
-                        emp_code = emp_code[2:]
-                    emp_code = "".join(filter(str.isdigit, emp_code))
+                            # Map daily data safely
+                            daily_data = {}
+                            if dtr_file.start_date:
+                                for idx, col in enumerate(range(7, min(23, len(row)))):
+                                    day = dtr_file.start_date + timedelta(days=idx)
+                                    val = row[col]
+                                    daily_data[str(day)] = None if pd.isna(val) else val
 
-                    # Generate daily data mapping (H → W)
-                    daily_data = {}
-                    if dtr_file.start_date:
-                        for idx, col in enumerate(range(7, 23)):
-                            day = dtr_file.start_date + timedelta(days=idx)
-                            val = row[col]
-                            daily_data[str(day)] = None if pd.isna(val) else val
+                            # Save entry
+                            DTREntry.objects.create(
+                                dtr_file=dtr_file,
+                                full_name=safe_string(name),
+                                employee_no=emp_code,
+                                position=safe_string(row[4]) if len(row) > 4 else None,
+                                shift=safe_string(row[5]) if len(row) > 5 else None,
+                                time=safe_string(row[6]) if len(row) > 6 else None,
+                                daily_data=daily_data,
+                                total_days=safe_number(row[23]) if len(row) > 23 else 0,
+                                total_hours=safe_number(row[24]) if len(row) > 24 else 0,
+                                undertime_minutes=safe_number(row[25]) if len(row) > 25 else 0,
+                                regular_ot=safe_number(row[26]) if len(row) > 26 else 0,
+                                legal_holiday=safe_number(row[27]) if len(row) > 27 else 0,
+                                unworked_reg_holiday=safe_number(row[28]) if len(row) > 28 else 0,
+                                special_holiday=safe_number(row[29]) if len(row) > 29 else 0,
+                                night_diff=safe_number(row[30]) if len(row) > 30 else 0,
+                            )
 
-                    # Save DTR entry
-                    DTREntry.objects.create(
-                        dtr_file=dtr_file,
-                        full_name=safe_string(name),
-                        employee_no=emp_code,
-                        position=safe_string(row[4]),   # E
-                        shift=safe_string(row[5]),      # F
-                        time=safe_string(row[6]),       # G
-                        daily_data=daily_data,
-                        total_days=safe_number(row[23]),         # X
-                        total_hours=safe_number(row[24]),        # Y
-                        undertime_minutes=safe_number(row[25]),  # Z
-                        regular_ot=safe_number(row[26]),         # AA
-                        legal_holiday=safe_number(row[27]),      # AB
-                        unworked_reg_holiday=safe_number(row[28]), # AC
-                        special_holiday=safe_number(row[29]),    # AD
-                        night_diff=safe_number(row[30]),         # AE
-                    )
+                        except Exception as e_row:
+                            # Skip individual row errors
+                            print(f"⚠️ Row skipped in sheet {sheet_name}: {e_row}")
+                            continue
 
-            if parsed_sheets == 0:
+                except Exception as e_sheet:
+                    # Skip problematic sheets but log
+                    sheet_errors.append({"sheet": sheet_name, "error": str(e_sheet)})
+                    print(f"⚠️ Sheet skipped: {sheet_name}, error: {e_sheet}")
+                    continue
+
+            if sheets_parsed == 0:
                 return Response(
                     {"message": "No valid sheets found to parse."},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            return Response({"message": f"Parsed {parsed_sheets} sheet(s) successfully."})
+            response_data = {"message": f"Parsed {sheets_parsed} sheet(s) successfully."}
+            if sheet_errors:
+                response_data["warnings"] = sheet_errors
+
+            return Response(response_data)
 
         except Exception as e:
+            # Unexpected file-level error
             traceback.print_exc()
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(detail=True, methods=["get"])
     def content(self, request, pk=None):

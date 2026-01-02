@@ -160,31 +160,28 @@ function ManualDTRCard({ onClose, onSuccess }) {
 
   /* ======== Cutoff Logic for Date Inputs ======== */
   const today = new Date();
-  const month = today.getMonth();
   const year = today.getFullYear();
+  const month = today.getMonth();
 
-  const firstCutoff = new Date(year, month, 15);
-  const secondCutoff = new Date(year, month, 30);
+  // First cutoff: 1–15 → submit until 25
+  const firstCutoffStart = new Date(year, month, 1);
+  const firstCutoffEnd = new Date(year, month, 25);
 
-  const firstCutoffEnd = new Date(firstCutoff);
-  firstCutoffEnd.setDate(firstCutoffEnd.getDate() + 10);
+  // Second cutoff: 16–end → submit until 10 next month
+  const secondCutoffStart = new Date(year, month, 16);
+  const secondCutoffEnd = new Date(year, month + 1, 10);
 
-  const secondCutoffEnd = new Date(secondCutoff);
-  secondCutoffEnd.setDate(secondCutoffEnd.getDate() + 10);
+  let canSubmit = false;
+  let message = "";
 
-  let cutoffStart = null;
-  let cutoffEnd = null;
-
-  if (today >= firstCutoff && today <= firstCutoffEnd) {
-    cutoffStart = firstCutoff;
-    cutoffEnd = firstCutoffEnd;
-  } else if (today >= secondCutoff && today <= secondCutoffEnd) {
-    cutoffStart = secondCutoff;
-    cutoffEnd = secondCutoffEnd;
+  if (today >= firstCutoffStart && today <= firstCutoffEnd) {
+    canSubmit = true;
+    message = `Submission available until ${firstCutoffEnd.toLocaleDateString()}`;
+  } else if (today >= secondCutoffStart && today <= secondCutoffEnd) {
+    canSubmit = true;
+    message = `Submission available until ${secondCutoffEnd.toLocaleDateString()}`;
   } else {
-    // Outside submission window, disable form
-    cutoffStart = null;
-    cutoffEnd = null;
+    message = "Unavailable – wait for next cutoff";
   }
 
   const formatDate = (d) => d.toISOString().split("T")[0];

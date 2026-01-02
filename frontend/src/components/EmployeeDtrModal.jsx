@@ -10,11 +10,15 @@ const getDateRange = (start, end) => {
   const current = new Date(start);
   const last = new Date(end);
 
-  current.setHours(0, 0, 0, 0);
-  last.setHours(0, 0, 0, 0);
+  current.setHours(12, 0, 0, 0); // noon = extra safety
+  last.setHours(12, 0, 0, 0);
 
   while (current <= last) {
-    dates.push(current.toISOString().slice(0, 10)); // YYYY-MM-DD
+    const yyyy = current.getFullYear();
+    const mm = String(current.getMonth() + 1).padStart(2, "0");
+    const dd = String(current.getDate()).padStart(2, "0");
+
+    dates.push(`${yyyy}-${mm}-${dd}`);
     current.setDate(current.getDate() + 1);
   }
 

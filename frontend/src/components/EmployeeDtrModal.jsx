@@ -1,3 +1,4 @@
+/* EmployeeDtrModal.jsx */
 import React, { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../api";
@@ -161,23 +162,31 @@ export default function EmployeeDtrModal({
                               </tr>
                             </thead>
                             <tbody>
-                              {rows.map((rec, rIdx) => (
-                                <tr key={rIdx}>
-                                  <td>{rec.full_name}</td>
-                                  <td>{rec.employee_no}</td>
-                                  {dailyDates.map((d) => (
-                                    <td key={d}>{rec.daily_data[d] || ""}</td>
-                                  ))}
-                                  <td>{rec.total_days}</td>
-                                  <td>{rec.total_hours}</td>
-                                  <td>{rec.regular_ot}</td>
-                                  <td>{rec.legal_holiday}</td>
-                                  <td>{rec.unworked_reg_holiday}</td>
-                                  <td>{rec.special_holiday}</td>
-                                  <td>{rec.night_diff}</td>
-                                  <td>{rec.undertime_minutes}</td>
-                                </tr>
-                              ))}
+                              {rows.map((rec, rIdx) => {
+                                // Compute totalDays only counting numeric values
+                                const totalDays = dailyDates.reduce((sum, d) => {
+                                  const val = rec.daily_data[d];
+                                  return sum + (typeof val === "number" ? val : (parseFloat(val) || 0));
+                                }, 0);
+
+                                return (
+                                  <tr key={rIdx}>
+                                    <td>{rec.full_name}</td>
+                                    <td>{rec.employee_no}</td>
+                                    {dailyDates.map((d) => (
+                                      <td key={d}>{rec.daily_data[d] || ""}</td>
+                                    ))}
+                                    <td>{totalDays}</td> {/* Use calculated value */}
+                                    <td>{rec.total_hours}</td>
+                                    <td>{rec.regular_ot}</td>
+                                    <td>{rec.legal_holiday}</td>
+                                    <td>{rec.unworked_reg_holiday}</td>
+                                    <td>{rec.special_holiday}</td>
+                                    <td>{rec.night_diff}</td>
+                                    <td>{rec.undertime_minutes}</td>
+                                  </tr>
+                                );
+                              })}
                             </tbody>
                           </table>
                         </div>

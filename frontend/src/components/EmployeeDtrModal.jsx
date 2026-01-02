@@ -163,20 +163,28 @@ export default function EmployeeDtrModal({
                             </thead>
                             <tbody>
                               {rows.map((rec, rIdx) => {
-                                // Compute totalDays only counting numeric values
-                                const totalDays = dailyDates.reduce((sum, d) => {
+                                const totalDays = dailyDates.reduce((count, d) => {
                                   const val = rec.daily_data[d];
-                                  return sum + (typeof val === "number" ? val : (parseFloat(val) || 0));
+
+                                  // Count as 1 if value exists AND is numeric
+                                  if (val !== null && val !== "" && !isNaN(val)) {
+                                    return count + 1;
+                                  }
+                                  return count;
                                 }, 0);
 
                                 return (
                                   <tr key={rIdx}>
                                     <td>{rec.full_name}</td>
                                     <td>{rec.employee_no}</td>
+
                                     {dailyDates.map((d) => (
                                       <td key={d}>{rec.daily_data[d] || ""}</td>
                                     ))}
-                                    <td>{totalDays}</td> {/* Use calculated value */}
+
+                                    {/* ✅ Total Days (count-only, not sum) */}
+                                    <td>{totalDays}</td>
+
                                     <td>{rec.total_hours}</td>
                                     <td>{rec.regular_ot}</td>
                                     <td>{rec.legal_holiday}</td>

@@ -55,7 +55,7 @@ export default function Login() {
       {/* Navbar */}
       <nav className="login-navbar">
         <div className="navbar-left">
-          <img src="/src/pmgi.png" alt="Logo" className="navbar-logo" />
+          <img src="/images/pmgi.png" alt="Logo" className="navbar-logo" />
           <div className="navbar-text">
             <h1>PROFESSIONAL MAINTENANCE GROUP, INC.</h1>
             <p><b>AN ISO 9001:2015 CERTIFIED COMPANY</b></p>
@@ -63,12 +63,11 @@ export default function Login() {
           </div>
         </div>
         <div className="navbar-right">
-          <img src="/src/sgslogos.png" alt="Right Logo" className="navbar-logo" />
+          <img src="/images/sgslogos.png" alt="Right Logo" className="navbar-logo" />
         </div>
       </nav>
 
-      <img src="/src/ptc-logo.png" alt="App Logo" className="login-top-logo" />
-
+      <img src="/images/ptc-logo.png" alt="App Logo" className="login-top-logo" />
       {/* Card */}
       <div className="login-card">
         <h1 className="login-title">Welcome! Please log in</h1>

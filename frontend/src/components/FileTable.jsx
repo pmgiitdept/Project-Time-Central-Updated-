@@ -113,7 +113,13 @@ export default function FileTable({ role, setSelectedFile }) {
     });
   };
 
-  const handleDownload = async (fileId, fileName) => {
+  const handleDownload = async (fileId, fileName, fileUrl) => {
+    // If fileUrl exists, open in new tab for PDF
+    if (fileUrl && fileUrl.endsWith(".pdf")) {
+      window.open(fileUrl, "_blank");
+      return;
+    }
+
     setDownloadLoading((prev) => ({ ...prev, [fileId]: true }));
     try {
       const token = localStorage.getItem("access_token");
@@ -418,7 +424,8 @@ export default function FileTable({ role, setSelectedFile }) {
                                     className="action-btn download"
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      handleDownload(file.id, `DTR_${file.id}.xlsx`);
+                                      // Pass actual file URL if PDF, otherwise filename
+                                      handleDownload(file.id, `DTR_${file.id}.xlsx`, file.file);
                                     }}
                                     disabled={downloadLoading[file.id]}
                                   >

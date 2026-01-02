@@ -678,7 +678,7 @@ export default function AdminDashboard() {
       {/* Navbar */}
       <nav className="navbar">
         <div className="navbar-left">
-          <img src="/src/pmgi.png" alt="Logo Left" className="navbar-logo" />
+          <img src="/images/pmgi.png" alt="Logo Left" className="navbar-logo" />
           <h1 className="navbar-title">
             {currentUser ? `Hello, ${currentUser.username}` : "Dashboard"}
           </h1>
@@ -691,7 +691,7 @@ export default function AdminDashboard() {
             ℹ️ About
           </button>
 
-          <img src="/src/sgslogos.png" alt="Logo Right" className="navbar-logo" />
+          <img src="/images/sgslogos.png" alt="Logo Right" className="navbar-logo" />
           <LogoutButton />
         </div>
 

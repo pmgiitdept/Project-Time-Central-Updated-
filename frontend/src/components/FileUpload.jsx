@@ -1,8 +1,49 @@
+// components/FileUpload.jsx
 import { useState } from "react";
 import api from "../api";
 import { toast } from "react-toastify";
 import "./styles/ClientDashboard.css"; 
 import { motion } from "framer-motion";
+
+/* ======== Cutoff Logic Function ======== */
+function getDTRCutoffStatus() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const year = today.getFullYear();
+  const month = today.getMonth();
+
+  // 15th cutoff → valid until 20
+  const cutoff15Start = new Date(year, month, 15);
+  const cutoff15End = new Date(year, month, 20);
+
+  // 30th cutoff → valid for 5 days (spills to next month)
+  const cutoff30Start = new Date(year, month, 30);
+  const cutoff30End = new Date(cutoff30Start);
+  cutoff30End.setDate(cutoff30End.getDate() + 5);
+
+  // Previous month 30th cutoff (for early month dates like Jan 2–4)
+  const prev30Start = new Date(year, month - 1, 30);
+  const prev30End = new Date(prev30Start);
+  prev30End.setDate(prev30End.getDate() + 5);
+
+  const canSubmit =
+    (today >= cutoff15Start && today <= cutoff15End) ||
+    (today >= cutoff30Start && today <= cutoff30End) ||
+    (today >= prev30Start && today <= prev30End);
+
+  let message = "Unavailable – wait for next cutoff";
+
+  if (today >= cutoff15Start && today <= cutoff15End) {
+    message = `Submission available until ${cutoff15End.toLocaleDateString()}`;
+  } else if (today >= cutoff30Start && today <= cutoff30End) {
+    message = `Submission available until ${cutoff30End.toLocaleDateString()}`;
+  } else if (today >= prev30Start && today <= prev30End) {
+    message = `Submission available until ${prev30End.toLocaleDateString()}`;
+  }
+
+  return { canSubmit, message };
+}
 
 export default function FileUpload({ refreshFiles, refreshPDFs }) {
   const [dtrFile, setDtrFile] = useState(null);
@@ -13,33 +54,10 @@ export default function FileUpload({ refreshFiles, refreshPDFs }) {
   const [uploadingPDF, setUploadingPDF] = useState(false);
   const [hasSubmittedPDF, setHasSubmittedPDF] = useState(false);
 
-  /* ======== Cutoff Logic ======== */
-  const today = new Date();
-  const month = today.getMonth();
-  const year = today.getFullYear();
+  /* ======== Cutoff Status ======== */
+  const { canSubmit, message } = getDTRCutoffStatus();
 
-  const firstCutoff = new Date(year, month, 15);
-  const secondCutoff = new Date(year, month, 30);
-
-  const firstCutoffEnd = new Date(firstCutoff);
-  firstCutoffEnd.setDate(firstCutoffEnd.getDate() + 3);
-
-  const secondCutoffEnd = new Date(secondCutoff);
-  secondCutoffEnd.setDate(secondCutoffEnd.getDate() + 3);
-
-  let canSubmit = false;
-  let message = "";
-
-  if (today >= firstCutoff && today <= firstCutoffEnd) {
-    canSubmit = true;
-    message = `Submission available until ${firstCutoffEnd.toLocaleDateString()}`;
-  } else if (today >= secondCutoff && today <= secondCutoffEnd) {
-    canSubmit = true;
-    message = `Submission available until ${secondCutoffEnd.toLocaleDateString()}`;
-  } else {
-    message = "Unavailable – wait for next cutoff";
-  }
-
+  /* ======== DTR Upload ======== */
   const handleDTRUpload = async (e) => {
     e.preventDefault();
     if (!canSubmit) return toast.error("Submission is unavailable outside cutoff.");
@@ -55,7 +73,7 @@ export default function FileUpload({ refreshFiles, refreshPDFs }) {
         headers: { Authorization: `Bearer ${token}` },
       });
       toast.success("DTR uploaded successfully!");
-      setHasSubmittedDTR(true); // 🔒 lock submission
+      setHasSubmittedDTR(true); // 🔒 lock after submission
       setDtrFile(null);
       refreshFiles();
     } catch (err) {
@@ -66,6 +84,7 @@ export default function FileUpload({ refreshFiles, refreshPDFs }) {
     }
   };
 
+  /* ======== PDF Upload ======== */
   const handlePDFUpload = async (e) => {
     e.preventDefault();
     if (!canSubmit) return toast.error("Submission is unavailable outside cutoff.");
@@ -82,7 +101,7 @@ export default function FileUpload({ refreshFiles, refreshPDFs }) {
         headers: { Authorization: `Bearer ${token}` },
       });
       toast.success("PDF uploaded successfully!");
-      setHasSubmittedPDF(true); // 🔒 lock submission
+      setHasSubmittedPDF(true); // 🔒 lock after submission
       setPdfFile(null);
       refreshPDFs();
     } catch (err) {

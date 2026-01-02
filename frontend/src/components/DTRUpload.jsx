@@ -5,6 +5,45 @@ import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
 import "./styles/ClientDashboard.css";
 
+function getDTRCutoffStatus() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const year = today.getFullYear();
+  const month = today.getMonth();
+
+  // 15th cutoff → valid until 20
+  const cutoff15Start = new Date(year, month, 15);
+  const cutoff15End = new Date(year, month, 20);
+
+  // 30th cutoff → valid for 5 days (spills to next month)
+  const cutoff30Start = new Date(year, month, 30);
+  const cutoff30End = new Date(cutoff30Start);
+  cutoff30End.setDate(cutoff30End.getDate() + 5);
+
+  // Previous month 30th cutoff (for early month dates like Jan 2–4)
+  const prev30Start = new Date(year, month - 1, 30);
+  const prev30End = new Date(prev30Start);
+  prev30End.setDate(prev30End.getDate() + 5);
+
+  const canSubmit =
+    (today >= cutoff15Start && today <= cutoff15End) ||
+    (today >= cutoff30Start && today <= cutoff30End) ||
+    (today >= prev30Start && today <= prev30End);
+
+  let message = "Unavailable – wait for next cutoff";
+
+  if (today >= cutoff15Start && today <= cutoff15End) {
+    message = `Submission available until ${cutoff15End.toLocaleDateString()}`;
+  } else if (today >= cutoff30Start && today <= cutoff30End) {
+    message = `Submission available until ${cutoff30End.toLocaleDateString()}`;
+  } else if (today >= prev30Start && today <= prev30End) {
+    message = `Submission available until ${prev30End.toLocaleDateString()}`;
+  }
+
+  return { canSubmit, message };
+}
+
 export default function DTRUpload({ refreshDTR }) {
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -13,32 +52,7 @@ export default function DTRUpload({ refreshDTR }) {
   const [hasSubmitted, setHasSubmitted] = useState(false);
 
   /* ======== Cutoff Logic ======== */
-  const today = new Date();
-  const month = today.getMonth();
-  const year = today.getFullYear();
-
-  const firstCutoff = new Date(year, month, 15);
-  const secondCutoff = new Date(year, month, 30);
-
-  const firstCutoffEnd = new Date(firstCutoff);
-  firstCutoffEnd.setDate(firstCutoffEnd.getDate() + 10);
-
-  const secondCutoffEnd = new Date(secondCutoff);
-  secondCutoffEnd.setDate(secondCutoffEnd.getDate() + 10);
-
-  let canSubmit = false;
-  let message = "";
-
-  if (today >= firstCutoff && today <= firstCutoffEnd) {
-    canSubmit = true;
-    message = `Submission available until ${firstCutoffEnd.toLocaleDateString()}`;
-  } else if (today >= secondCutoff && today <= secondCutoffEnd) {
-    canSubmit = true;
-    message = `Submission available until ${secondCutoffEnd.toLocaleDateString()}`;
-  } else {
-    canSubmit = false;
-    message = "Unavailable – wait for next cutoff";
-  }
+  const { canSubmit, message } = getDTRCutoffStatus();
 
   /* ================= Excel Upload ================= */
   const handleUpload = async (e) => {
@@ -159,30 +173,7 @@ function ManualDTRCard({ onClose, onSuccess }) {
   ]);
 
   /* ======== Cutoff Logic for Date Inputs ======== */
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = today.getMonth();
-
-  // First cutoff: 1–15 → submit until 25
-  const firstCutoffStart = new Date(year, month, 1);
-  const firstCutoffEnd = new Date(year, month, 25);
-
-  // Second cutoff: 16–end → submit until 10 next month
-  const secondCutoffStart = new Date(year, month, 16);
-  const secondCutoffEnd = new Date(year, month + 1, 10);
-
-  let canSubmit = false;
-  let message = "";
-
-  if (today >= firstCutoffStart && today <= firstCutoffEnd) {
-    canSubmit = true;
-    message = `Submission available until ${firstCutoffEnd.toLocaleDateString()}`;
-  } else if (today >= secondCutoffStart && today <= secondCutoffEnd) {
-    canSubmit = true;
-    message = `Submission available until ${secondCutoffEnd.toLocaleDateString()}`;
-  } else {
-    message = "Unavailable – wait for next cutoff";
-  }
+  const { canSubmit, message } = getDTRCutoffStatus();
 
   const formatDate = (d) => d.toISOString().split("T")[0];
 
@@ -243,7 +234,9 @@ function ManualDTRCard({ onClose, onSuccess }) {
   const submitManual = async () => {
     if (!startDate || !endDate) return toast.error("Start and end dates are required.");
     if (!totalDays) return toast.error("Invalid date range.");
-    if (!cutoffStart || !cutoffEnd) return toast.error("Manual DTR submission unavailable outside cutoff window.");
+    if (!canSubmit) {
+      return toast.error("Manual DTR submission unavailable outside cutoff window.");
+    }
 
     const token = localStorage.getItem("access_token");
 
@@ -282,7 +275,7 @@ function ManualDTRCard({ onClose, onSuccess }) {
       <motion.div className="manual-card" initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }}>
         <h3>Manual DTR Entry</h3>
 
-        {!cutoffStart || !cutoffEnd ? (
+        {!canSubmit ? (
           <p style={{ color: "red" }}>Manual DTR submission is unavailable outside cutoff window.</p>
         ) : (
           <>

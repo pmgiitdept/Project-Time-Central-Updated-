@@ -900,21 +900,23 @@ class DTRFileViewSet(viewsets.ModelViewSet):
                     print(f"📄 Parsing sheet: {sheet_name}")
 
                     # Safely extract start/end dates
-                    def get_merged_date(df, row_idx, col_idxs):
+                    def get_merged_date(df, row_idx):
                         """
-                        Safely read a date from merged Excel cells
+                        Safely extract the first non-NaN date from a given row (merged cells safe)
                         """
-                        for col in col_idxs:
-                            if row_idx < df.shape[0] and col < df.shape[1]:
-                                val = df.iat[row_idx, col]
-                                if pd.notna(val):
-                                    return pd.to_datetime(val).date()
+                        if row_idx >= df.shape[0]:
+                            return None
+                        for val in df.iloc[row_idx]:
+                            if pd.notna(val):
+                                try:
+                                    return pd.to_datetime(val, errors="coerce").date()
+                                except Exception:
+                                    continue
                         return None
 
-
                     # Row indexes are zero-based
-                    start_date = get_merged_date(df, 8, [3, 4])   # Row 9, D/E
-                    end_date   = get_merged_date(df, 9, [3, 4])   # Row 10, D/E
+                    start_date = get_merged_date(df, 8)  # Row 9
+                    end_date   = get_merged_date(df, 9)  # Row 10
 
                     dtr_file.start_date = start_date
                     dtr_file.end_date = end_date

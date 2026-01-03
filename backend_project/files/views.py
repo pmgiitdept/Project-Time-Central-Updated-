@@ -900,11 +900,24 @@ class DTRFileViewSet(viewsets.ModelViewSet):
                     print(f"📄 Parsing sheet: {sheet_name}")
 
                     # Safely extract start/end dates
-                    start_date_val = df.iat[8, 3] if df.shape[0] > 8 and df.shape[1] > 3 else None
-                    end_date_val = df.iat[9, 3] if df.shape[0] > 9 and df.shape[1] > 3 else None
+                    def get_merged_date(df, row_idx, col_idxs):
+                        """
+                        Safely read a date from merged Excel cells
+                        """
+                        for col in col_idxs:
+                            if row_idx < df.shape[0] and col < df.shape[1]:
+                                val = df.iat[row_idx, col]
+                                if pd.notna(val):
+                                    return pd.to_datetime(val).date()
+                        return None
 
-                    dtr_file.start_date = pd.to_datetime(start_date_val).date() if start_date_val else None
-                    dtr_file.end_date = pd.to_datetime(end_date_val).date() if end_date_val else None
+
+                    # Row indexes are zero-based
+                    start_date = get_merged_date(df, 8, [3, 4])   # Row 9, D/E
+                    end_date   = get_merged_date(df, 9, [3, 4])   # Row 10, D/E
+
+                    dtr_file.start_date = start_date
+                    dtr_file.end_date = end_date
                     dtr_file.save()
 
                     # Employees start from row 15 (index 14)

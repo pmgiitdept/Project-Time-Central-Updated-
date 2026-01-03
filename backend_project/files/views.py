@@ -899,31 +899,31 @@ class DTRFileViewSet(viewsets.ModelViewSet):
                     sheets_parsed += 1
                     print(f"📄 Parsing sheet: {sheet_name}")
 
-                    # Safely extract start/end dates
-                    def get_merged_date(df, row_idx):
-                        """
-                        Safely extract the first non-NaN date from a given row (merged cells safe)
-                        """
+                    # ----------------------------
+                    # Safely extract start/end dates from merged cells (columns D/E)
+                    # ----------------------------
+                    def get_date_from_row(df, row_idx, cols=[3, 4]):  # D/E = 3,4
                         if row_idx >= df.shape[0]:
                             return None
-                        for val in df.iloc[row_idx]:
-                            if pd.notna(val):
-                                try:
-                                    return pd.to_datetime(val, errors="coerce").date()
-                                except Exception:
-                                    continue
+                        for col in cols:
+                            if col < df.shape[1]:
+                                val = df.iat[row_idx, col]
+                                if pd.notna(val):
+                                    try:
+                                        return pd.to_datetime(val, errors="coerce").date()
+                                    except Exception:
+                                        continue
                         return None
 
-                    # Row indexes are zero-based
-                    start_date = get_merged_date(df, 8)  # Row 9
-                    end_date   = get_merged_date(df, 9)  # Row 10
-
-                    dtr_file.start_date = start_date
-                    dtr_file.end_date = end_date
+                    dtr_file.start_date = get_date_from_row(df, 8)  # Row 9
+                    dtr_file.end_date = get_date_from_row(df, 9)    # Row 10
                     dtr_file.save()
 
+                    # ----------------------------
                     # Employees start from row 15 (index 14)
+                    # ----------------------------
                     employee_df = df.iloc[14:, :]
+                    entries_to_create = []
 
                     for _, row in employee_df.iterrows():
                         try:
@@ -945,8 +945,7 @@ class DTRFileViewSet(viewsets.ModelViewSet):
                                     val = row[col]
                                     daily_data[str(day)] = None if pd.isna(val) else val
 
-                            # Save entry
-                            DTREntry.objects.create(
+                            entry = DTREntry(
                                 dtr_file=dtr_file,
                                 full_name=safe_string(name),
                                 employee_no=emp_code,
@@ -963,14 +962,17 @@ class DTRFileViewSet(viewsets.ModelViewSet):
                                 special_holiday=safe_number(row[29]) if len(row) > 29 else 0,
                                 night_diff=safe_number(row[30]) if len(row) > 30 else 0,
                             )
+                            entries_to_create.append(entry)
 
                         except Exception as e_row:
-                            # Skip individual row errors
                             print(f"⚠️ Row skipped in sheet {sheet_name}: {e_row}")
                             continue
 
+                    # Bulk insert for better performance
+                    if entries_to_create:
+                        DTREntry.objects.bulk_create(entries_to_create)
+
                 except Exception as e_sheet:
-                    # Skip problematic sheets but log
                     sheet_errors.append({"sheet": sheet_name, "error": str(e_sheet)})
                     print(f"⚠️ Sheet skipped: {sheet_name}, error: {e_sheet}")
                     continue
@@ -988,7 +990,7 @@ class DTRFileViewSet(viewsets.ModelViewSet):
             return Response(response_data)
 
         except Exception as e:
-            # Unexpected file-level error
+            import traceback
             traceback.print_exc()
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 

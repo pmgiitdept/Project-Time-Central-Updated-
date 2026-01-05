@@ -96,6 +96,7 @@ services:
       - "traefik.http.routers.ptc-frontend.entrypoints=websecure"
       - "traefik.http.routers.ptc-frontend.tls.certresolver=myresolver"
       - "traefik.http.services.ptc-frontend.loadbalancer.server.port=80"
+      - "traefik.docker.network=dokploy-network"
 
   # ---------------- Traefik Reverse Proxy ----------------
   traefik:

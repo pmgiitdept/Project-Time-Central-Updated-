@@ -187,10 +187,11 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
-    "AUTH_COOKIE": "access_token",           # Name of access token cookie
-    "AUTH_COOKIE_REFRESH": "refresh_token",  # Name of refresh token cookie
-    "AUTH_COOKIE_SECURE": True,             # True if using HTTPS
-    "AUTH_COOKIE_HTTP_ONLY": True,           # Prevent JS access
-    "AUTH_COOKIE_PATH": "/",                  # Cookie path
-    "AUTH_COOKIE_SAMESITE": "None",           # 'Lax' for same-site, 'None' for cross-site
+    "AUTH_COOKIE": "access_token",
+    "AUTH_COOKIE_REFRESH": "refresh_token",
+    "AUTH_COOKIE_SECURE": True,       # must be True for HTTPS
+    "AUTH_COOKIE_HTTP_ONLY": True,
+    "AUTH_COOKIE_PATH": "/",
+    "AUTH_COOKIE_SAMESITE": "None",   # allow cross-site cookies
+    "AUTH_COOKIE_DOMAIN": ".project-time-central.cloud",
 }

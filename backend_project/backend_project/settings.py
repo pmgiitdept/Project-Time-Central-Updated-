@@ -35,7 +35,7 @@ SECRET_KEY = config("SECRET_KEY")
 
 DEBUG = config("DEBUG", default=False, cast=bool)
 
-ALLOWED_HOSTS = ["project-time-central.cloud"]
+ALLOWED_HOSTS = ["api.project-time-central.cloud", "project-time-central.cloud"]
 
 
 # Application definition
@@ -98,8 +98,8 @@ CHANNEL_LAYERS = {
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
-    "http://project-time-central.cloud",
-    "https://project-time-central.cloud",
+    "http://app.project-time-central.cloud",
+    "https://app.project-time-central.cloud",
 ]
 
 # Database
@@ -189,8 +189,8 @@ SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": True,
     "AUTH_COOKIE": "access_token",           # Name of access token cookie
     "AUTH_COOKIE_REFRESH": "refresh_token",  # Name of refresh token cookie
-    "AUTH_COOKIE_SECURE": False,             # True if using HTTPS
+    "AUTH_COOKIE_SECURE": True,             # True if using HTTPS
     "AUTH_COOKIE_HTTP_ONLY": True,           # Prevent JS access
     "AUTH_COOKIE_PATH": "/",                  # Cookie path
-    "AUTH_COOKIE_SAMESITE": "Lax",           # 'Lax' for same-site, 'None' for cross-site
+    "AUTH_COOKIE_SAMESITE": "None",           # 'Lax' for same-site, 'None' for cross-site
 }

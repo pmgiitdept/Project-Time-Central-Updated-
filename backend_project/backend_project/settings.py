@@ -98,8 +98,8 @@ CHANNEL_LAYERS = {
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
-    "http://app.project-time-central.cloud",
-    "https://app.project-time-central.cloud",
+    "http://project-time-central.cloud",
+    "https://project-time-central.cloud",
 ]
 
 # Database

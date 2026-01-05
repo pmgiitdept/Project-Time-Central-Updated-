@@ -41,7 +41,7 @@ CORS_ALLOWED_ORIGINS = [
     "https://app.project-time-central.cloud",
 ]
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_HEADERS = list(default_headers) + ["Authorization"]
+CORS_ALLOW_HEADERS = list(default_headers) + ["Authorization", "content-type"]
 
 # JWT Cookies for production
 from datetime import timedelta

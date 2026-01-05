@@ -52,6 +52,7 @@ services:
       - "traefik.http.routers.ptc-backend.entrypoints=websecure"
       - "traefik.http.routers.ptc-backend.tls.certresolver=myresolver"
       - "traefik.http.services.ptc-backend.loadbalancer.server.port=8000"
+      - "traefik.docker.network=dokploy-network"
 
   # ---------------- Celery Worker ----------------
   celery:

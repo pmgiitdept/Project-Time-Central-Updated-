@@ -19,12 +19,12 @@ function getDTRCutoffStatus() {
   // 30th cutoff → valid for 5 days (spills to next month)
   const cutoff30Start = new Date(year, month, 30);
   const cutoff30End = new Date(cutoff30Start);
-  cutoff30End.setDate(cutoff30End.getDate() + 5);
+  cutoff30End.setDate(cutoff30End.getDate() + 10);
 
   // Previous month 30th cutoff (for early month dates like Jan 2–4)
   const prev30Start = new Date(year, month - 1, 30);
   const prev30End = new Date(prev30Start);
-  prev30End.setDate(prev30End.getDate() + 5);
+  prev30End.setDate(prev30End.getDate() + 10);
 
   const canSubmit =
     (today >= cutoff15Start && today <= cutoff15End) ||

@@ -74,6 +74,10 @@ export default function AdminDashboard() {
   const [userTimeFilter, setUserTimeFilter] = useState("day");
   const [sortConfig, setSortConfig] = useState({ key: "timestamp", direction: "desc" });
 
+  const [uploaders, setUploaders] = useState([]);
+  const [selectedUploader, setSelectedUploader] = useState(null);
+  const [showUploaderModal, setShowUploaderModal] = useState(false);
+
   const [aboutOpen, setAboutOpen] = useState(false);
 
   const role = "admin";
@@ -106,6 +110,21 @@ export default function AdminDashboard() {
     // Payroll can only access Employee Directory
     sidebarItems.splice(2, 0, { key: "employeeDirectory", label: "Record Holdings", icon: <FaUsers /> });
   }
+
+  useEffect(() => {
+    const fetchUploaders = async () => {
+      try {
+        const res = await api.get("/files/dtr/uploaders/");
+        setUploaders(res.data || []);
+      } catch (err) {
+        console.error("Failed to fetch uploaders", err);
+      }
+    };
+
+    if (activeSection === "files") {
+      fetchUploaders();
+    }
+  }, [activeSection]);
 
   useEffect(() => {
     const fetchCurrentUser = async () => {
@@ -881,7 +900,8 @@ export default function AdminDashboard() {
           {/* Files Section */}
           {activeSection === "files" && (
             <div className="tables-wrapper">
-              {/* 🔄 Optional: Refresh Button */}
+
+              {/* 🔄 Refresh Button */}
               <div
                 style={{
                   position: "fixed",
@@ -894,30 +914,87 @@ export default function AdminDashboard() {
                   onClick={() => setRefresh(!refresh)}
                   className="upload-button"
                 >
-                  🔄 Refresh DTR Standard
+                  🔄 Refresh DTR Data
                 </button>
               </div>
-              
+
+              {/* 🧑‍💼 Uploader Review Header */}
               <div className="divider-hybrid">
-                <span>SUMMARY FORMS</span>
+                <span>UPLOADER REVIEW</span>
               </div>
 
-              {/* File Table + File Viewer */}
-              <FileTable role={role} setSelectedFile={setSelectedFile} />
-              {selectedFile && <FileContent fileId={selectedFile.id} role={role} />}
+              {/* 🔽 Uploader Selector (placeholder for now) */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "1rem",
+                  marginBottom: "1.5rem",
+                }}
+              >
+                <label style={{ fontWeight: "bold" }}>
+                  Select Uploader:
+                </label>
 
-              {/* 🌈 Divider before Uploaded PDFs */}
-              <div className="divider-hybrid">
-                <span>DTR REPORTS</span>
+                <select
+                  className="upload-button"
+                  style={{ minWidth: "250px" }}
+                  value={selectedUploader?.id || ""}
+                  onChange={(e) => {
+                    const uploader = uploaders.find(u => u.id === Number(e.target.value));
+                    setSelectedUploader(uploader);
+                    setShowUploaderModal(true);
+                  }}
+                >
+                  <option value="">Select uploader</option>
+                  {uploaders.map(uploader => (
+                    <option key={uploader.id} value={uploader.id}>
+                      {uploader.name}
+                    </option>
+                  ))}
+                </select>
+
+                <span style={{ fontSize: "0.9rem", opacity: 0.7 }}>
+                  Select an uploader to review summary forms and DTR PDFs together
+                </span>
               </div>
 
-              {/* Uploaded PDFs Section (DTRs) */}
-              <div style={{ marginTop: "2rem" }}>
-                <UploadedPDFs refreshTrigger={refresh} currentUser={currentUser}/>
-              </div>
+              {/* 🧪 TEMPORARY: Existing Sections (will be replaced by modal) */}
+              {!showUploaderModal && (
+                <>
+                  <div className="divider-hybrid">
+                    <span>SUMMARY FORMS (TEMP)</span>
+                  </div>
 
-              <div className="divider-hybrid">
-              </div>
+                  <FileTable role={role} setSelectedFile={setSelectedFile} />
+
+                  {selectedFile && (
+                    <FileContent
+                      fileId={selectedFile.id}
+                      role={role}
+                    />
+                  )}
+
+                  <div className="divider-hybrid">
+                    <span>DTR REPORTS (TEMP)</span>
+                  </div>
+
+                  <UploadedPDFs
+                    refreshTrigger={refresh}
+                    currentUser={currentUser}
+                  />
+                </>
+              )}
+
+              {showUploaderModal && (
+                <UploaderReviewModal
+                  uploader={selectedUploader}
+                  onClose={() => {
+                    setShowUploaderModal(false);
+                    setSelectedUploader(null);
+                  }}
+                />
+              )}
             </div>
           )}
 

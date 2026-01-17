@@ -7,7 +7,7 @@ import { toast } from "react-toastify";
 import "./styles/FileTable.css";
 import { motion } from "framer-motion";
 
-export default function FileTable({ role, setSelectedFile }) {
+export default function FileTable({ role, setSelectedFile, uploaderFilter = null, embedded = false, }) {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [downloadLoading, setDownloadLoading] = useState({});
@@ -108,6 +108,10 @@ export default function FileTable({ role, setSelectedFile }) {
       const fileDate = new Date(file.uploaded_at).setHours(0,0,0,0);
       const matchesStartDate = startDate ? fileDate >= new Date(startDate).setHours(0,0,0,0) : true;
       const matchesEndDate = endDate ? fileDate <= new Date(endDate).setHours(0,0,0,0) : true;
+
+      if (uploaderFilter) {
+        if (file.uploaded_by?.id !== uploaderFilter) return false;
+      }
 
       return matchesSearch && matchesStartDate && matchesEndDate;
     });

@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import "./styles/ClientDashboard.css";
 import PDFTextModal from "./PDFTextModal";
 
-export default function UploadedPDFs({ refreshTrigger , currentUser}) {
+export default function UploadedPDFs({ refreshTrigger , currentUser, uploaderFilter}) {
   const [pdfFiles, setPdfFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -25,6 +25,9 @@ export default function UploadedPDFs({ refreshTrigger , currentUser}) {
           setPdfFiles([]);
           setError("Unexpected response from server");
         } else {
+          if (uploaderFilter) {
+            data = data.filter(pdf => pdf.uploaded_by === uploaderFilter);
+          }
           setPdfFiles(data);
         }
       } catch (err) {
@@ -37,6 +40,7 @@ export default function UploadedPDFs({ refreshTrigger , currentUser}) {
     };
 
     fetchPDFs();
+
   }, [refreshTrigger]);
 
   const selectPDF = (pdf) => setSelectedPDF(pdf);
@@ -68,7 +72,7 @@ export default function UploadedPDFs({ refreshTrigger , currentUser}) {
     <div className="dashboard-layout">
       {/* Left sidebar for PDFs */}
       <motion.div
-        className="upload-card sidebar1"
+        className="upload-card sidebar"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
@@ -113,12 +117,12 @@ export default function UploadedPDFs({ refreshTrigger , currentUser}) {
                       <button onClick={() => selectPDF(pdf)} className="upload-button">
                         🧾 View DTR
                       </button>
-                      <button
+                      {/* <button
                         onClick={() => viewPDFFile(pdf.file)}
                         className="upload-button view-pdf-btn"
                       >
                         📄 View PDF File
-                      </button>
+                      </button> */}
                       {/* Delete Button - Only Visible to Admin */}
                       {currentUser?.role === "admin" && (
                         <button

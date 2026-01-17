@@ -172,7 +172,32 @@ function ManualDTRCard({ onClose, onSuccess }) {
     },
   ]);
 
-  /* ======== Cutoff Logic for Date Inputs ======== */
+  const STANDARD_HOURS = 8;
+
+  function computeTotals(dailyData) {
+    let totalHours = 0;
+    let regularOT = 0;
+
+    Object.values(dailyData).forEach((val) => {
+      const hours = parseFloat(val);
+
+      // Ignore non-numeric inputs
+      if (isNaN(hours)) return;
+
+      totalHours += hours;
+
+      if (hours > STANDARD_HOURS) {
+        regularOT += hours - STANDARD_HOURS;
+      }
+    });
+
+    return {
+      total_hours: totalHours,
+      regular_ot: regularOT,
+    };
+  }
+
+  /* ======== Cutoff Logic for Date Inputs ======== */  
   const { canSubmit, message } = getDTRCutoffStatus();
 
   const formatDate = (d) => d.toISOString().split("T")[0];
@@ -203,10 +228,23 @@ function ManualDTRCard({ onClose, onSuccess }) {
 
   const updateDaily = (rowIndex, date, value) => {
     const updated = [...rows];
-    updated[rowIndex].daily_data = {
+
+    // Update daily value
+    const newDailyData = {
       ...updated[rowIndex].daily_data,
       [date]: value,
     };
+
+    // Recompute totals
+    const { total_hours, regular_ot } = computeTotals(newDailyData);
+
+    updated[rowIndex] = {
+      ...updated[rowIndex],
+      daily_data: newDailyData,
+      total_hours,
+      regular_ot,
+    };
+
     setRows(updated);
   };
 
@@ -327,9 +365,9 @@ function ManualDTRCard({ onClose, onSuccess }) {
                 <div className="manual-section">
                   <h5>Totals & Adjustments</h5>
                   <div className="manual-row-grid totals">
-                    <input type="number" placeholder="Total Hours" value={row.total_hours} onChange={(e) => updateRow(i, "total_hours", e.target.value)} />
+                    <input type="number" placeholder="Total Hours" value={row.total_hours} readOnly />
                     <input type="number" placeholder="Undertime (min)" value={row.undertime_minutes} onChange={(e) => updateRow(i, "undertime_minutes", e.target.value)} />
-                    <input type="number" placeholder="Regular OT" value={row.regular_ot} onChange={(e) => updateRow(i, "regular_ot", e.target.value)} />
+                    <input type="number" placeholder="Regular OT" value={row.regular_ot} readOnly />
                     <input type="number" placeholder="Legal Holiday" value={row.legal_holiday} onChange={(e) => updateRow(i, "legal_holiday", e.target.value)} />
                     <input type="number" placeholder="Unworked Reg Holiday" value={row.unworked_reg_holiday} onChange={(e) => updateRow(i, "unworked_reg_holiday", e.target.value)} />
                     <input type="number" placeholder="Special Holiday" value={row.special_holiday} onChange={(e) => updateRow(i, "special_holiday", e.target.value)} />

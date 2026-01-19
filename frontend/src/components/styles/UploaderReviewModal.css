@@ -73,11 +73,12 @@
 
 /* LEFT COLUMN */
 .uploader-column.left.full-height {
-  flex: 1.5; /* smaller */
-  min-width: 350px;
+  flex: 3; /* smaller */
+  min-width: 420px;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  max-height: none;
 }
 
 .file-table-wrapper.full-height {
@@ -111,8 +112,9 @@
 
 /* RIGHT COLUMN */
 .uploader-column.right.full-height {
-  flex: 2; /* much bigger */
-  min-width: 500px;
+  flex: 1; /* much bigger */
+  min-width: 320px;
+  max-width: 420px;
   background: #fff;
   border-radius: 12px;
   padding: 0.5rem;

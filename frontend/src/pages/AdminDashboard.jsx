@@ -114,17 +114,19 @@ export default function AdminDashboard() {
   useEffect(() => {
     const fetchUploaders = async () => {
       try {
-        const res = await api.get("/files/dtr/uploaders/");
-        setUploaders(res.data || []);
+        const token = localStorage.getItem("access_token");
+        const res = await api.get("/users/clients/", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        // Adjust depending on your API response
+        setUploaders(res.data.results || res.data);
       } catch (err) {
-        console.error("Failed to fetch uploaders", err);
+        console.error("Failed to fetch uploaders:", err);
       }
     };
 
-    if (activeSection === "files") {
-      fetchUploaders();
-    }
-  }, [activeSection]);
+    fetchUploaders();
+  }, []);
 
   useEffect(() => {
     const fetchCurrentUser = async () => {

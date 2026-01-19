@@ -1,10 +1,9 @@
-// components/UploaderReviewModal.jsx
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import FileTable from "./FileTable";
 import FileContent from "./FileContent";
 import UploadedPDFs from "./UploadedPDFs";
-import "./styles/ClientDashboard.css";
+import "./styles/UploaderReviewModal.css";
 
 export default function UploaderReviewModal({ uploader, onClose }) {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -23,7 +22,7 @@ export default function UploaderReviewModal({ uploader, onClose }) {
   return (
     <div className="uploader-modal-overlay" onClick={onClose}>
       <motion.div
-        className="uploader-modal"
+        className="uploader-modal expanded" // <-- added "expanded" for wider modal
         onClick={(e) => e.stopPropagation()}
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -33,13 +32,14 @@ export default function UploaderReviewModal({ uploader, onClose }) {
         {/* Header */}
         <div className="uploader-modal-header">
           <h2>Uploader Review: {uploader.username}</h2>
-          <button className="close-btn" onClick={onClose}>✖</button>
+          {/* Removed close button */}
         </div>
 
         {/* Body */}
         <div className="uploader-modal-body compact">
+
           {/* LEFT COLUMN */}
-          <div className="uploader-column">
+          <div className="uploader-column left">
             <h3>Summary Forms</h3>
             <FileTable
               role="admin"
@@ -55,7 +55,7 @@ export default function UploaderReviewModal({ uploader, onClose }) {
           </div>
 
           {/* RIGHT COLUMN */}
-          <div className="uploader-column">
+          <div className="uploader-column right">
             <h3>DTR PDFs</h3>
             <UploadedPDFs
               uploaderFilter={uploader.id}
@@ -63,6 +63,7 @@ export default function UploaderReviewModal({ uploader, onClose }) {
               embedded
             />
           </div>
+
         </div>
       </motion.div>
     </div>

@@ -1,9 +1,10 @@
+// components/UploaderReviewModal.jsx
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import FileTable from "./FileTable";
 import FileContent from "./FileContent";
 import UploadedPDFs from "./UploadedPDFs";
-import "./styles/ClientDashboard.css"; // make sure to point to the correct CSS
+import "./styles/ClientDashboard.css";
 
 export default function UploaderReviewModal({ uploader, onClose }) {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -37,34 +38,24 @@ export default function UploaderReviewModal({ uploader, onClose }) {
 
         {/* Body */}
         <div className="uploader-modal-body compact">
-
           {/* LEFT COLUMN */}
-          <div className="uploader-column left">
-            <div className="file-table-wrapper">
-              {/* Summary Forms Table */}
-              <div className="file-table-left">
-                <h3>Summary Forms</h3>
-                <FileTable
-                  role="admin"
-                  uploaderFilter={uploader.id}
-                  setSelectedFile={setSelectedFile}
-                  embedded
-                />
+          <div className="uploader-column">
+            <h3>Summary Forms</h3>
+            <FileTable
+              role="admin"
+              uploaderFilter={uploader.id}
+              setSelectedFile={setSelectedFile}
+              embedded
+            />
+            {selectedFile && (
+              <div className="file-content-wrapper">
+                <FileContent fileId={selectedFile.id} role="admin" />
               </div>
-
-              {/* File Content */}
-              <div className="file-content-right">
-                {selectedFile && (
-                  <div className="file-content-wrapper">
-                    <FileContent fileId={selectedFile.id} role="admin" />
-                  </div>
-                )}
-              </div>
-            </div>
+            )}
           </div>
 
-          {/* RIGHT COLUMN: DTR PDFs */}
-          <div className="uploader-column right">
+          {/* RIGHT COLUMN */}
+          <div className="uploader-column">
             <h3>DTR PDFs</h3>
             <UploadedPDFs
               uploaderFilter={uploader.id}
@@ -72,7 +63,6 @@ export default function UploaderReviewModal({ uploader, onClose }) {
               embedded
             />
           </div>
-
         </div>
       </motion.div>
     </div>

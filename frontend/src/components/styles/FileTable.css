@@ -9,16 +9,16 @@
 }
 
 .file-table-left {
-  width: 500px;         /* slightly smaller width */
-  max-height: 75vh;     
+  width: 360px;          /* ⬅️ smaller than 420 */
+  max-height: 70vh;      
   overflow-y: auto;
   background: #ffffff;
-  padding: 0.8rem;      /* smaller padding */
-  border-radius: 12px;
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.05);
+  padding: 0.5rem;       /* ⬅️ tighter padding */
+  border-radius: 10px;   /* ⬅️ slightly smaller radius */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
-  font-size: 0.75rem;   /* smaller base text */
+  font-size: 0.65rem;    /* ⬅️ matches compact tables */
 }
 
 .file-content-right {

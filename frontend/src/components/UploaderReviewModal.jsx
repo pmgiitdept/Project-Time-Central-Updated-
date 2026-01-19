@@ -37,18 +37,16 @@ export default function UploaderReviewModal({ uploader, onClose }) {
         </div>
 
         {/* Body */}
-        <div className="uploader-modal-body">
+        <div className="uploader-modal-body compact">
           {/* LEFT COLUMN */}
           <div className="uploader-column">
             <h3>Summary Forms</h3>
-
             <FileTable
               role="admin"
               uploaderFilter={uploader.id}
               setSelectedFile={setSelectedFile}
               embedded
             />
-
             {selectedFile && (
               <div className="file-content-wrapper">
                 <FileContent fileId={selectedFile.id} role="admin" />
@@ -59,7 +57,6 @@ export default function UploaderReviewModal({ uploader, onClose }) {
           {/* RIGHT COLUMN */}
           <div className="uploader-column">
             <h3>DTR PDFs</h3>
-
             <UploadedPDFs
               uploaderFilter={uploader.id}
               currentUser={{ role: "admin" }}

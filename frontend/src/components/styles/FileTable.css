@@ -687,3 +687,63 @@
   font-size: 0.95rem;
   color: #7f1d1d;
 }
+
+/* Compact table for modal */
+.file-table-wrapper.embedded {
+  gap: 1rem; /* reduce spacing between table & content */
+  font-size: 0.8rem;
+}
+
+.file-table-wrapper.embedded .file-table-left {
+  width: 100%;
+  max-height: 60vh;
+  padding: 0.75rem;
+}
+
+.file-table-wrapper.embedded .file-content-right {
+  width: 100%;
+  padding: 0.75rem;
+}
+
+.file-table-wrapper.embedded .file-table {
+  font-size: 0.75rem;
+  min-width: 700px; /* smaller table width */
+}
+
+.file-table-wrapper.embedded .file-table th,
+.file-table-wrapper.embedded .file-table td {
+  padding: 0.4rem 0.6rem;
+}
+
+.file-table-wrapper.embedded .table-section-title {
+  font-size: 1.2rem;
+}
+
+.file-table-wrapper.embedded .filters {
+  gap: 0.5rem;
+}
+
+.file-table-wrapper.embedded .filter-item label {
+  font-size: 0.75rem;
+}
+
+.file-table-wrapper.embedded .filters input[type="text"],
+.file-table-wrapper.embedded .filters input[type="date"] {
+  font-size: 0.75rem;
+  padding: 0.35rem 0.5rem;
+}
+
+.file-table-wrapper.embedded .status-badge {
+  font-size: 0.7rem;
+  padding: 0.2rem 0.4rem;
+}
+
+.file-table-wrapper.embedded .status-select {
+  font-size: 0.7rem;
+  padding: 0.2rem 0.4rem;
+}
+
+.file-table-wrapper.embedded .action-btn {
+  font-size: 0.7rem;
+  padding: 0.25rem 0.5rem;
+}

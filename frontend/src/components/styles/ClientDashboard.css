@@ -820,3 +820,68 @@
   max-height: 75vh;   /* ⬅️ more vertical room */
   overflow-y: auto;
 }
+
+/* Compact modal content */
+.uploader-modal-body.compact {
+  font-size: 0.85rem; /* Smaller text for all modal content */
+  gap: 1rem;           /* Slightly less spacing */
+}
+
+.uploader-modal-body.compact h3 {
+  font-size: 1rem;     /* Smaller section titles */
+}
+
+.uploader-modal-body.compact .file-table,
+.uploader-modal-body.compact .pdf-grid,
+.uploader-modal-body.compact .file-content-wrapper {
+  font-size: 0.85rem;
+}
+
+.uploader-modal-body.compact .file-table th,
+.uploader-modal-body.compact .file-table td {
+  padding: 0.3rem 0.5rem;  /* Smaller table cells */
+}
+
+.uploader-modal-body.compact .pdf-card {
+  padding: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.uploader-modal-body.compact .file-content-wrapper {
+  min-height: 180px;   /* Slightly smaller viewer */
+}
+
+/* Compact UploadedPDFs for modal */
+.uploaded-pdfs.embedded,
+.upload-card.sidebar.embedded {
+  font-size: 0.75rem; /* smaller text */
+  padding: 0.5rem;
+}
+
+.uploaded-pdfs.embedded .upload-card-header h2,
+.upload-card.sidebar.embedded .upload-title {
+  font-size: 1rem; /* smaller header */
+}
+
+.uploaded-pdfs.embedded .collapse-btn,
+.upload-card.sidebar.embedded .collapse-btn {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+}
+
+.uploaded-pdfs.embedded .pdf-grid {
+  gap: 0.5rem; /* reduce spacing between cards */
+}
+
+.uploaded-pdfs.embedded .pdf-card {
+  padding: 0.4rem 0.5rem;
+  font-size: 0.75rem;
+  min-width: 120px; /* smaller cards */
+  border-radius: 6px;
+}
+
+.uploaded-pdfs.embedded .pdf-buttons .upload-button {
+  font-size: 0.7rem;
+  padding: 0.25rem 0.5rem;
+  margin-top: 0.25rem;
+}

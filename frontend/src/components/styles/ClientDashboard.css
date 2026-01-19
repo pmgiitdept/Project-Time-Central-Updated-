@@ -722,13 +722,14 @@
 
 /* UploaderReviewModal.css */
 
+/* --- Overlay --- */
 .uploader-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -737,29 +738,32 @@
   padding: 1rem;
 }
 
+/* --- Modal Container --- */
 .uploader-modal {
   background: #fff;
   width: 98%;
-  max-width: 1600px;   /* ⬅️ wider */
-  height: 96vh;        /* ⬅️ taller */
+  max-width: 1800px;   /* ⬅️ larger modal */
+  height: 96vh;        /* ⬅️ taller modal */
   border-radius: 1rem;
-  box-shadow: 0 8px 35px rgba(0,0,0,0.35);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4);
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
+/* --- Header --- */
 .uploader-modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 1.5rem;
+  padding: 1rem 2rem;  /* slightly bigger padding */
   background: #f1f3f5;
   border-bottom: 1px solid #ddd;
 }
 
 .uploader-modal-header h2 {
-  font-size: 1.25rem;
+  font-size: 1.5rem;  /* slightly bigger header */
   margin: 0;
 }
 
@@ -768,7 +772,7 @@
   color: #fff;
   border: none;
   border-radius: 0.3rem;
-  padding: 0.3rem 0.7rem;
+  padding: 0.4rem 0.8rem;
   font-size: 1rem;
   cursor: pointer;
   transition: background 0.2s;
@@ -778,110 +782,129 @@
   background: #d62828;
 }
 
+/* --- Body --- */
 .uploader-modal-body {
   display: flex;
-  gap: 2rem;                 /* ⬅️ more breathing room */
-  padding: 1.25rem 1.75rem;
+  gap: 2rem;                 /* breathing room between columns */
+  padding: 1rem 1.75rem;
   flex: 1;
-  overflow: hidden;          /* ⬅️ internal scrolling only */
+  overflow: hidden;           /* internal scroll only */
 }
 
 .uploader-column {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
-  min-width: 500px;   /* ⬅️ wider */
+  gap: 1rem;
+  min-width: 400px;  /* slightly smaller to allow more columns */
 }
 
 .uploader-column h3 {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 1rem;      /* smaller section title */
   font-weight: 600;
   border-bottom: 1px solid #ddd;
   padding-bottom: 0.3rem;
 }
 
+/* --- File Content / Tables --- */
 .file-content-wrapper {
-  margin-top: 1rem;
+  margin-top: 0.5rem;
   border: 1px solid #ddd;
   border-radius: 0.5rem;
   overflow: hidden;
   flex: 1;
-  min-height: 200px;
+  min-height: 180px;  /* slightly smaller */
 }
 
-/* Scroll behavior for long tables/PDFs */
+/* Scrollable areas for tables and PDF cards */
 .file-content-wrapper,
 .uploader-column > .file-table-wrapper,
 .uploader-column > .upload-card {
   flex: 1;
-  min-height: 300px;
-  max-height: 75vh;   /* ⬅️ more vertical room */
+  min-height: 200px;
+  max-height: 80vh;    /* larger vertical room */
   overflow-y: auto;
 }
 
-/* Compact modal content */
+/* --- Compact mode for all modal content --- */
 .uploader-modal-body.compact {
-  font-size: 0.85rem; /* Smaller text for all modal content */
-  gap: 1rem;           /* Slightly less spacing */
+  font-size: 0.8rem;   /* smaller text for everything inside */
+  gap: 1rem;
 }
 
 .uploader-modal-body.compact h3 {
-  font-size: 1rem;     /* Smaller section titles */
+  font-size: 0.9rem;
 }
 
 .uploader-modal-body.compact .file-table,
 .uploader-modal-body.compact .pdf-grid,
 .uploader-modal-body.compact .file-content-wrapper {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
 }
 
 .uploader-modal-body.compact .file-table th,
 .uploader-modal-body.compact .file-table td {
-  padding: 0.3rem 0.5rem;  /* Smaller table cells */
+  padding: 0.25rem 0.45rem;
 }
 
 .uploader-modal-body.compact .pdf-card {
-  padding: 0.5rem;
-  font-size: 0.85rem;
+  padding: 0.35rem 0.45rem;
+  font-size: 0.75rem;
+  min-width: 120px;
+  border-radius: 6px;
 }
 
 .uploader-modal-body.compact .file-content-wrapper {
-  min-height: 180px;   /* Slightly smaller viewer */
+  min-height: 160px;
 }
 
-/* Compact UploadedPDFs for modal */
+/* --- Compact UploadedPDFs for modal --- */
 .uploaded-pdfs.embedded,
 .upload-card.sidebar.embedded {
-  font-size: 0.75rem; /* smaller text */
-  padding: 0.5rem;
+  font-size: 0.7rem; /* smaller text */
+  padding: 0.4rem;
 }
 
 .uploaded-pdfs.embedded .upload-card-header h2,
 .upload-card.sidebar.embedded .upload-title {
-  font-size: 1rem; /* smaller header */
+  font-size: 0.9rem; /* smaller header */
 }
 
 .uploaded-pdfs.embedded .collapse-btn,
 .upload-card.sidebar.embedded .collapse-btn {
-  font-size: 0.75rem;
-  padding: 0.25rem 0.5rem;
+  font-size: 0.7rem;
+  padding: 0.25rem 0.45rem;
 }
 
 .uploaded-pdfs.embedded .pdf-grid {
-  gap: 0.5rem; /* reduce spacing between cards */
+  gap: 0.4rem; /* tighter spacing */
 }
 
 .uploaded-pdfs.embedded .pdf-card {
-  padding: 0.4rem 0.5rem;
-  font-size: 0.75rem;
-  min-width: 120px; /* smaller cards */
+  padding: 0.35rem 0.45rem;
+  font-size: 0.7rem;
+  min-width: 110px; 
   border-radius: 6px;
 }
 
 .uploaded-pdfs.embedded .pdf-buttons .upload-button {
-  font-size: 0.7rem;
-  padding: 0.25rem 0.5rem;
+  font-size: 0.65rem;
+  padding: 0.25rem 0.4rem;
   margin-top: 0.25rem;
+}
+
+/* --- Responsive adjustments --- */
+@media (max-width: 1200px) {
+  .uploader-column {
+    min-width: 300px;
+  }
+}
+
+@media (max-width: 768px) {
+  .uploader-modal-body {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+  }
 }

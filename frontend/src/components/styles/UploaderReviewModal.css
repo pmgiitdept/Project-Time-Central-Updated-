@@ -86,35 +86,46 @@
   flex: 1;
   gap: 0.5rem;
   height: 100%;
+  min-width: 0;
 }
 
 /* FileTable (left side of left column) */
 .file-table-left {
-  flex: 1; 
-  background: #fff;
-  border-radius: 12px;
-  padding: 0.5rem;
-  font-size: 0.7rem;
+  flex: 0 0 320px;      /* ⬅️ fixed, smaller width */
+  max-width: 320px;
+  min-width: 300px;
+
+  background: #ffffff;
+  padding: 0.45rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+
+  display: flex;
+  flex-direction: column;
   overflow-y: auto;
-  box-shadow: 0 6px 15px rgba(0,0,0,0.05);
+
+  font-size: 0.65rem;
 }
 
 /* FileContent (right side of left column) */
 .file-content-right {
-  flex: 2; /* bigger than table */
-  background: #fff;
-  border-radius: 12px;
+  flex: 1 1 auto;      /* ⬅️ allow growth */
+  min-width: 520px;    /* ⬅️ prevents content collapse */
+
+  background: #ffffff;
   padding: 0.5rem;
+  border-radius: 12px;
   font-size: 0.7rem;
+
   overflow-y: auto;
   box-shadow: 0 6px 15px rgba(0,0,0,0.05);
 }
 
 /* RIGHT COLUMN */
 .uploader-column.right.full-height {
-  flex: 1; /* much bigger */
-  min-width: 320px;
-  max-width: 420px;
+  flex: 1.3; /* much bigger */
+  min-width: 360px;
+  max-width: none;
   background: #fff;
   border-radius: 12px;
   padding: 0.5rem;

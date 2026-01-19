@@ -90,21 +90,19 @@
 
 /* FileTable (left side of left column) */
 .file-table-left {
-  flex: 0.7; 
-  max-width: 220px;
+  flex: 1; 
   background: #fff;
   border-radius: 12px;
   padding: 0.5rem;
-  font-size: 0.65rem;
+  font-size: 0.7rem;
   overflow-y: auto;
   box-shadow: 0 6px 15px rgba(0,0,0,0.05);
 }
 
 /* FileContent (right side of left column) */
 .file-content-right {
-  flex: 1.6; /* bigger than table */
+  flex: 2; /* bigger than table */
   background: #fff;
-  min-width: 360px;
   border-radius: 12px;
   padding: 0.5rem;
   font-size: 0.7rem;
@@ -116,7 +114,7 @@
 .uploader-column.right.full-height {
   flex: 1; /* much bigger */
   min-width: 320px;
-  max-width: 460px;
+  max-width: 420px;
   background: #fff;
   border-radius: 12px;
   padding: 0.5rem;

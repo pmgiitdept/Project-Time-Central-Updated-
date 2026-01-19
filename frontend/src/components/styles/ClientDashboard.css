@@ -781,23 +781,36 @@
 /* --- Body --- */
 .uploader-modal-body {
   display: flex;
-  gap: 0.5rem;           /* tighter gap */
+  gap: 0.5rem;
   padding: 0.5rem 0.8rem;
   flex: 1;
   overflow: hidden; 
 }
 
+/* --- Columns --- */
 .uploader-column {
-  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
-  min-width: 300px;      /* slightly wider column */
+  min-width: 200px; 
 }
 
+/* Make LEFT column (Summary Forms) bigger */
+.uploader-column.left {
+  flex: 2;             /* takes 2/3 of space */
+  min-width: 400px;
+}
+
+/* Make RIGHT column (DTR PDFs) smaller */
+.uploader-column.right {
+  flex: 1;             /* takes 1/3 of space */
+  min-width: 200px;
+}
+
+/* Section titles */
 .uploader-column h3 {
   margin: 0;
-  font-size: 0.7rem;     /* smaller section titles */
+  font-size: 0.65rem; 
   font-weight: 600;
   border-bottom: 1px solid #ddd;
   padding-bottom: 0.15rem;
@@ -810,7 +823,8 @@
   border-radius: 0.4rem;
   overflow: hidden;
   flex: 1;
-  min-height: 120px;     /* smaller viewer */
+  min-height: 120px;
+  width: 100%;          /* take full width of left column */
 }
 
 /* Scrollable areas */
@@ -825,24 +839,31 @@
 
 /* --- Compact tables & PDFs --- */
 .uploader-modal-body.compact {
-  font-size: 0.65rem;  /* smaller base text inside modal */
+  font-size: 0.65rem;
   gap: 0.4rem;
 }
 
-.uploader-modal-body.compact h3 {
-  font-size: 0.65rem;
-}
-
 .uploader-modal-body.compact .file-table,
-.uploader-modal-body.compact .pdf-grid,
 .uploader-modal-body.compact .file-content-wrapper {
   font-size: 0.65rem;
 }
 
 .uploader-modal-body.compact .file-table th,
 .uploader-modal-body.compact .file-table td {
-  padding: 0.1rem 0.25rem;  /* tiny cells */
+  padding: 0.1rem 0.25rem;
   font-size: 0.6rem;
+}
+
+/* DTR PDFs adjustments */
+.uploader-column.right .uploaded-pdfs.embedded,
+.uploader-column.right .upload-card.sidebar.embedded {
+  font-size: 0.55rem;
+  padding: 0.25rem;
+}
+
+.uploader-column.right .uploaded-pdfs.embedded .pdf-card,
+.uploader-column.right .upload-card.sidebar.embedded .pdf-card {
+  min-width: 50px;       /* slightly narrower PDFs */
 }
 
 .uploader-modal-body.compact .pdf-card {

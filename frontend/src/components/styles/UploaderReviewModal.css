@@ -48,10 +48,12 @@
 /* --- Body (3 Columns) --- */
 .uploader-modal-body.three-column {
   display: flex;
+  flex-direction: row;
   flex: 1;
   gap: 0.75rem;
   padding: 0.5rem 1rem;
-  min-width: 0;
+  width: 100%;
+  overflow: hidden; /* ⬅️ CRITICAL */
 }
 
 /* --- Shared Column Base --- */
@@ -61,6 +63,7 @@
   height: 100%;
   min-width: 0;
   overflow: hidden;
+  position: relative;
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 6px 15px rgba(0,0,0,0.05);
@@ -94,12 +97,14 @@
 /* COLUMN 2 — FILE CONTENT       */
 /* ============================= */
 .content-column {
-  flex: 2 1 0;
+  flex: 1 1 auto;
   min-width: 520px;
 
   padding: 0.5rem;
   overflow: auto;
   font-size: 0.7rem;
+
+  border-left: 2px solid #e5e7eb;
 }
 
 /* ============================= */

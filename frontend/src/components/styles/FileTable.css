@@ -9,8 +9,7 @@
 }
 
 .file-table-left {
-  width: 250px;          /* ⬅️ smaller than 420 */
-  max-height: 70vh;      
+  width: 250px;          /* ⬅️ smaller than 420 */   
   overflow-y: auto;
   background: #ffffff;
   padding: 0.5rem;       /* ⬅️ tighter padding */

@@ -158,13 +158,13 @@
 
 /* PDFs adjustments */
 .uploader-column.right .uploaded-pdfs.embedded,
-.uploader-column.right .upload-card.sidebar.embedded {
+.uploader-column.right .upload-card.embedded {
   font-size: 0.6rem;
   padding: 0.3rem;
 }
 
 .uploader-column.right .uploaded-pdfs.embedded .pdf-card,
-.uploader-column.right .upload-card.sidebar.embedded .pdf-card {
+.uploader-column.right .upload-card.embedded .pdf-card {
   min-width: 60px;
 }
 

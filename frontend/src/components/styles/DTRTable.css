@@ -71,17 +71,18 @@
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  min-width: 700px;      /* smaller table width */
-  font-size: 0.65rem;    /* smaller overall text */
+  min-width: 520px;          /* ⬅️ smaller than 700 */
+  font-size: 0.6rem;        /* ⬅️ smaller text */
 }
 
 .dtr-table th,
 .dtr-table td {
   border: 1px solid #e5e7eb;
-  padding: 0.2rem 0.35rem;  /* tighter padding */
+  padding: 0.15rem 0.25rem;  /* ⬅️ tighter */
   text-align: center;
-  font-size: 0.65rem;       /* smaller text */
-  min-width: 80px;          /* smaller column width */
+  font-size: 0.6rem;
+  min-width: 60px;           /* ⬅️ smaller columns */
+  white-space: nowrap;
   transition: background 0.2s ease;
   color: #1f2937;
 }
@@ -94,8 +95,8 @@
   top: 0;
   z-index: 3;
   white-space: nowrap;
-  font-size: 0.65rem;       /* smaller header text */
-  letter-spacing: 0.2px;
+  font-size: 0.6rem;       /* smaller header text */
+  letter-spacing: 0.3px;
   text-transform: uppercase;
 }
 
@@ -122,10 +123,10 @@
 }
 
 .sticky-1 { left: 0;   z-index: 4; }
-.sticky-2 { left: 120px; }   /* smaller offsets */
-.sticky-3 { left: 240px; }
-.sticky-4 { left: 360px; }
-.sticky-5 { left: 480px; }
+.sticky-2 { left: 90px; }   /* smaller offsets */
+.sticky-3 { left: 180px; }
+.sticky-4 { left: 270px; }
+.sticky-5 { left: 360px; }
 
 .dtr-table tr:hover .sticky-col {
   background-color: #e8f0ff;
@@ -168,7 +169,7 @@
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
   display: flex;
   flex-direction: column;
-  padding: 0.5rem;
+  padding: 0.4rem;
   overflow: hidden;
   animation: scaleIn 0.3s ease;
 }
@@ -193,7 +194,7 @@
 }
 
 .modal-header h3 {
-  font-size: 1rem;
+  font-size: 0.9rem;
   color: #1e3a8a;
   font-weight: 700;
 }
@@ -214,7 +215,7 @@
 .full-table-container {
   flex: 1;
   overflow: auto;
-  margin-top: 1rem;
+  margin-top: 0.5rem;
   border-radius: 8px;
   border: 1px solid #e2e8f0;
 }
@@ -343,13 +344,15 @@
   position: sticky;
   left: 0;
   background: #fff;
+  min-width: 90px;
   z-index: 5;
 }
 
 .dtr-table th:nth-child(2),
 .dtr-table td:nth-child(2) {
   position: sticky;
-  left: 120px;
+  left: 90px;
+  min-width: 90px;
   background: #fff;
   z-index: 5;
 }
@@ -567,10 +570,10 @@
 
 .search-input {
   flex: 1;
-  padding: 4px 6px;
+  padding: 0.25px 0.4px;
   border: 1px solid #ccc;
   border-radius: 6px;
-  font-size: 0.7px;
+  font-size: 0.65px;
 }
 
 .clear-btn {

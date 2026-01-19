@@ -4,7 +4,7 @@ import FileTable from "./FileTable";
 import FileContent from "./FileContent";
 import UploadedPDFs from "./UploadedPDFs";
 import "./styles/ClientDashboard.css";
-
+import "./styles/UploaderReviewModal.css";
 export default function UploaderReviewModal({ uploader, onClose }) {
   const [selectedFile, setSelectedFile] = useState(null);
 

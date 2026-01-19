@@ -34,36 +34,36 @@ export default function UploaderReviewModal({ uploader, onClose }) {
         </div>
 
         {/* Body */}
-        <div className="uploader-modal-body full-util">
-
-          {/* LEFT COLUMN */}
-          <div className="uploader-column left full-height">
-            <div className="file-table-wrapper full-height">
-              <div className="file-table-left">
-                <FileTable
-                  role="admin"
-                  uploaderFilter={uploader.id}
-                  setSelectedFile={setSelectedFile}
-                  embedded
-                />
-              </div>
-              {selectedFile && (
-                <div className="file-content-right">
-                  <FileContent fileId={selectedFile.id} role="admin" />
-                </div>
-              )}
-            </div>
+        <div className="uploader-modal-body three-column">
+          {/* COLUMN 1 — FILE TABLE */}
+          <div className="uploader-column table-column">
+            <FileTable
+              role="admin"
+              uploaderFilter={uploader.id}
+              setSelectedFile={setSelectedFile}
+              embedded
+            />
           </div>
 
-          {/* RIGHT COLUMN */}
-          <div className="uploader-column right full-height">
+          {/* COLUMN 2 — FILE CONTENT */}
+          <div className="uploader-column content-column">
+            {selectedFile ? (
+              <FileContent fileId={selectedFile.id} role="admin" />
+            ) : (
+              <div className="empty-state">
+                Select a file to preview
+              </div>
+            )}
+          </div>
+
+          {/* COLUMN 3 — PDFs */}
+          <div className="uploader-column pdf-column">
             <UploadedPDFs
               uploaderFilter={uploader.id}
               currentUser={{ role: "admin" }}
               embedded
             />
           </div>
-
         </div>
       </motion.div>
     </div>

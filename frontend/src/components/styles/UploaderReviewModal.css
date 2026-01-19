@@ -112,8 +112,8 @@
 /* RIGHT COLUMN */
 .uploader-column.right.full-height {
   flex: 1; /* much bigger */
-  min-width: 320px;
-  max-width: 420px;
+  min-width: 400px;
+  max-width: 500px;
   background: #fff;
   border-radius: 12px;
   padding: 0.5rem;

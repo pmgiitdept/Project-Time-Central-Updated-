@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import FileTable from "./FileTable";
 import FileContent from "./FileContent";
 import UploadedPDFs from "./UploadedPDFs";
-import "./styles/UploaderReviewModal.css"; // make sure to point to the correct CSS
+import "./styles/ClientDashboard.css"; // make sure to point to the correct CSS
 
 export default function UploaderReviewModal({ uploader, onClose }) {
   const [selectedFile, setSelectedFile] = useState(null);

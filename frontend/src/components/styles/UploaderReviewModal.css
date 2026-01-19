@@ -73,7 +73,7 @@
 
 /* LEFT COLUMN */
 .uploader-column.left.full-height {
-  flex: 2; /* left column gets more width */
+  flex: 3;      /* Left column bigger than right */
   min-width: 400px;
   display: flex;
   flex-direction: column;
@@ -82,30 +82,28 @@
 
 /* RIGHT COLUMN */
 .uploader-column.right.full-height {
-  flex: 1; /* right column gets less width */
-  min-width: 250px; /* small but readable */
-  background: #fff;
-  border-radius: 12px;
-  padding: 0.5rem;
-  font-size: 0.7rem;
-  overflow-y: auto;
-  box-shadow: 0 6px 15px rgba(0,0,0,0.05);
+  flex: 1;      /* Right column smaller */
+  min-width: 250px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-/* FileTable (left side of left column) */
+/* Inside left column: table vs content */
 .file-table-left {
-  flex: 1; 
+  flex: 1;        /* smaller table */
+  max-width: 250px; /* table narrower */
   background: #fff;
   border-radius: 12px;
   padding: 0.5rem;
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   overflow-y: auto;
   box-shadow: 0 6px 15px rgba(0,0,0,0.05);
 }
 
-/* FileContent (right side of left column) */
 .file-content-right {
-  flex: 2; /* bigger than table */
+  flex: 3;         /* file content bigger */
+  min-width: 400px;
   background: #fff;
   border-radius: 12px;
   padding: 0.5rem;

@@ -1,10 +1,9 @@
-// components/UploaderReviewModal.jsx
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import FileTable from "./FileTable";
 import FileContent from "./FileContent";
 import UploadedPDFs from "./UploadedPDFs";
-import "./styles/ClientDashboard.css";
+import "./styles/UploaderReviewModal.css"; // make sure to point to the correct CSS
 
 export default function UploaderReviewModal({ uploader, onClose }) {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -38,9 +37,11 @@ export default function UploaderReviewModal({ uploader, onClose }) {
 
         {/* Body */}
         <div className="uploader-modal-body compact">
+
           {/* LEFT COLUMN */}
           <div className="uploader-column left">
             <div className="file-table-wrapper">
+              {/* Summary Forms Table */}
               <div className="file-table-left">
                 <h3>Summary Forms</h3>
                 <FileTable
@@ -51,6 +52,7 @@ export default function UploaderReviewModal({ uploader, onClose }) {
                 />
               </div>
 
+              {/* File Content */}
               <div className="file-content-right">
                 {selectedFile && (
                   <div className="file-content-wrapper">
@@ -61,7 +63,7 @@ export default function UploaderReviewModal({ uploader, onClose }) {
             </div>
           </div>
 
-          {/* Right column for DTR PDFs stays as is */}
+          {/* RIGHT COLUMN: DTR PDFs */}
           <div className="uploader-column right">
             <h3>DTR PDFs</h3>
             <UploadedPDFs
@@ -70,6 +72,7 @@ export default function UploaderReviewModal({ uploader, onClose }) {
               embedded
             />
           </div>
+
         </div>
       </motion.div>
     </div>

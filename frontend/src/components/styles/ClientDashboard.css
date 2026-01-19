@@ -735,14 +735,14 @@
   align-items: center;
   z-index: 9999;
   overflow-y: auto;
-  padding: 1rem;
+  padding: 0.5rem;
 }
 
 /* --- Modal Container --- */
 .uploader-modal {
   background: #fff;
   width: 98%;
-  max-width: 1800px;
+  max-width: 2000px;
   height: 96vh;
   border-radius: 1rem;
   box-shadow: 0 12px 40px rgba(0,0,0,0.4);
@@ -753,17 +753,10 @@
   font-size: 0.7rem;
 }
 
-/* --- Expanded Modal: takes more space since no close button --- */
-.uploader-modal.expanded {
-  width: 100%;
-  max-width: 2000px; /* wider */
-  height: 98vh;
-}
-
-/* --- Header --- */
+/* Header */
 .uploader-modal-header {
   display: flex;
-  justify-content: flex-start; /* left aligned since no close button */
+  justify-content: flex-start;
   align-items: center;
   padding: 0.5rem 1rem;
   background: #f1f3f5;
@@ -786,68 +779,66 @@
 }
 
 /* --- Body --- */
-.uploader-modal-body {
+.uploader-modal-body.full-util {
   display: flex;
-  gap: 1rem; /* more spacing between columns */
-  padding: 0.5rem 1rem;
   flex: 1;
-  overflow: hidden;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
 }
 
-/* --- Columns --- */
-.uploader-column {
+/* Columns */
+.uploader-column.full-height {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
-  min-width: 200px;
+  height: 100%;
 }
 
-/* LEFT column (Summary Forms + File Content) */
-.uploader-column.left {
-  flex: 1.2; /* smaller */
+/* LEFT COLUMN */
+.uploader-column.left.full-height {
+  flex: 1.5; /* smaller */
   min-width: 350px;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
-/* RIGHT column (DTR PDFs) */
-.uploader-column.right {
-  flex: 2; /* much bigger */
-  min-width: 600px;
-}
-
-/* --- File Content Wrapper --- */
-.file-content-wrapper {
-  margin-top: 0.3rem;
-  border: 1px solid #ddd;
-  border-radius: 0.4rem;
-  overflow: hidden;
+.file-table-wrapper.full-height {
+  display: flex;
   flex: 1;
-  min-height: 120px;
-  width: 100%;
+  gap: 0.5rem;
+  height: 100%;
 }
 
-/* Summary Forms Table */
-.left .file-table-left {
-  flex: 1;               /* smaller table */
-  max-width: 320px;
+/* FileTable (left side of left column) */
+.file-table-left {
+  flex: 1; 
   background: #fff;
-  padding: 0.6rem;
   border-radius: 12px;
-  font-size: 0.65rem;
+  padding: 0.5rem;
+  font-size: 0.7rem;
   overflow-y: auto;
   box-shadow: 0 6px 15px rgba(0,0,0,0.05);
 }
 
-/* File Content */
-.left .file-content-right {
-  flex: 2;               /* wider */
-  min-width: 380px;
+/* FileContent (right side of left column) */
+.file-content-right {
+  flex: 2; /* bigger than table */
   background: #fff;
-  padding: 0.8rem;
   border-radius: 12px;
-  font-size: 0.65rem;
+  padding: 0.5rem;
+  font-size: 0.7rem;
+  overflow-y: auto;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.05);
+}
+
+/* RIGHT COLUMN */
+.uploader-column.right.full-height {
+  flex: 2; /* much bigger */
+  min-width: 500px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 0.5rem;
+  font-size: 0.7rem;
   overflow-y: auto;
   box-shadow: 0 6px 15px rgba(0,0,0,0.05);
 }
@@ -859,36 +850,14 @@
   font-weight: 600;
   border-bottom: 1px solid #ddd;
   padding-bottom: 0.15rem;
-}
-
-/* File content wrapper */
-.file-content-wrapper {
-  margin-top: 0.3rem;
-  border: 1px solid #ddd;
-  border-radius: 0.4rem;
-  overflow: hidden;
-  flex: 1;
-  min-height: 120px;
-  width: 100%;
 }
 
 /* Scrollable areas */
 .file-content-wrapper,
-.uploader-column > .file-table-wrapper,
-.uploader-column > .upload-card {
-  flex: 1;
-  min-height: 120px;
-  max-height: 75vh;
+.file-table-left,
+.file-content-right,
+.uploader-column.right.full-height {
   overflow-y: auto;
-}
-
-/* Section titles */
-.uploader-column h3 {
-  margin: 0;
-  font-size: 0.65rem;
-  font-weight: 600;
-  border-bottom: 1px solid #ddd;
-  padding-bottom: 0.15rem;
 }
 
 /* Compact tables */
@@ -908,39 +877,19 @@
   font-size: 0.6rem;
 }
 
-/* DTR PDFs adjustments */
+/* PDFs adjustments */
 .uploader-column.right .uploaded-pdfs.embedded,
 .uploader-column.right .upload-card.sidebar.embedded {
-  font-size: 0.55rem;
-  padding: 0.25rem;
+  font-size: 0.6rem;
+  padding: 0.3rem;
 }
 
 .uploader-column.right .uploaded-pdfs.embedded .pdf-card,
 .uploader-column.right .upload-card.sidebar.embedded .pdf-card {
-  min-width: 50px;
-}
-
-/* Uploaded PDFs compact */
-.uploaded-pdfs.embedded,
-.upload-card.sidebar.embedded {
-  font-size: 0.55rem;
-  padding: 0.25rem;
-}
-
-.uploaded-pdfs.embedded .pdf-card {
-  padding: 0.15rem 0.2rem;
-  font-size: 0.5rem;
   min-width: 60px;
-  border-radius: 4px;
 }
 
-.uploaded-pdfs.embedded .pdf-buttons .upload-button {
-  font-size: 0.5rem;
-  padding: 0.15rem 0.2rem;
-  margin-top: 0.15rem;
-}
-
-/* Responsive adjustments */
+/* Responsive */
 @media (max-width: 1200px) {
   .uploader-column {
     min-width: 200px;
@@ -948,12 +897,9 @@
 }
 
 @media (max-width: 768px) {
-  .uploader-modal-body {
+  .uploader-modal-body.full-util {
     flex-direction: column;
     gap: 0.3rem;
     padding: 0.4rem 0.6rem;
-  }
-  .left .file-table-wrapper {
-    flex-direction: column;
   }
 }

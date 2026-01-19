@@ -695,7 +695,7 @@
 }
 
 .file-table-wrapper.embedded .file-table-left {
-  width: 100%;
+  width: 800%;
   max-height: 60vh;
   padding: 0.75rem;
 }

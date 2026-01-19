@@ -241,7 +241,7 @@ export default function DTRTable({ role , fileId}) {
         Summary Forms - PROJECT: {selectedFileObj?.uploaded_by?.username || "Unknown"}
       </h2>
 
-      {/* File Selector */}
+      {/* File Selector 
       <div className="file-selector">
         <label htmlFor="fileDropdown" className="file-label">
           Choose a DTR File:
@@ -264,9 +264,8 @@ export default function DTRTable({ role , fileId}) {
               </option>
             ))}
           </select>
-
         </div>
-      </div>
+      </div> */}
 
       {/* Table Controls: Hide Columns + View Full Table */}
       {selectedFile && fileContents.length > 0 && (
@@ -292,7 +291,7 @@ export default function DTRTable({ role , fileId}) {
         <div className="dtr-file-content">
           <h3 className="content-title">Summary Forms</h3>
 
-          {/* 🔍 Search Bar */}
+          {/* 🔍 Search Bar 
           <div className="search-bar">
             <input
               type="text"
@@ -304,7 +303,7 @@ export default function DTRTable({ role , fileId}) {
             {searchTerm && (
               <button onClick={() => setSearchTerm("")} className="clear-btn">✖</button>
             )}
-          </div>
+          </div> */}
 
           <div className="table-container">
             <table className="dtr-table">

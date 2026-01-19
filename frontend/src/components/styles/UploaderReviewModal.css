@@ -86,7 +86,13 @@
   flex: 1;
   gap: 0.5rem;
   height: 100%;
-  min-width: 0;
+}
+
+.file-table-wrapper {
+  display: flex;
+  flex: 1;
+  gap: 0.5rem;
+     /* ⬅️ IMPORTANT for flex overflow */
 }
 
 /* FileTable (left side of left column) */
@@ -123,9 +129,9 @@
 
 /* RIGHT COLUMN */
 .uploader-column.right.full-height {
-  flex: 1.3; /* much bigger */
-  min-width: 360px;
-  max-width: none;
+  flex: 1; /* much bigger */
+  min-width: 320px;
+  max-width: 420px;
   background: #fff;
   border-radius: 12px;
   padding: 0.5rem;

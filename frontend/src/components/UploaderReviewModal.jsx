@@ -45,10 +45,10 @@ export default function UploaderReviewModal({ uploader, onClose }) {
             />
           </div>
 
-          {/* COLUMN 2 — FILE CONTENT */}
+          {/* COLUMN 2 — DTR TABLE / FILE CONTENT */}
           <div className="uploader-column content-column">
             {selectedFile && (
-              <FileContent fileId={selectedFile.id} role="admin" />
+              <DTRTable role="admin" fileId={selectedFile.id} />
             )}
           </div>
 

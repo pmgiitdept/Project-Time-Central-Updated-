@@ -97,7 +97,7 @@
 /* COLUMN 2 — FILE CONTENT       */
 /* ============================= */
 .content-column {
-  flex: 1 1 auto;
+  flex: 2 1 auto;
   min-width: 520px;
 
   padding: 0.5rem;

@@ -1,159 +1,73 @@
 // components/UploaderReviewModal.jsx
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  FaTimes,
-  FaCheckCircle,
-  FaBan,
-  FaDownload,
-  FaFilePdf,
-} from "react-icons/fa";
-import api from "../api";
+import { motion } from "framer-motion";
+import FileTable from "./FileTable";
+import FileContent from "./FileContent";
+import UploadedPDFs from "./UploadedPDFs";
 import "./styles/UploaderReviewModal.css";
 
-export default function UploaderReviewModal({
-  uploader,
-  onClose,
-  onActionComplete,
-}) {
-  const [files, setFiles] = useState([]);
-  const [loading, setLoading] = useState(true);
+export default function UploaderReviewModal({ uploader, onClose }) {
+  const [selectedFile, setSelectedFile] = useState(null);
 
+  // Close on ESC
   useEffect(() => {
-    if (!uploader) return;
-
-    const fetchUploaderFiles = async () => {
-      try {
-        const res = await api.get(
-          `/files/dtr/files/?uploaded_by=${uploader.id}`
-        );
-        setFiles(res.data.results || res.data);
-      } catch (err) {
-        console.error("Failed to load uploader files:", err);
-      } finally {
-        setLoading(false);
-      }
+    const handleEsc = (e) => {
+      if (e.key === "Escape") onClose();
     };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [onClose]);
 
-    fetchUploaderFiles();
-  }, [uploader]);
-
-  const updateStatus = async (fileId, status) => {
-    try {
-      await api.patch(`/files/dtr/files/${fileId}/`, { status });
-      setFiles((prev) =>
-        prev.map((f) => (f.id === fileId ? { ...f, status } : f))
-      );
-      onActionComplete?.();
-    } catch (err) {
-      console.error("Failed to update status:", err);
-    }
-  };
-
-  const downloadFile = async (file) => {
-    const link = document.createElement("a");
-    link.href = file.file;
-    link.download = file.filename || "DTR.pdf";
-    link.click();
-  };
+  if (!uploader) return null;
 
   return (
-    <AnimatePresence>
+    <div className="uploader-modal-overlay" onClick={onClose}>
       <motion.div
-        className="uploader-modal-overlay"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
+        className="uploader-modal"
+        onClick={(e) => e.stopPropagation()}
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={{ duration: 0.25 }}
       >
-        <motion.div
-          className="uploader-modal"
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.9, opacity: 0 }}
-        >
-          {/* Header */}
-          <div className="modal-header">
-            <h2>Uploader Review</h2>
-            <button onClick={onClose}>
-              <FaTimes />
-            </button>
-          </div>
+        {/* Header */}
+        <div className="uploader-modal-header">
+          <h2>Uploader Review: {uploader.username}</h2>
+          <button className="close-btn" onClick={onClose}>✖</button>
+        </div>
 
-          {/* Uploader Info */}
-          <div className="uploader-info">
-            <strong>{uploader.username}</strong>
-            <span>{uploader.email}</span>
-          </div>
+        {/* Body */}
+        <div className="uploader-modal-body">
+          {/* LEFT COLUMN */}
+          <div className="uploader-column">
+            <h3>Summary Forms</h3>
 
-          {/* Files */}
-          <div className="modal-body">
-            {loading ? (
-              <p className="loading">Loading files…</p>
-            ) : files.length === 0 ? (
-              <p className="empty">No uploaded DTRs</p>
-            ) : (
-              <table className="uploader-files-table">
-                <thead>
-                  <tr>
-                    <th>File</th>
-                    <th>Period</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {files.map((file) => (
-                    <tr key={file.id}>
-                      <td>
-                        <FaFilePdf className="pdf-icon" />
-                        {file.filename || "DTR File"}
-                      </td>
-                      <td>
-                        {file.from_date} → {file.to_date}
-                      </td>
-                      <td>
-                        <span className={`status ${file.status}`}>
-                          {file.status}
-                        </span>
-                      </td>
-                      <td className="actions">
-                        <button
-                          className="download"
-                          onClick={() => downloadFile(file)}
-                        >
-                          <FaDownload />
-                        </button>
+            <FileTable
+              role="admin"
+              uploaderFilter={uploader.id}
+              setSelectedFile={setSelectedFile}
+              embedded
+            />
 
-                        {file.status !== "verified" && (
-                          <button
-                            className="approve"
-                            onClick={() =>
-                              updateStatus(file.id, "verified")
-                            }
-                          >
-                            <FaCheckCircle />
-                          </button>
-                        )}
-
-                        {file.status !== "rejected" && (
-                          <button
-                            className="reject"
-                            onClick={() =>
-                              updateStatus(file.id, "rejected")
-                            }
-                          >
-                            <FaBan />
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            {selectedFile && (
+              <div className="file-content-wrapper">
+                <FileContent fileId={selectedFile.id} role="admin" />
+              </div>
             )}
           </div>
-        </motion.div>
+
+          {/* RIGHT COLUMN */}
+          <div className="uploader-column">
+            <h3>DTR PDFs</h3>
+
+            <UploadedPDFs
+              uploaderFilter={uploader.id}
+              currentUser={{ role: "admin" }}
+              embedded
+            />
+          </div>
+        </div>
       </motion.div>
-    </AnimatePresence>
+    </div>
   );
 }

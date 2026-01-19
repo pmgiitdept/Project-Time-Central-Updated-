@@ -1,11 +1,11 @@
 /* styles/DTRTable.css */
 .dtr-dashboard {
-  padding: 0.8rem;       
+  padding: 0.5rem;       
   background: #f9fbfc;
   border-radius: 12px;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
   font-family: "Inter", Arial, sans-serif;
-  font-size: 0.75rem; 
+  font-size: 0.65rem; 
 }
 
 .dtr-title {
@@ -28,7 +28,7 @@
   align-items: center;
   background: #ffffff;
   margin-bottom: 0.6rem;
-  padding: 0.4rem 0.8rem;
+  padding: 0.3rem 0.5rem;
   border-radius: 10px;
   border: 1px solid #e4eaf1;
   transition: all 0.25s ease;
@@ -59,7 +59,7 @@
 .table-container {
   overflow-x: auto;
   overflow-y: auto;
-  max-height: 300px;
+  max-height: 250px;
   border-radius: 8px;
   background: #ffffff;
   border: 1px solid #e2e8f0;
@@ -71,16 +71,16 @@
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  min-width: 520px;          /* ⬅️ smaller than 700 */
-  font-size: 0.6rem;        /* ⬅️ smaller text */
+  min-width: 400px;          /* ⬅️ smaller than 700 */
+  font-size: 0.55rem;        /* ⬅️ smaller text */
 }
 
 .dtr-table th,
 .dtr-table td {
   border: 1px solid #e5e7eb;
-  padding: 0.15rem 0.25rem;  /* ⬅️ tighter */
+  padding: 0.1rem 0.2rem;  /* ⬅️ tighter */
   text-align: center;
-  font-size: 0.6rem;
+  font-size: 0.55rem;
   min-width: 60px;           /* ⬅️ smaller columns */
   white-space: nowrap;
   transition: background 0.2s ease;
@@ -95,7 +95,7 @@
   top: 0;
   z-index: 3;
   white-space: nowrap;
-  font-size: 0.6rem;       /* smaller header text */
+  font-size: 0.55rem;       /* smaller header text */
   letter-spacing: 0.3px;
   text-transform: uppercase;
 }
@@ -123,10 +123,10 @@
 }
 
 .sticky-1 { left: 0;   z-index: 4; }
-.sticky-2 { left: 90px; }   /* smaller offsets */
-.sticky-3 { left: 180px; }
-.sticky-4 { left: 270px; }
-.sticky-5 { left: 360px; }
+.sticky-2 { left: 70px; }   /* smaller offsets */
+.sticky-3 { left: 140px; }
+.sticky-4 { left: 210px; }
+.sticky-5 { left: 280px; }
 
 .dtr-table tr:hover .sticky-col {
   background-color: #e8f0ff;

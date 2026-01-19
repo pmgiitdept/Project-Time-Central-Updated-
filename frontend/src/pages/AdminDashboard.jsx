@@ -117,16 +117,15 @@ export default function AdminDashboard() {
         const res = await api.get("/files/dtr/files/");
         const files = res.data.results || res.data;
 
-        const uniqueUploaders = Object.values(
-          files.reduce((acc, file) => {
-            if (file.uploaded_by && file.uploaded_by.role === "client") {
-              acc[file.uploaded_by.id] = file.uploaded_by;
-            }
-            return acc;
-          }, {})
-        );
+        const uniqueUploadersMap = {};
 
-        setUploaders(uniqueUploaders);
+        files.forEach(file => {
+          if (file.uploaded_by && file.uploaded_by.role === "client") {
+            uniqueUploadersMap[file.uploaded_by.id] = file.uploaded_by;
+          }
+        });
+
+        setUploaders(Object.values(uniqueUploadersMap));
       } catch (err) {
         console.error("Failed to fetch uploaders:", err);
       }

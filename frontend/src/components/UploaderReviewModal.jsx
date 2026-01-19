@@ -47,12 +47,8 @@ export default function UploaderReviewModal({ uploader, onClose }) {
 
           {/* COLUMN 2 — FILE CONTENT */}
           <div className="uploader-column content-column">
-            {selectedFile ? (
+            {selectedFile && (
               <FileContent fileId={selectedFile.id} role="admin" />
-            ) : (
-              <div className="empty-state">
-                Select a file to preview
-              </div>
             )}
           </div>
 

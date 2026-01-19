@@ -102,18 +102,6 @@
   font-size: 0.7rem;
 }
 
-/* Empty state */
-.content-column .empty-state {
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #94a3b8;
-  font-size: 0.7rem;
-  border: 1px dashed #e5e7eb;
-  border-radius: 8px;
-}
-
 /* ============================= */
 /* COLUMN 3 — UPLOADED PDFs      */
 /* ============================= */

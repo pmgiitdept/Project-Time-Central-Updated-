@@ -66,21 +66,22 @@
   box-shadow: 0 3px 12px rgba(0, 0, 0, 0.05);
 }
 
+/* Compact DTR Table */
 .dtr-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  min-width: 900px;
-  font-size: 0.75rem;
+  min-width: 700px;      /* smaller table width */
+  font-size: 0.65rem;    /* smaller overall text */
 }
 
 .dtr-table th,
 .dtr-table td {
   border: 1px solid #e5e7eb;
-  padding: 0.35rem 0.5rem;
+  padding: 0.2rem 0.35rem;  /* tighter padding */
   text-align: center;
-  font-size: 0.7rem;
-  min-width: 120px;
+  font-size: 0.65rem;       /* smaller text */
+  min-width: 80px;          /* smaller column width */
   transition: background 0.2s ease;
   color: #1f2937;
 }
@@ -93,8 +94,8 @@
   top: 0;
   z-index: 3;
   white-space: nowrap;
-  font-size: 0.75rem;
-  letter-spacing: 0.3px;
+  font-size: 0.65rem;       /* smaller header text */
+  letter-spacing: 0.2px;
   text-transform: uppercase;
 }
 
@@ -107,10 +108,11 @@
 }
 
 .dtr-table th.sticky-col {
-  background: #1e40af; 
+  background: #1e40af;
   color: #f9fafb;
   z-index: 5;
   font-weight: 700;
+  font-size: 0.65rem;      /* smaller sticky header */
 }
 
 .sticky-col {
@@ -120,10 +122,10 @@
 }
 
 .sticky-1 { left: 0;   z-index: 4; }
-.sticky-2 { left: 150px; }
-.sticky-3 { left: 300px; }
-.sticky-4 { left: 450px; }
-.sticky-5 { left: 600px; }
+.sticky-2 { left: 120px; }   /* smaller offsets */
+.sticky-3 { left: 240px; }
+.sticky-4 { left: 360px; }
+.sticky-5 { left: 480px; }
 
 .dtr-table tr:hover .sticky-col {
   background-color: #e8f0ff;
@@ -131,11 +133,12 @@
 }
 
 .dtr-table th:first-child {
-  border-top-left-radius: 10px;
+  border-top-left-radius: 8px;   /* slightly smaller radius */
 }
 .dtr-table th:last-child {
-  border-top-right-radius: 10px;
+  border-top-right-radius: 8px;
 }
+
 .modal-overlay1 {
   position: fixed;
   top: 0;

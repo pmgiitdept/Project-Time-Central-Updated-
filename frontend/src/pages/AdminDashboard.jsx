@@ -119,9 +119,15 @@ export default function AdminDashboard() {
 
         const uniqueUploadersMap = {};
 
-        files.forEach(file => {
-          if (file.uploaded_by && file.uploaded_by.role === "client") {
-            uniqueUploadersMap[file.uploaded_by.id] = file.uploaded_by;
+        files.forEach((file) => {
+          const uploader = file.uploaded_by;
+
+          if (
+            uploader &&
+            typeof uploader === "object" &&
+            uploader.role === "client"
+          ) {
+            uniqueUploadersMap[uploader.id] = uploader;
           }
         });
 
@@ -955,9 +961,9 @@ export default function AdminDashboard() {
                   }}
                 >
                   <option value="">Select uploader</option>
-                  {uploaders.map(uploader => (
+                  {uploaders.map((uploader) => (
                     <option key={uploader.id} value={uploader.id}>
-                      {uploader.name}
+                      {uploader.name || uploader.username || uploader.email || `User #${uploader.id}`}
                     </option>
                   ))}
                 </select>

@@ -117,21 +117,17 @@ export default function AdminDashboard() {
         const res = await api.get("/files/dtr/files/");
         const files = res.data.results || res.data;
 
-        const uniqueUploadersMap = {};
+        const uploaderMap = {};
 
         files.forEach((file) => {
           const uploader = file.uploaded_by;
 
-          if (
-            uploader &&
-            typeof uploader === "object" &&
-            uploader.role === "client"
-          ) {
-            uniqueUploadersMap[uploader.id] = uploader;
+          if (uploader && uploader.id) {
+            uploaderMap[uploader.id] = uploader;
           }
         });
 
-        setUploaders(Object.values(uniqueUploadersMap));
+        setUploaders(Object.values(uploaderMap));
       } catch (err) {
         console.error("Failed to fetch uploaders:", err);
       }
@@ -955,15 +951,18 @@ export default function AdminDashboard() {
                   style={{ minWidth: "250px" }}
                   value={selectedUploader?.id || ""}
                   onChange={(e) => {
-                    const uploader = uploaders.find(u => u.id === Number(e.target.value));
+                    const uploader = uploaders.find(
+                      (u) => u.id === Number(e.target.value)
+                    );
                     setSelectedUploader(uploader);
                     setShowUploaderModal(true);
                   }}
                 >
                   <option value="">Select uploader</option>
+
                   {uploaders.map((uploader) => (
                     <option key={uploader.id} value={uploader.id}>
-                      {uploader.name || uploader.username || uploader.email || `User #${uploader.id}`}
+                      {uploader.username}
                     </option>
                   ))}
                 </select>

@@ -39,23 +39,30 @@ export default function UploaderReviewModal({ uploader, onClose }) {
         {/* Body */}
         <div className="uploader-modal-body compact">
           {/* LEFT COLUMN */}
-          <div className="uploader-column">
-            <h3>Summary Forms</h3>
-            <FileTable
-              role="admin"
-              uploaderFilter={uploader.id}
-              setSelectedFile={setSelectedFile}
-              embedded
-            />
-            {selectedFile && (
-              <div className="file-content-wrapper">
-                <FileContent fileId={selectedFile.id} role="admin" />
+          <div className="uploader-column left">
+            <div className="file-table-wrapper">
+              <div className="file-table-left">
+                <h3>Summary Forms</h3>
+                <FileTable
+                  role="admin"
+                  uploaderFilter={uploader.id}
+                  setSelectedFile={setSelectedFile}
+                  embedded
+                />
               </div>
-            )}
+
+              <div className="file-content-right">
+                {selectedFile && (
+                  <div className="file-content-wrapper">
+                    <FileContent fileId={selectedFile.id} role="admin" />
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
-          {/* RIGHT COLUMN */}
-          <div className="uploader-column">
+          {/* Right column for DTR PDFs stays as is */}
+          <div className="uploader-column right">
             <h3>DTR PDFs</h3>
             <UploadedPDFs
               uploaderFilter={uploader.id}

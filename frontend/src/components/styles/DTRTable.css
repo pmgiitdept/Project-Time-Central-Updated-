@@ -1,14 +1,15 @@
 /* styles/DTRTable.css */
 .dtr-dashboard {
-  padding: 1.5rem;
+  padding: 0.8rem;       
   background: #f9fbfc;
   border-radius: 12px;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
   font-family: "Inter", Arial, sans-serif;
+  font-size: 0.75rem; 
 }
 
 .dtr-title {
-  font-size: 1.8rem;
+  font-size: 1.2rem;
   margin-bottom: 1.2rem;
   font-weight: 700;
   color: #213547;
@@ -18,7 +19,7 @@
 .dtr-file-list {
   list-style: none;
   padding: 0;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.8rem;
 }
 
 .dtr-file-item {
@@ -27,7 +28,7 @@
   align-items: center;
   background: #ffffff;
   margin-bottom: 0.6rem;
-  padding: 0.75rem 1.2rem;
+  padding: 0.4rem 0.8rem;
   border-radius: 10px;
   border: 1px solid #e4eaf1;
   transition: all 0.25s ease;
@@ -40,26 +41,26 @@
 }
 
 .file-name {
-  font-weight: 600;
+  font-weight: 500;
   color: #374151;
 }
 
 .dtr-file-content {
-  margin-top: 2.2rem;
+  margin-top: 1rem;
 }
 
 .content-title {
-  font-size: 1.4rem;
-  margin-bottom: 1rem;
-  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
   color: #1e293b;
 }
 
 .table-container {
   overflow-x: auto;
   overflow-y: auto;
-  max-height: 500px;
-  border-radius: 10px;
+  max-height: 300px;
+  border-radius: 8px;
   background: #ffffff;
   border: 1px solid #e2e8f0;
   box-shadow: 0 3px 12px rgba(0, 0, 0, 0.05);
@@ -69,15 +70,16 @@
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  min-width: 1300px;
+  min-width: 900px;
+  font-size: 0.75rem;
 }
 
 .dtr-table th,
 .dtr-table td {
   border: 1px solid #e5e7eb;
-  padding: 0.65rem 0.9rem;
+  padding: 0.35rem 0.5rem;
   text-align: center;
-  font-size: 0.88rem;
+  font-size: 0.7rem;
   min-width: 120px;
   transition: background 0.2s ease;
   color: #1f2937;
@@ -91,7 +93,7 @@
   top: 0;
   z-index: 3;
   white-space: nowrap;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   letter-spacing: 0.3px;
   text-transform: uppercase;
 }
@@ -147,6 +149,7 @@
   justify-content: center;
   z-index: 9999;
   animation: fadeIn 0.25s ease-in-out;
+  padding: 0.5rem;
 }
 
 @keyframes fadeIn {
@@ -156,13 +159,13 @@
 
 .large-modal {
   width: 95%;
-  height: 90%;
+  height: 85%;
   background: #fff;
-  border-radius: 12px;
+  border-radius: 10px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
   display: flex;
   flex-direction: column;
-  padding: 1rem;
+  padding: 0.5rem;
   overflow: hidden;
   animation: scaleIn 0.3s ease;
 }
@@ -187,7 +190,7 @@
 }
 
 .modal-header h3 {
-  font-size: 1.3rem;
+  font-size: 1rem;
   color: #1e3a8a;
   font-weight: 700;
 }
@@ -195,7 +198,7 @@
 .close-btn {
   background: transparent;
   border: none;
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   color: #475569;
   cursor: pointer;
   transition: color 0.2s;
@@ -299,12 +302,12 @@
 }
 
 .status-badge {
-  padding: 0.4rem 1rem;
+  padding: 0.25rem 0.5rem;
   border-radius: 20px;
   font-weight: 600;
   letter-spacing: 0.5px;
   text-transform: uppercase;
-  font-size: 0.85rem;
+  font-size: 0.65rem;
   transition: all 0.2s ease-in-out;
 }
 
@@ -413,9 +416,9 @@
   background: linear-gradient(135deg, #dc2626, #991b1b);
   border: none;
   color: #fff;
-  padding: 0.5rem 1rem;
+  padding: 0.3rem 0.6rem;
   border-radius: 8px;
-  font-size: 0.9rem;
+  font-size: 0.7rem;
   cursor: pointer;
   font-weight: 500;
   transition: all 0.3s ease;
@@ -430,9 +433,9 @@
   background: #e5e7eb;
   color: #111827;
   border: none;
-  padding: 0.5rem 1rem;
+  padding: 0.3rem 0.6rem;
   border-radius: 8px;
-  font-size: 0.9rem;
+  font-size: 0.7rem;
   cursor: pointer;
   font-weight: 500;
   transition: all 0.3s ease;
@@ -487,13 +490,13 @@
 }
 
 .view-btn {
-  padding: 0.75rem 2rem;
+  padding: 0.3rem 0.6rem;
   background: linear-gradient(135deg, #6366f1, #2563eb);
   color: #fff;
   border: none;
   border-radius: 12px;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 0.7rem;
   font-weight: 500;
   letter-spacing: 0.5px;
   transition: all 0.3s ease;
@@ -520,13 +523,13 @@
 }
 
 .save-btn {
-  padding: 0.75rem 2rem;
+  padding: 0.3rem 0.6rem;
   background: linear-gradient(135deg, #6366f1, #2563eb);
   color: #fff;
   border: none;
   border-radius: 12px;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 0.7rem;
   font-weight: 500;
   letter-spacing: 0.5px;
   transition: all 0.3s ease;
@@ -561,17 +564,17 @@
 
 .search-input {
   flex: 1;
-  padding: 6px 10px;
+  padding: 4px 6px;
   border: 1px solid #ccc;
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 0.7px;
 }
 
 .clear-btn {
   background: #ff4d4d;
   border: none;
   color: white;
-  padding: 6px 10px;
+  padding: 3px 6px;
   border-radius: 6px;
   cursor: pointer;
 }

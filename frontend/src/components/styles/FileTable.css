@@ -1,7 +1,7 @@
 /* styles/FileTable.css */
 .file-table-wrapper {
   display: flex;
-  gap: 2rem;
+  gap: 0.5rem;
   align-items: flex-start;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   justify-content: center;
@@ -9,15 +9,16 @@
 }
 
 .file-table-left {
-  width: 510px;
-  max-height: 80vh;
+  width: 500px;         /* slightly smaller width */
+  max-height: 75vh;     
   overflow-y: auto;
   background: #ffffff;
-  padding: 1.25rem;
-  border-radius: 14px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  padding: 0.8rem;      /* smaller padding */
+  border-radius: 12px;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
+  font-size: 0.75rem;   /* smaller base text */
 }
 
 .file-content-right {
@@ -31,15 +32,14 @@
 
 .file-table {
   border-collapse: collapse;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   width: 100%;
-  min-width: 900px;
+  min-width: 600px;
 }
 
 .file-table th, .file-table td {
   padding: 0.6rem 0.9rem;
   border-bottom: 1px solid #e0e0e0;
-  padding: 8px 12px;
   text-align: left;
   white-space: nowrap;
 }
@@ -68,9 +68,9 @@
 }
 .filters {
   display: flex;
-  gap: 1rem;
+  gap: 0.5rem;
   margin-top: 10px;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
   justify-content: flex-start; 
   align-items: center;
   flex-wrap: wrap; 
@@ -79,22 +79,22 @@
 .filter-item {
   display: flex;
   flex-direction: column;
-  min-width: 200px; 
+  min-width: 150px; 
 }
 
 .filter-item label {
   font-weight: 600;
   color: #2b3a4d;
-  margin-bottom: 0.25rem;
-  font-size: 0.9rem;
+  margin-bottom: 0.2rem;
+  font-size: 0.75rem;
 }
 
 .filters input[type="text"],
 .filters input[type="date"] {
-  padding: 0.5rem 0.75rem;
+  padding: 0.3rem 0.5rem;
   border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: 0.875rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
   transition: all 0.2s;
   width: 100%;
   box-sizing: border-box;
@@ -118,7 +118,7 @@
 }
 
 .date-range .date-inputs input {
-  width: 300px; 
+  width: 120px; 
 }
 
 .date-range label {
@@ -342,12 +342,12 @@
   display: flex;
   justify-content: space-between; 
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .table-section-title {
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-size: 0.85rem;
+  font-weight: 600;
   color: #1f3a5f;
   margin: 0; 
 }

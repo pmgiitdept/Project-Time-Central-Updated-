@@ -478,6 +478,10 @@ export default function FileTable({ role, setSelectedFile, uploaderFilter = null
             );
           })}
         </div>
+
+        <div className="file-content-right">
+          <DTRTable role={role} fileId={selectedFileId} />
+        </div>
       </motion.div>
     </>
   );

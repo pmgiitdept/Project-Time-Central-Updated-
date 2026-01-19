@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import FileTable from "./FileTable";
-import FileContent from "./FileContent";
+import DTRTable from "./DTRTable";
 import UploadedPDFs from "./UploadedPDFs";
 import "./styles/ClientDashboard.css";
 import "./styles/UploaderReviewModal.css";
+
 export default function UploaderReviewModal({ uploader, onClose }) {
   const [selectedFile, setSelectedFile] = useState(null);
 
@@ -21,7 +22,7 @@ export default function UploaderReviewModal({ uploader, onClose }) {
   return (
     <div className="uploader-modal-overlay" onClick={onClose}>
       <motion.div
-        className="uploader-modal expanded"
+        className="uploader-modal"
         onClick={(e) => e.stopPropagation()}
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -33,9 +34,9 @@ export default function UploaderReviewModal({ uploader, onClose }) {
           <h2>Uploader Review: {uploader.username}</h2>
         </div>
 
-        {/* Body */}
-        <div className="uploader-modal-body three-column">
-          {/* COLUMN 1 — FILE TABLE */}
+        {/* Body: Two Columns */}
+        <div className="uploader-modal-body two-column">
+          {/* LEFT: File Table */}
           <div className="uploader-column table-column">
             <FileTable
               role="admin"
@@ -45,20 +46,22 @@ export default function UploaderReviewModal({ uploader, onClose }) {
             />
           </div>
 
-          {/* COLUMN 2 — DTR TABLE / FILE CONTENT */}
+          {/* RIGHT: DTRTable + Uploaded PDFs */}
           <div className="uploader-column content-column">
             {selectedFile && (
-              <DTRTable role="admin" fileId={selectedFile.id} />
+              <div className="dtr-pdf-wrapper">
+                <div className="dtr-table-wrapper">
+                  <DTRTable role="admin" fileId={selectedFile.id} />
+                </div>
+                <div className="uploaded-pdfs-wrapper">
+                  <UploadedPDFs
+                    uploaderFilter={uploader.id}
+                    currentUser={{ role: "admin" }}
+                    embedded
+                  />
+                </div>
+              </div>
             )}
-          </div>
-
-          {/* COLUMN 3 — PDFs */}
-          <div className="uploader-column pdf-column">
-            <UploadedPDFs
-              uploaderFilter={uploader.id}
-              currentUser={{ role: "admin" }}
-              embedded
-            />
           </div>
         </div>
       </motion.div>

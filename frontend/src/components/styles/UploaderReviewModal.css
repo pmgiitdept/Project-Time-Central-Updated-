@@ -45,18 +45,18 @@
   margin: 0;
 }
 
-/* --- Body (3 Columns) --- */
-.uploader-modal-body.three-column {
+/* --- Body: Two Columns --- */
+.uploader-modal-body.two-column {
   display: flex;
   flex-direction: row;
   flex: 1;
   gap: 0.75rem;
   padding: 0.5rem 1rem;
   width: 100%;
-  overflow: hidden; /* ⬅️ CRITICAL */
+  overflow: hidden;
 }
 
-/* --- Shared Column Base --- */
+/* Column Base */
 .uploader-column {
   display: flex;
   flex-direction: column;
@@ -69,14 +69,11 @@
   box-shadow: 0 6px 15px rgba(0,0,0,0.05);
 }
 
-/* ============================= */
-/* COLUMN 1 — FILE TABLE         */
-/* ============================= */
+/* ====== LEFT: FILE TABLE ====== */
 .table-column {
-  flex: 0 0 300px;
-  min-width: 280px;
-  max-width: 320px;
-
+  flex: 0 0 280px; /* smaller width */
+  min-width: 260px;
+  max-width: 300px;
   padding: 0.4rem;
   overflow-y: auto;
   font-size: 0.65rem;
@@ -86,73 +83,75 @@
 .table-column .file-table {
   font-size: 0.6rem;
 }
-
 .table-column .file-table th,
 .table-column .file-table td {
-  padding: 0.15rem 0.3rem;
+  padding: 0.15rem 0.25rem;
   font-size: 0.6rem;
 }
 
-/* ============================= */
-/* COLUMN 2 — FILE CONTENT       */
-/* ============================= */
+/* ====== RIGHT: DTRTable + PDFs ====== */
 .content-column {
-  flex: 2 1 auto;
-  min-width: 520px;
-
+  flex: 1 1 auto; /* take remaining width */
+  min-width: 500px;
   padding: 0.5rem;
-  overflow: auto;
+  overflow: hidden;
   font-size: 0.7rem;
-
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
   border-left: 2px solid #e5e7eb;
 }
 
-/* ============================= */
-/* COLUMN 3 — UPLOADED PDFs      */
-/* ============================= */
-.pdf-column {
-  flex: 1.4 1 0;
-  min-width: 360px;
+/* Wrapper inside right column */
+.dtr-pdf-wrapper {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  gap: 0.5rem;
+  min-height: 0;
+}
 
-  padding: 0.5rem;
+/* DTR Table (left inside right column) */
+.dtr-table-wrapper {
+  flex: 1; /* almost half */
+  min-width: 300px;
+  overflow: auto;
+  background: #fff;
+  border-radius: 12px;
+  padding: 0.3rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+/* Uploaded PDFs (right inside right column) */
+.uploaded-pdfs-wrapper {
+  flex: 1; /* other half */
+  min-width: 200px;
   overflow-y: auto;
+  background: #fff;
+  border-radius: 12px;
+  padding: 0.3rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
   font-size: 0.65rem;
 }
 
-/* PDF Cards */
-.pdf-column .uploaded-pdfs.embedded,
-.pdf-column .upload-card.sidebar.embedded {
-  font-size: 0.6rem;
-  padding: 0.3rem;
-}
-
-.pdf-column .pdf-card {
+/* PDF Cards inside wrapper */
+.uploaded-pdfs-wrapper .pdf-card {
   min-width: 60px;
 }
 
-/* ============================= */
-/* Section Titles                */
-/* ============================= */
-.uploader-column h3 {
-  margin: 0 0 0.25rem 0;
-  font-size: 0.65rem;
-  font-weight: 600;
-  border-bottom: 1px solid #ddd;
-  padding-bottom: 0.15rem;
-}
-
-/* ============================= */
-/* Responsive                    */
-/* ============================= */
+/* Responsive */
 @media (max-width: 1100px) {
-  .uploader-modal-body.three-column {
+  .uploader-modal-body.two-column {
     flex-direction: column;
   }
 
   .table-column,
-  .content-column,
-  .pdf-column {
+  .content-column {
     min-width: 100%;
     max-width: 100%;
+  }
+
+  .dtr-pdf-wrapper {
+    flex-direction: column;
   }
 }

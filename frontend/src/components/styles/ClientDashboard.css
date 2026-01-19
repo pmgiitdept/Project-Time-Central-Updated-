@@ -741,16 +741,16 @@
 /* --- Modal Container --- */
 .uploader-modal {
   background: #fff;
-  width: 98%;
-  max-width: 1800px;
-  height: 96vh;
-  border-radius: 1rem;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+  width: 90%;           /* slightly smaller */
+  max-width: 1500px;    /* reduce max width */
+  height: 90vh;         /* reduce height */
+  border-radius: 0.8rem;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.35);
   overflow: hidden;
   display: flex;
   flex-direction: column;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  font-size: 0.8rem; /* smaller base text */
+  font-size: 0.75rem;   /* smaller base text */
 }
 
 /* --- Header --- */
@@ -758,13 +758,13 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.8rem 1.5rem;  /* smaller padding */
+  padding: 0.6rem 1rem;  /* smaller padding */
   background: #f1f3f5;
   border-bottom: 1px solid #ddd;
 }
 
 .uploader-modal-header h2 {
-  font-size: 1.2rem;  /* smaller header text */
+  font-size: 1rem;  /* smaller header text */
   margin: 0;
 }
 
@@ -772,11 +772,10 @@
   background: #e63946;
   color: #fff;
   border: none;
-  border-radius: 0.3rem;
-  padding: 0.25rem 0.6rem;
-  font-size: 0.9rem;
+  border-radius: 0.25rem;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.8rem;
   cursor: pointer;
-  transition: background 0.2s;
 }
 
 .close-btn:hover {
@@ -786,8 +785,8 @@
 /* --- Body --- */
 .uploader-modal-body {
   display: flex;
-  gap: 1rem;
-  padding: 0.8rem 1rem;
+  gap: 0.6rem;   /* tighter gap */
+  padding: 0.5rem 0.8rem;
   flex: 1;
   overflow: hidden; 
 }
@@ -796,26 +795,26 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
-  min-width: 350px;  /* slightly smaller column */
+  gap: 0.5rem;
+  min-width: 250px;  /* smaller columns */
 }
 
 .uploader-column h3 {
   margin: 0;
-  font-size: 0.85rem; /* smaller section titles */
+  font-size: 0.75rem; /* smaller section titles */
   font-weight: 600;
   border-bottom: 1px solid #ddd;
-  padding-bottom: 0.2rem;
+  padding-bottom: 0.15rem;
 }
 
 /* --- File Content / Tables --- */
 .file-content-wrapper {
-  margin-top: 0.5rem;
+  margin-top: 0.3rem;
   border: 1px solid #ddd;
-  border-radius: 0.5rem;
+  border-radius: 0.4rem;
   overflow: hidden;
   flex: 1;
-  min-height: 150px;  /* smaller viewer */
+  min-height: 120px;  /* smaller viewer */
 }
 
 /* Scrollable areas */
@@ -823,89 +822,90 @@
 .uploader-column > .file-table-wrapper,
 .uploader-column > .upload-card {
   flex: 1;
-  min-height: 150px;
-  max-height: 75vh;
+  min-height: 120px;
+  max-height: 70vh;
   overflow-y: auto;
 }
 
 /* --- Compact tables & PDFs --- */
 .uploader-modal-body.compact {
-  font-size: 0.75rem;  /* smaller base text */
-  gap: 0.8rem;
+  font-size: 0.7rem;  /* smaller base text */
+  gap: 0.5rem;
 }
 
 .uploader-modal-body.compact h3 {
-  font-size: 0.8rem;
+  font-size: 0.7rem;
 }
 
 .uploader-modal-body.compact .file-table,
 .uploader-modal-body.compact .pdf-grid,
 .uploader-modal-body.compact .file-content-wrapper {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
 }
 
 .uploader-modal-body.compact .file-table th,
 .uploader-modal-body.compact .file-table td {
-  padding: 0.2rem 0.4rem;
+  padding: 0.15rem 0.3rem;  /* tighter cells */
+  font-size: 0.65rem;
 }
 
 .uploader-modal-body.compact .pdf-card {
-  padding: 0.3rem 0.4rem;
-  font-size: 0.7rem;
-  min-width: 100px;
-  border-radius: 5px;
+  padding: 0.2rem 0.3rem;
+  font-size: 0.6rem;
+  min-width: 80px;
+  border-radius: 4px;
 }
 
 .uploader-modal-body.compact .file-content-wrapper {
-  min-height: 140px;
+  min-height: 100px;
 }
 
 /* --- Compact UploadedPDFs --- */
 .uploaded-pdfs.embedded,
 .upload-card.sidebar.embedded {
-  font-size: 0.65rem;
-  padding: 0.35rem;
+  font-size: 0.6rem;
+  padding: 0.25rem;
 }
 
 .uploaded-pdfs.embedded .upload-card-header h2,
 .upload-card.sidebar.embedded .upload-title {
-  font-size: 0.85rem;
+  font-size: 0.75rem;
 }
 
 .uploaded-pdfs.embedded .collapse-btn,
 .upload-card.sidebar.embedded .collapse-btn {
-  font-size: 0.65rem;
-  padding: 0.2rem 0.4rem;
+  font-size: 0.6rem;
+  padding: 0.15rem 0.3rem;
 }
 
 .uploaded-pdfs.embedded .pdf-grid {
-  gap: 0.3rem;
+  gap: 0.25rem;
 }
 
 .uploaded-pdfs.embedded .pdf-card {
-  padding: 0.25rem 0.35rem;
-  font-size: 0.65rem;
-  min-width: 90px;
-  border-radius: 5px;
+  padding: 0.2rem 0.25rem;
+  font-size: 0.55rem;
+  min-width: 70px;
+  border-radius: 4px;
 }
 
 .uploaded-pdfs.embedded .pdf-buttons .upload-button {
-  font-size: 0.6rem;
-  padding: 0.2rem 0.35rem;
-  margin-top: 0.2rem;
+  font-size: 0.55rem;
+  padding: 0.15rem 0.25rem;
+  margin-top: 0.15rem;
 }
 
 /* --- Responsive adjustments --- */
 @media (max-width: 1200px) {
   .uploader-column {
-    min-width: 280px;
+    min-width: 200px;
   }
 }
 
 @media (max-width: 768px) {
   .uploader-modal-body {
     flex-direction: column;
-    gap: 0.6rem;
-    padding: 0.6rem 0.8rem;
+    gap: 0.4rem;
+    padding: 0.4rem 0.6rem;
   }
 }

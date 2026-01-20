@@ -68,13 +68,6 @@
   min-width: 0;         /* ensures flex children can shrink */
 }
 
-/* Columns */
-.uploader-column.full-height {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
 /* LEFT COLUMN */
 .uploader-column.left.full-height {
   flex: 1; /* smaller */

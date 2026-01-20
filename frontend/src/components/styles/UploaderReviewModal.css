@@ -199,3 +199,23 @@
   flex: 1;
   overflow: auto; /* allows both horizontal & vertical scroll */
 }
+
+.horizontal-splitter {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  cursor: col-resize;
+  background: linear-gradient(to right, transparent, #bbb, transparent);
+  z-index: 20;
+  transition: opacity 0.3s ease;
+}
+
+.horizontal-splitter.auto-hide {
+  opacity: 0;
+}
+
+.uploader-modal-body:hover .horizontal-splitter {
+  opacity: 1;
+}
+

@@ -10,9 +10,6 @@ export default function UploaderReviewModal({ uploader, onClose }) {
 
   const rightContentRef = useRef(null);
   const topScrollRef = useRef(null);
-  const [leftWidth, setLeftWidth] = useState(65); // percent width of left column
-  const [isDragging, setIsDragging] = useState(false);
-  const containerRef = useRef(null);
 
   useEffect(() => {
     const topScroll = topScrollRef.current;
@@ -58,13 +55,10 @@ export default function UploaderReviewModal({ uploader, onClose }) {
         </div>
 
         {/* Body */}
-        <div className="uploader-modal-body full-util" ref={containerRef}>
+        <div className="uploader-modal-body full-util">
 
           {/* LEFT COLUMN */}
-          <div
-            className="uploader-column left full-height"
-            style={{ width: `${leftWidth}%` }}
-          >
+          <div className="uploader-column left full-height">
             <div className="file-table-wrapper full-height">
               <div className="file-table-left">
                 <FileTable
@@ -82,39 +76,14 @@ export default function UploaderReviewModal({ uploader, onClose }) {
             </div>
           </div>
 
-          {/* SPLITTER */}
-          <motion.div
-            className={`horizontal-splitter ${!isDragging ? "auto-hide" : ""}`}
-            drag="x"
-            dragConstraints={containerRef}
-            dragElastic={0}
-            style={{ left: `calc(${leftWidth}% - 3px)` }}
-            onDragStart={() => setIsDragging(true)}
-            onDragEnd={() => setIsDragging(false)}
-            onDrag={(e, info) => {
-              const container = containerRef.current;
-              if (!container) return;
-
-              const bounds = container.getBoundingClientRect();
-              const newPercent =
-                ((info.point.x - bounds.left) / bounds.width) * 100;
-
-              if (newPercent > 30 && newPercent < 80) {
-                setLeftWidth(newPercent);
-              }
-            }}
-          />
-
           {/* RIGHT COLUMN */}
-          <div
-            className="uploader-column right full-height"
-            style={{ flex: 1 }}
-          >
-            {/* Top scrollbar and content */}
+          <div className="uploader-column right full-height">
+            {/* TOP SCROLLBAR */}
             <div className="right-top-scrollbar" ref={topScrollRef}>
               <div className="scroll-inner" />
             </div>
 
+            {/* ACTUAL CONTENT */}
             <div className="right-content-scroll" ref={rightContentRef}>
               <UploadedPDFs
                 uploaderFilter={uploader.id}

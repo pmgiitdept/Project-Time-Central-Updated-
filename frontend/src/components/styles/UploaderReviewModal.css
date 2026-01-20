@@ -73,8 +73,8 @@
 
 /* LEFT COLUMN */
 .uploader-column.left.full-height {
-  flex: 3; /* smaller */
-  min-width: 420px;
+  flex: 1; /* smaller */
+  min-width: 300px;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -112,7 +112,7 @@
 /* RIGHT COLUMN */
 .uploader-column.right.full-height {
   flex: 1; /* much bigger */
-  min-width: 400px;
+  min-width: 300px;
   max-width: 500px;
   background: #fff;
   border-radius: 12px;
@@ -198,24 +198,5 @@
 .right-content-scroll {
   flex: 1;
   overflow: auto; /* allows both horizontal & vertical scroll */
-}
-
-.horizontal-splitter {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 6px;
-  cursor: col-resize;
-  background: linear-gradient(to right, transparent, #bbb, transparent);
-  z-index: 20;
-  transition: opacity 0.3s ease;
-}
-
-.horizontal-splitter.auto-hide {
-  opacity: 0;
-}
-
-.uploader-modal-body:hover .horizontal-splitter {
-  opacity: 1;
 }
 

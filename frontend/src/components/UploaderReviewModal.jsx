@@ -1,33 +1,57 @@
 /* components/UploaderReviewModal.jsx */
 import { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
+import api from "../api";
 import FileTable from "./FileTable";
 import FileContent from "./FileContent";
 import UploadedPDFs from "./UploadedPDFs";
 import "./styles/ClientDashboard.css";
 import "./styles/UploaderReviewModal.css";
 
-export default function UploaderReviewModal({ uploader, uploaders = [], onClose }) {
-  const [selectedUploader, setSelectedUploader] = useState(uploader); // start with current uploader
+export default function UploaderReviewModal({ onClose }) {
+  const [uploaders, setUploaders] = useState([]);
+  const [selectedUploader, setSelectedUploader] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
 
   const rightContentRef = useRef(null);
   const topScrollRef = useRef(null);
 
+  /* ----------------------------------
+     Fetch uploaders (OPTION B)
+  ---------------------------------- */
   useEffect(() => {
-    if (!uploaders.length) return;
+    const fetchUploaders = async () => {
+      try {
+        const res = await api.get("/files/dtr/files/");
+        const files = res.data.results || res.data;
 
-    // Ensure selectedUploader exists in uploaders list
-    const match = uploaders.find(u => u.id === uploader?.id);
+        const uploaderMap = {};
 
-    if (match) {
-      setSelectedUploader(match);
-    } else {
-      setSelectedUploader(uploaders[0]); // fallback
-    }
-  }, [uploaders, uploader]);
+        files.forEach((file) => {
+          const u = file.uploaded_by;
+          if (u?.id) {
+            uploaderMap[u.id] = u;
+          }
+        });
 
-  // --- Scroll sync logic
+        const list = Object.values(uploaderMap);
+        setUploaders(list);
+
+        // Auto-select first uploader
+        if (list.length) {
+          setSelectedUploader(list[0]);
+        }
+      } catch (err) {
+        console.error("Failed to fetch uploaders:", err);
+      }
+    };
+
+    fetchUploaders();
+  }, []);
+
+  /* ----------------------------------
+     Scroll sync logic
+  ---------------------------------- */
   useEffect(() => {
     const topScroll = topScrollRef.current;
     const content = rightContentRef.current;
@@ -45,7 +69,9 @@ export default function UploaderReviewModal({ uploader, uploaders = [], onClose 
     };
   }, []);
 
-  // --- ESC key closes modal
+  /* ----------------------------------
+     ESC key closes modal
+  ---------------------------------- */
   useEffect(() => {
     const handleEsc = (e) => {
       if (e.key === "Escape") onClose();
@@ -54,7 +80,20 @@ export default function UploaderReviewModal({ uploader, uploaders = [], onClose 
     return () => window.removeEventListener("keydown", handleEsc);
   }, [onClose]);
 
-  if (!selectedUploader) return null;
+  /* ----------------------------------
+     Loading guard
+  ---------------------------------- */
+  if (!selectedUploader) {
+    return (
+      <div className="uploader-modal-overlay">
+        <div className="uploader-modal">
+          <div style={{ padding: "2rem", textAlign: "center" }}>
+            Loading uploaders…
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="uploader-modal-overlay" onClick={onClose}>
@@ -71,7 +110,7 @@ export default function UploaderReviewModal({ uploader, uploaders = [], onClose 
           <h2>Uploader Review: {selectedUploader.username}</h2>
         </div>
 
-        {/* Select Uploader Dropdown */}
+        {/* Select Uploader */}
         <div
           style={{
             display: "flex",
@@ -83,18 +122,19 @@ export default function UploaderReviewModal({ uploader, uploaders = [], onClose 
           }}
         >
           <label style={{ fontWeight: "bold" }}>Select Uploader:</label>
+
           <select
             className="upload-button"
-            value={selectedUploader?.id || ""}
+            value={selectedUploader.id}
             onChange={(e) => {
-              const newUploader = (uploaders || []).find(
+              const u = uploaders.find(
                 (u) => u.id === Number(e.target.value)
               );
-              setSelectedUploader(newUploader);
+              setSelectedUploader(u);
               setSelectedFile(null);
             }}
           >
-            {(uploaders || []).map((u) => (
+            {uploaders.map((u) => (
               <option key={u.id} value={u.id}>
                 {u.username}
               </option>
@@ -119,6 +159,7 @@ export default function UploaderReviewModal({ uploader, uploaders = [], onClose 
                   embedded
                 />
               </div>
+
               {selectedFile && (
                 <div className="file-content-right">
                   <FileContent fileId={selectedFile.id} role="admin" />
@@ -132,6 +173,7 @@ export default function UploaderReviewModal({ uploader, uploaders = [], onClose 
             <div className="right-top-scrollbar" ref={topScrollRef}>
               <div className="scroll-inner" />
             </div>
+
             <div className="right-content-scroll" ref={rightContentRef}>
               <UploadedPDFs
                 uploaderFilter={selectedUploader.id}

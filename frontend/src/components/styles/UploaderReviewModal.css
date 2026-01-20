@@ -104,7 +104,7 @@
 
 /* FileContent (right side of left column) */
 .file-content-right {
-  flex: 2; /* bigger than table */
+  flex: 1; /* bigger than table */
   background: #fff;
   border-radius: 12px;
   padding: 0.5rem;
@@ -117,7 +117,7 @@
 .uploader-column.right.full-height {
   flex: 1; /* much bigger */
   min-width: 300px;
-  max-width: 500px;
+  max-width: none;
   background: #fff;
   border-radius: 12px;
   padding: 0.5rem;

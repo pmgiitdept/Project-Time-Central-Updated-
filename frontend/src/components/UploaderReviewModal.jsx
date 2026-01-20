@@ -6,7 +6,7 @@ import UploadedPDFs from "./UploadedPDFs";
 import "./styles/ClientDashboard.css";
 import "./styles/UploaderReviewModal.css";
 
-export default function UploaderReviewModal({ uploader, uploaders, onClose }) {
+export default function UploaderReviewModal({ uploader, uploaders = [], onClose }) {
   const [selectedUploader, setSelectedUploader] = useState(uploader); // start with current uploader
   const [selectedFile, setSelectedFile] = useState(null);
 
@@ -71,21 +71,22 @@ export default function UploaderReviewModal({ uploader, uploaders, onClose }) {
           <label style={{ fontWeight: "bold" }}>Select Uploader:</label>
           <select
             className="upload-button"
-            value={selectedUploader.id}
+            value={selectedUploader?.id || ""}
             onChange={(e) => {
-              const newUploader = uploaders.find(
+              const newUploader = (uploaders || []).find(
                 (u) => u.id === Number(e.target.value)
               );
               setSelectedUploader(newUploader);
-              setSelectedFile(null); // reset selected file
+              setSelectedFile(null);
             }}
           >
-            {uploaders.map((u) => (
+            {(uploaders || []).map((u) => (
               <option key={u.id} value={u.id}>
                 {u.username}
               </option>
             ))}
           </select>
+
           <span style={{ fontSize: "0.8rem", opacity: 0.7 }}>
             Select an uploader to review their files and PDFs
           </span>

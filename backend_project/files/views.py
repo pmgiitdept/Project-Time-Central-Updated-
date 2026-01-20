@@ -64,32 +64,51 @@ class FileViewSet(viewsets.ModelViewSet):
     
     def perform_create(self, serializer):
         user = self.request.user
-        settings = SystemSettings.objects.first() 
-        
-        file_obj = serializer.validated_data['file']
-        
-        # 1. Check file size
-        max_size = settings.max_file_size * 1024 * 1024 
+        settings = SystemSettings.objects.first()
+
+        file_obj = serializer.validated_data["file"]
+
+        # 1️⃣ Check file size
+        max_size = settings.max_file_size * 1024 * 1024
         if file_obj.size > max_size:
             raise ValidationError(f"File exceeds max size of {settings.max_file_size} MB")
-        
-        # 2. Check allowed types
-        ext = file_obj.name.split('.')[-1].lower()
+
+        # 2️⃣ Check allowed types
+        ext = file_obj.name.split(".")[-1].lower()
         if ext not in settings.allowed_types:
-            raise ValidationError(f"File type {ext} not allowed. Allowed: {settings.allowed_types}")
-        
-        # 3. Existing overwrite logic
-        if user.role == 'client':
+            raise ValidationError(
+                f"File type {ext} not allowed. Allowed: {settings.allowed_types}"
+            )
+
+        # 3️⃣ Client overwrite logic
+        if user.role == "client":
             existing_file = File.objects.filter(owner=user, file=file_obj.name).first()
+
             if existing_file:
+                # Replace physical file
                 existing_file.file.delete(save=False)
-                serializer.instance = existing_file
-                serializer.save()
-                log_action(user, f"updated file {file_obj.name}", ip_address=get_client_ip(self.request))
+
+                # Save using serializer (update existing instance)
+                updated_file = serializer.save(
+                    instance=existing_file,
+                    owner=user
+                )
+
+                log_action(
+                    user,
+                    f"updated file {updated_file.file.name}",
+                    ip_address=get_client_ip(self.request)
+                )
                 return
 
+        # 4️⃣ Normal upload
         new_file = serializer.save(owner=user)
-        log_action(user, f"uploaded file {new_file.file.name}", ip_address=get_client_ip(self.request))
+
+        log_action(
+            user,
+            f"uploaded file {new_file.file.name}",
+            ip_address=get_client_ip(self.request)
+        )
 
     @action(
             detail=True, 
@@ -876,7 +895,15 @@ class DTRFileViewSet(viewsets.ModelViewSet):
         return DTRFile.objects.filter(uploaded_by=user).order_by("-uploaded_at")
 
     def perform_create(self, serializer):
-        serializer.save(uploaded_by=self.request.user)
+        # 1️⃣ Save the file and capture the instance
+        dtr_file = serializer.save(uploaded_by=self.request.user)
+
+        # 2️⃣ Log upload action
+        log_action(
+            user=self.request.user,
+            action=f"Uploaded DTR file: {dtr_file.file.name}",
+            ip_address=self.request.META.get("REMOTE_ADDR")
+        )
 
     @action(detail=True, methods=["post"])
     def parse(self, request, pk=None):

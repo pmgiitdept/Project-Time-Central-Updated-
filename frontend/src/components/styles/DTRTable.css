@@ -71,8 +71,8 @@
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  min-width: 400px;          /* ⬅️ smaller than 700 */
-  font-size: 0.55rem;        /* ⬅️ smaller text */
+  min-width: 350px;          /* ⬅️ smaller than 700 */
+  font-size: 0.5rem;        /* ⬅️ smaller text */
 }
 
 .dtr-table th,
@@ -80,7 +80,7 @@
   border: 1px solid #e5e7eb;
   padding: 0.1rem 0.2rem;  /* ⬅️ tighter */
   text-align: center;
-  font-size: 0.55rem;
+  font-size: 0.5rem;
   min-width: 60px;           /* ⬅️ smaller columns */
   white-space: nowrap;
   transition: background 0.2s ease;
@@ -95,7 +95,7 @@
   top: 0;
   z-index: 3;
   white-space: nowrap;
-  font-size: 0.55rem;       /* smaller header text */
+  font-size: 0.5rem;       /* smaller header text */
   letter-spacing: 0.3px;
   text-transform: uppercase;
 }

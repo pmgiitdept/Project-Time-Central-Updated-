@@ -340,38 +340,6 @@
   margin-top: 1rem;
 }
 
-.pdf-layout {
-  display: flex;
-  gap: 1rem;
-  align-items: flex-start;
-}
-
-/* LEFT: smaller, fixed, scrollable */
-.pdf-left {
-  width: 360px;            /* 👈 smaller than before */
-  max-height: 75vh;
-  overflow-y: auto;
-  flex-shrink: 0;
-}
-
-/* RIGHT: flexible content */
-.pdf-right {
-  flex: 1;
-  min-width: 0;
-}
-
-/* Ensure tables don't overflow */
-.pdf-table {
-  width: 100%;
-  table-layout: fixed;
-  font-size: 0.72rem;
-}
-
-.pdf-table th,
-.pdf-table td {
-  padding: 4px 6px;
-}
-
 .divider-hybrid {
   display: flex;
   align-items: center;

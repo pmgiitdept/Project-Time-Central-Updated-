@@ -1,3 +1,4 @@
+/* components/UploaderReviewModal.jsx */
 import { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
 import FileTable from "./FileTable";

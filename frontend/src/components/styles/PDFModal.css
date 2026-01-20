@@ -134,6 +134,7 @@
   text-align: left;
   font-size: 0.9rem;
   border-radius: 10px;
+  table-layout: auto;
   overflow: hidden;
   min-width: 800px;
   border: 1px solid #ccc; 
@@ -171,6 +172,8 @@
   border-left: 1px solid #e0e0e0; 
   vertical-align: middle;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .pdf-table th:first-child,
@@ -324,8 +327,9 @@
   width: 100%;
   border: 1px solid #ccc;
   border-radius: 4px;
-  padding: 4px;
-  font-size: 14px;
+  box-sizing: border-box; /* include padding/border in width */
+  padding: 0.3rem 0.5rem;
+  font-size: 0.875px;
   background: #fff;
 }
 

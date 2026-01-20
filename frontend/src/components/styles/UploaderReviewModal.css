@@ -77,7 +77,7 @@
 
 /* LEFT COLUMN */
 .uploader-column.left.full-height {
-  flex: 0 0 auto; /* smaller */
+  flex: 1; /* smaller */
   min-width: 300px;
   display: flex;
   flex-direction: column;
@@ -115,7 +115,7 @@
 
 /* RIGHT COLUMN */
 .uploader-column.right.full-height {
-  flex: 0 0 auto; /* much bigger */
+  flex: 1; /* much bigger */
   min-width: 300px;
   max-width: 500px;
   background: #fff;

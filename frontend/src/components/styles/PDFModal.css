@@ -128,7 +128,8 @@
 }
 
 .pdf-table {
-  width: 100%;
+  width: max-content;
+  min-width: 100%;
   border-collapse: separate;
   border-spacing: 0;
   text-align: left;
@@ -286,6 +287,8 @@
 
 .table-container {
   overflow-x: auto;
+  overflow-y: auto;
+  width:100%;
   margin-bottom: 1rem;
 }
 
@@ -326,11 +329,12 @@
 .editable-table input {
   width: 100%;
   border: 1px solid #ccc;
-  border-radius: 4px;
+  min-width: 0; 
   box-sizing: border-box; /* include padding/border in width */
   padding: 0.3rem 0.5rem;
-  font-size: 8px;
+  font-size: 10px;
   background: #fff;
+  white-space: nowrap;
 }
 
 .editable-table input:focus {

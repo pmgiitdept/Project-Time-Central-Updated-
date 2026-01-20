@@ -137,7 +137,6 @@
 
 /* Scrollable areas */
 .file-content-wrapper,
-.file-table-left,
 .file-content-right,
 .uploader-column.right.full-height {
   overflow-y: auto;

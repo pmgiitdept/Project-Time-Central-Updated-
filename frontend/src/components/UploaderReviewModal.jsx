@@ -106,6 +106,9 @@ export default function UploaderReviewModal({ uploader, uploaders = [], onClose 
                   embedded
                 />
               </div>
+            </div>
+
+            <div className="file-table-wrapper full-height">
               {selectedFile && (
                 <div className="file-content-right">
                   <FileContent fileId={selectedFile.id} role="admin" />

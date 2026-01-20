@@ -168,7 +168,7 @@
 
 .pdf-table th,
 .pdf-table td {
-  max-width: 400px;
+  padding: 0.9rem 1rem;
   border-bottom: 1px solid #e0e0e0;
   border-left: 1px solid #e0e0e0; 
   vertical-align: middle;
@@ -327,7 +327,7 @@
 }
 
 .editable-table input {
-  width: 100%;
+  width: 50px;
   border: 1px solid #ccc;
   min-width: 0; 
   box-sizing: border-box; /* include padding/border in width */

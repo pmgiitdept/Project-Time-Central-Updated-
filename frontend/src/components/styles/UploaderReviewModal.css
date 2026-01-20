@@ -94,7 +94,6 @@
 /* FileTable (left side of left column) */
 .file-table-left {
   flex: 1; 
-  max-width: 150px;
   background: #fff;
   border-radius: 12px;
   padding: 0.5rem;

@@ -7,13 +7,13 @@ import UploadedPDFs from "./UploadedPDFs";
 import "./styles/ClientDashboard.css";
 import "./styles/UploaderReviewModal.css";
 
-export default function UploaderReviewModal({ uploader, onClose }) {
-  const [uploaders, setUploaders] = useState([]);
+export default function UploaderReviewModal({ uploader, uploaders = [], onClose }) {
+  const [selectedUploader, setSelectedUploader] = useState(uploader); // start with current uploader
   const [selectedFile, setSelectedFile] = useState(null);
 
   const rightContentRef = useRef(null);
   const topScrollRef = useRef(null);
-  
+
   // --- Scroll sync logic
   useEffect(() => {
     const topScroll = topScrollRef.current;

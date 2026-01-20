@@ -168,7 +168,7 @@
 
 .pdf-table th,
 .pdf-table td {
-  padding: 0.9rem 1rem;
+  max-width: 400px;
   border-bottom: 1px solid #e0e0e0;
   border-left: 1px solid #e0e0e0; 
   vertical-align: middle;

@@ -182,3 +182,38 @@
     padding: 0.4rem 0.6rem;
   }
 }
+
+/* Draggable vertical splitter */
+.horizontal-splitter {
+  width: 6px;
+  cursor: col-resize;
+  background: linear-gradient(
+    to right,
+    transparent,
+    #bbb,
+    transparent
+  );
+  border-radius: 4px;
+  margin: 0 2px;
+  position: relative;
+}
+
+.horizontal-splitter:hover {
+  background: linear-gradient(
+    to right,
+    transparent,
+    #888,
+    transparent
+  );
+}
+
+.horizontal-splitter::after {
+  content: "";
+  position: absolute;
+  top: 10%;
+  bottom: 10%;
+  left: 1px;
+  right: 1px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}

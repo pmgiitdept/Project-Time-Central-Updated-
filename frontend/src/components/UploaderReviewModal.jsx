@@ -81,21 +81,8 @@ export default function UploaderReviewModal({ uploader, onClose }) {
           {/* RIGHT COLUMN */}
           <div
             className="uploader-column right full-height"
-            style={{ flex: `1 1 ${100 - leftWidth}%` }}
+            style={{ flex: `0 0 ${100 - leftWidth}%` }}
           >
-            {/* Floating Progress Bar */}
-            <div className="uploader-progress-floating">
-              <div className="progress-label">
-                Upload Progress
-              </div>
-              <div className="progress-track">
-                <div
-                  className="progress-fill"
-                  style={{ width: "62%" }} // ← dynamic later
-                />
-              </div>
-            </div>
-
             <UploadedPDFs
               uploaderFilter={uploader.id}
               currentUser={{ role: "admin" }}

@@ -111,10 +111,9 @@
 
 /* RIGHT COLUMN */
 .uploader-column.right.full-height {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  min-width: 300px;
+  flex: 1; /* much bigger */
+  min-width: 400px;
+  max-width: 500px;
   background: #fff;
   border-radius: 12px;
   padding: 0.5rem;
@@ -184,47 +183,19 @@
   }
 }
 
-/* Draggable vertical splitter */
-.horizontal-splitter {
-  width: 6px;
-  cursor: col-resize;
-  background: linear-gradient(
-    to right,
-    transparent,
-    #bbb,
-    transparent
-  );
-  border-radius: 4px;
-  margin: 0 2px;
-  position: relative;
-  opacity: 1;
-  transition: opacity 0.3s ease;
+.right-top-scrollbar {
+  overflow-x: auto;
+  overflow-y: hidden;
+  height: 16px; /* adjust thickness */
+  margin-bottom: 4px;
 }
 
-.horizontal-splitter:hover {
-  background: linear-gradient(
-    to right,
-    transparent,
-    #888,
-    transparent
-  );
+.right-top-scrollbar .scroll-inner {
+  width: 2000px; /* this should match content width or use JS to auto-calc */
+  height: 1px; /* invisible bar that drives scroll */
 }
 
-.horizontal-splitter::after {
-  content: "";
-  position: absolute;
-  top: 10%;
-  bottom: 10%;
-  left: 1px;
-  right: 1px;
-  background: rgba(0, 0, 0, 0.1);
-  border-radius: 4px;
-}
-
-.horizontal-splitter.auto-hide {
-  opacity: 0;
-}
-
-.uploader-modal-body:hover .horizontal-splitter {
-  opacity: 1;
+.right-content-scroll {
+  flex: 1;
+  overflow: auto; /* allows both horizontal & vertical scroll */
 }

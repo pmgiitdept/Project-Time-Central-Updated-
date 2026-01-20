@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
 import FileTable from "./FileTable";
 import FileContent from "./FileContent";
@@ -7,6 +7,27 @@ import "./styles/ClientDashboard.css";
 import "./styles/UploaderReviewModal.css";
 export default function UploaderReviewModal({ uploader, onClose }) {
   const [selectedFile, setSelectedFile] = useState(null);
+
+  const rightContentRef = useRef(null);
+  const topScrollRef = useRef(null);
+
+  useEffect(() => {
+    const topScroll = topScrollRef.current;
+    const content = rightContentRef.current;
+
+    if (!topScroll || !content) return;
+
+    const syncTop = () => (content.scrollLeft = topScroll.scrollLeft);
+    const syncContent = () => (topScroll.scrollLeft = content.scrollLeft);
+
+    topScroll.addEventListener("scroll", syncTop);
+    content.addEventListener("scroll", syncContent);
+
+    return () => {
+      topScroll.removeEventListener("scroll", syncTop);
+      content.removeEventListener("scroll", syncContent);
+    };
+  }, []);
 
   useEffect(() => {
     const handleEsc = (e) => {
@@ -57,13 +78,20 @@ export default function UploaderReviewModal({ uploader, onClose }) {
 
           {/* RIGHT COLUMN */}
           <div className="uploader-column right full-height">
-            <UploadedPDFs
-              uploaderFilter={uploader.id}
-              currentUser={{ role: "admin" }}
-              embedded
-            />
-          </div>
+            {/* TOP SCROLLBAR */}
+            <div className="right-top-scrollbar" ref={topScrollRef}>
+              <div className="scroll-inner" />
+            </div>
 
+            {/* ACTUAL CONTENT */}
+            <div className="right-content-scroll" ref={rightContentRef}>
+              <UploadedPDFs
+                uploaderFilter={uploader.id}
+                currentUser={{ role: "admin" }}
+                embedded
+              />
+            </div>
+          </div>
         </div>
       </motion.div>
     </div>

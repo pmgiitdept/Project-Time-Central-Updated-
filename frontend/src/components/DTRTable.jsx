@@ -361,7 +361,7 @@ export default function DTRTable({ role , fileId}) {
 
                       {/* Employee # - Sticky Col */}
                       {!hiddenColumns.includes("employee_no") && (
-                        <td className="sticky-col sticky-2">
+                        <td>
                           {editableRow === rIdx ? (
                             <input
                               type="text"

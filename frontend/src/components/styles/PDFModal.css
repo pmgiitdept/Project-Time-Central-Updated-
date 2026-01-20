@@ -257,8 +257,7 @@
 }
 
 .pdf-card-container {
-  width: 100%;           
-  max-width: 1000px;      
+  width: 100%;              
   padding: 1rem;
   border: 1px solid #ddd;
   border-radius: 8px;

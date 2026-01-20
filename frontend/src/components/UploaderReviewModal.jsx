@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import FileTable from "./FileTable";
 import FileContent from "./FileContent";
@@ -7,9 +7,6 @@ import "./styles/ClientDashboard.css";
 import "./styles/UploaderReviewModal.css";
 export default function UploaderReviewModal({ uploader, onClose }) {
   const [selectedFile, setSelectedFile] = useState(null);
-  const [leftWidth, setLeftWidth] = useState(65); // %
-  const containerRef = useRef(null);
-  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     const handleEsc = (e) => {
@@ -37,17 +34,10 @@ export default function UploaderReviewModal({ uploader, onClose }) {
         </div>
 
         {/* Body */}
-        <div
-            className="uploader-modal-body full-util"
-            ref={containerRef}
-          >
+        <div className="uploader-modal-body full-util">
 
           {/* LEFT COLUMN */}
-          <div
-            className="uploader-column left full-height"
-            style={{ flexBasis: `${leftWidth}%` }}
-          >
-
+          <div className="uploader-column left full-height">
             <div className="file-table-wrapper full-height">
               <div className="file-table-left">
                 <FileTable
@@ -64,42 +54,16 @@ export default function UploaderReviewModal({ uploader, onClose }) {
               )}
             </div>
           </div>
-          
-          <motion.div
-            className={`horizontal-splitter ${!isDragging ? "auto-hide" : ""}`}
-            drag="x"
-            dragConstraints={containerRef}
-            dragElastic={0}
-            style={{
-              left: `calc(${leftWidth}% - 3px)`
-            }}
-            onDragStart={() => setIsDragging(true)}
-            onDragEnd={() => setIsDragging(false)}
-            onDrag={(e, info) => {
-              const container = containerRef.current;
-              if (!container) return;
-
-              const bounds = container.getBoundingClientRect();
-              const newPercent =
-                ((info.point.x - bounds.left) / bounds.width) * 100;
-
-              if (newPercent > 30 && newPercent < 80) {
-                setLeftWidth(newPercent);
-              }
-            }}
-          />
 
           {/* RIGHT COLUMN */}
-          <div
-            className="uploader-column right full-height"
-            style={{ flex: 1 }}
-          >
+          <div className="uploader-column right full-height">
             <UploadedPDFs
               uploaderFilter={uploader.id}
               currentUser={{ role: "admin" }}
               embedded
             />
           </div>
+
         </div>
       </motion.div>
     </div>

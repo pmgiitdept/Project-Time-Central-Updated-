@@ -45,8 +45,9 @@ export default function UploaderReviewModal({ uploader, onClose }) {
           {/* LEFT COLUMN */}
           <div
             className="uploader-column left full-height"
-            style={{ width: `${leftWidth}%` }}
+            style={{ flexBasis: `${leftWidth}%` }}
           >
+
             <div className="file-table-wrapper full-height">
               <div className="file-table-left">
                 <FileTable
@@ -65,28 +66,22 @@ export default function UploaderReviewModal({ uploader, onClose }) {
           </div>
           
           <motion.div
-            className={`horizontal-splitter ${!isDragging ? "hidden" : ""}`}
+            className={`horizontal-splitter ${!isDragging ? "auto-hide" : ""}`}
             drag="x"
             dragConstraints={containerRef}
             dragElastic={0}
-            onDragStart={() => setIsDragging(true)}
-            onDragEnd={() => {
-              setIsDragging(false);
-              setTimeout(() => {
-                document
-                  .querySelector(".horizontal-splitter")
-                  ?.classList.add("auto-hide");
-              }, 800);
+            style={{
+              left: `calc(${leftWidth}% - 3px)`
             }}
+            onDragStart={() => setIsDragging(true)}
+            onDragEnd={() => setIsDragging(false)}
             onDrag={(e, info) => {
               const container = containerRef.current;
               if (!container) return;
 
-              const containerWidth = container.offsetWidth;
+              const bounds = container.getBoundingClientRect();
               const newPercent =
-                ((info.point.x - container.getBoundingClientRect().left) /
-                  containerWidth) *
-                100;
+                ((info.point.x - bounds.left) / bounds.width) * 100;
 
               if (newPercent > 30 && newPercent < 80) {
                 setLeftWidth(newPercent);
@@ -95,7 +90,10 @@ export default function UploaderReviewModal({ uploader, onClose }) {
           />
 
           {/* RIGHT COLUMN */}
-          <div className="uploader-column right full-height">
+          <div
+            className="uploader-column right full-height"
+            style={{ flex: 1 }}
+          >
             <UploadedPDFs
               uploaderFilter={uploader.id}
               currentUser={{ role: "admin" }}

@@ -9,6 +9,7 @@ export default function UploaderReviewModal({ uploader, onClose }) {
   const [selectedFile, setSelectedFile] = useState(null);
   const [leftWidth, setLeftWidth] = useState(65); // %
   const containerRef = useRef(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     const handleEsc = (e) => {
@@ -42,7 +43,10 @@ export default function UploaderReviewModal({ uploader, onClose }) {
           >
 
           {/* LEFT COLUMN */}
-          <div className="uploader-column left full-height" style={{ flex: `0 0 ${leftWidth}%` }}>
+          <div
+            className="uploader-column left full-height"
+            style={{ width: `${leftWidth}%` }}
+          >
             <div className="file-table-wrapper full-height">
               <div className="file-table-left">
                 <FileTable
@@ -61,14 +65,26 @@ export default function UploaderReviewModal({ uploader, onClose }) {
           </div>
           
           <motion.div
-            className="horizontal-splitter"
+            className={`horizontal-splitter ${!isDragging ? "hidden" : ""}`}
             drag="x"
             dragConstraints={containerRef}
             dragElastic={0}
+            onDragStart={() => setIsDragging(true)}
+            onDragEnd={() => {
+              setIsDragging(false);
+              setTimeout(() => {
+                document
+                  .querySelector(".horizontal-splitter")
+                  ?.classList.add("auto-hide");
+              }, 800);
+            }}
             onDrag={(e, info) => {
-              const containerWidth = containerRef.current.offsetWidth;
+              const container = containerRef.current;
+              if (!container) return;
+
+              const containerWidth = container.offsetWidth;
               const newPercent =
-                ((info.point.x - containerRef.current.getBoundingClientRect().left) /
+                ((info.point.x - container.getBoundingClientRect().left) /
                   containerWidth) *
                 100;
 
@@ -79,10 +95,7 @@ export default function UploaderReviewModal({ uploader, onClose }) {
           />
 
           {/* RIGHT COLUMN */}
-          <div
-            className="uploader-column right full-height"
-            style={{ flex: `0 0 ${100 - leftWidth}%` }}
-          >
+          <div className="uploader-column right full-height">
             <UploadedPDFs
               uploaderFilter={uploader.id}
               currentUser={{ role: "admin" }}

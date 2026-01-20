@@ -111,9 +111,10 @@
 
 /* RIGHT COLUMN */
 .uploader-column.right.full-height {
-  flex: 1; /* much bigger */
-  min-width: 400px;
-  max-width: 500px;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 300px;
   background: #fff;
   border-radius: 12px;
   padding: 0.5rem;
@@ -196,6 +197,8 @@
   border-radius: 4px;
   margin: 0 2px;
   position: relative;
+  opacity: 1;
+  transition: opacity 0.3s ease;
 }
 
 .horizontal-splitter:hover {
@@ -216,4 +219,12 @@
   right: 1px;
   background: rgba(0, 0, 0, 0.1);
   border-radius: 4px;
+}
+
+.horizontal-splitter.auto-hide {
+  opacity: 0;
+}
+
+.uploader-modal-body:hover .horizontal-splitter {
+  opacity: 1;
 }

@@ -62,6 +62,10 @@
   flex: 1;
   gap: 1rem;
   padding: 0.5rem 1rem;
+
+  /* add scrolling */
+  overflow: auto;       /* allows both horizontal and vertical scroll */
+  min-width: 0;         /* ensures flex children can shrink */
 }
 
 /* Columns */
@@ -73,7 +77,7 @@
 
 /* LEFT COLUMN */
 .uploader-column.left.full-height {
-  flex: 1; /* smaller */
+  flex: 0 0 auto; /* smaller */
   min-width: 300px;
   display: flex;
   flex-direction: column;
@@ -111,7 +115,7 @@
 
 /* RIGHT COLUMN */
 .uploader-column.right.full-height {
-  flex: 1; /* much bigger */
+  flex: 0 0 auto; /* much bigger */
   min-width: 300px;
   max-width: 500px;
   background: #fff;

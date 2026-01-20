@@ -123,7 +123,7 @@
 }
 
 .sticky-1 { left: 0;   z-index: 4; }
-.sticky-2 { left: 100px; }   /* smaller offsets */
+.sticky-2 { left: 0; }   /* smaller offsets */
 .sticky-3 { left: 140px; }
 .sticky-4 { left: 210px; }
 .sticky-5 { left: 280px; }

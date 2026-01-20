@@ -7,8 +7,7 @@ import UploadedPDFs from "./UploadedPDFs";
 import "./styles/ClientDashboard.css";
 import "./styles/UploaderReviewModal.css";
 
-export default function UploaderReviewModal({ uploader, uploaders = [], onClose }) {
-  const [selectedUploader, setSelectedUploader] = useState(uploader); // start with current uploader
+export default function UploaderReviewModal({ uploader, onClose }) {
   const [selectedFile, setSelectedFile] = useState(null);
 
   const rightContentRef = useRef(null);
@@ -56,41 +55,6 @@ export default function UploaderReviewModal({ uploader, uploaders = [], onClose 
         {/* Header */}
         <div className="uploader-modal-header">
           <h2>Uploader Review: {selectedUploader.username}</h2>
-        </div>
-
-        {/* Select Uploader Dropdown */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "1rem",
-            padding: "0.5rem 1rem",
-            borderBottom: "1px solid #ddd",
-            background: "#f8f9fa",
-          }}
-        >
-          <label style={{ fontWeight: "bold" }}>Select Uploader:</label>
-          <select
-            className="upload-button"
-            value={selectedUploader?.id || ""}
-            onChange={(e) => {
-              const newUploader = (uploaders || []).find(
-                (u) => u.id === Number(e.target.value)
-              );
-              setSelectedUploader(newUploader);
-              setSelectedFile(null);
-            }}
-          >
-            {(uploaders || []).map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.username}
-              </option>
-            ))}
-          </select>
-
-          <span style={{ fontSize: "0.8rem", opacity: 0.7 }}>
-            Select an uploader to review their files and PDFs
-          </span>
         </div>
 
         {/* Body */}

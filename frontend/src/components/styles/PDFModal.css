@@ -288,15 +288,20 @@
 }
 
 .pdf-table {
-  width: 100%;
+  width: max-content;
+  min-width: 100%;
   border-collapse: collapse;
+  table-layout:auto;
 }
 
 .pdf-table th,
 .pdf-table td {
   border: 1px solid #ccc;
-  padding: 6px 10px;
+  padding: 0.35px 0.5px;
   text-align: left;
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: unset;
 }
 
 .pagination-controls1 {

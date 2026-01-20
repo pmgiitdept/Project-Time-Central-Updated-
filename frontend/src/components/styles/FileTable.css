@@ -9,7 +9,7 @@
 }
 
 .file-table-left {
-  width: 250px;          /* ⬅️ smaller than 420 */   
+  width: 200px;          /* ⬅️ smaller than 420 */   
   overflow-y: auto;
   background: #ffffff;
   padding: 0.5rem;       /* ⬅️ tighter padding */
@@ -21,7 +21,7 @@
 }
 
 .file-content-right {
-  width: 1070px;
+  width: 900px;
   background: #ffffff;
   padding: 1.25rem;
   border-radius: 14px;

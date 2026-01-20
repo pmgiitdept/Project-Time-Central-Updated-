@@ -82,15 +82,17 @@
   flex: 1;
   gap: 0.5rem;
   height: 100%;
+  min-width: 0;
 }
 
 /* FileTable (left side of left column) */
 .file-table-left {
-  flex: 1; 
+  flex: 0 0 320px;
   background: #fff;
   border-radius: 12px;
   padding: 0.5rem;
   font-size: 0.7rem;
+  overflow-x: auto;
   overflow-y: auto;
   box-shadow: 0 6px 15px rgba(0,0,0,0.05);
 }
@@ -98,6 +100,7 @@
 /* FileContent (right side of left column) */
 .file-content-right {
   flex: 1; /* bigger than table */
+  min-width: 0;
   background: #fff;
   border-radius: 12px;
   padding: 0.5rem;

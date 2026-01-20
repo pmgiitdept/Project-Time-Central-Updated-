@@ -120,7 +120,7 @@ export default function DTRUpload({ refreshDTR }) {
 
         {file && <p className="selected-file">📊 {file.name}</p>}
 
-        <button
+        {/* <button
           type="button"
           className="upload-button1 secondary"
           onClick={() => setShowManual(true)}
@@ -131,7 +131,7 @@ export default function DTRUpload({ refreshDTR }) {
             : canSubmit
             ? "Enter DTR Manually"
             : "Unavailable – wait for next cutoff"}
-        </button>
+        </button> */}
       </motion.div>
 
       <AnimatePresence>

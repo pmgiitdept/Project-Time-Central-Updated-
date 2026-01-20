@@ -87,7 +87,8 @@
 
 /* FileTable (left side of left column) */
 .file-table-left {
-  flex: 0 0 320px;
+  flex: auto;
+  width: 400px;
   background: #fff;
   border-radius: 12px;
   padding: 0.5rem;
@@ -99,7 +100,7 @@
 
 /* FileContent (right side of left column) */
 .file-content-right {
-  flex: 1; /* bigger than table */
+  flex: auto; /* bigger than table */
   min-width: 0;
   background: #fff;
   border-radius: 12px;

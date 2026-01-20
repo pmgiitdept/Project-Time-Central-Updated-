@@ -14,6 +14,19 @@ export default function UploaderReviewModal({ uploader, uploaders = [], onClose 
   const rightContentRef = useRef(null);
   const topScrollRef = useRef(null);
 
+  useEffect(() => {
+    if (!uploaders.length) return;
+
+    // Ensure selectedUploader exists in uploaders list
+    const match = uploaders.find(u => u.id === uploader?.id);
+
+    if (match) {
+      setSelectedUploader(match);
+    } else {
+      setSelectedUploader(uploaders[0]); // fallback
+    }
+  }, [uploaders, uploader]);
+
   // --- Scroll sync logic
   useEffect(() => {
     const topScroll = topScrollRef.current;

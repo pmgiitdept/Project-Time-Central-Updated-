@@ -1,7 +1,7 @@
 /* styles/FileTable.css */
 .file-table-wrapper {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.3rem;
   align-items: flex-start;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   justify-content: center;
@@ -9,15 +9,15 @@
 }
 
 .file-table-left {
-  width: 200px;          /* ⬅️ smaller than 420 */   
+  width: 180px;          /* ⬅️ smaller than 420 */   
   overflow-y: auto;
   background: #ffffff;
-  padding: 0.5rem;       /* ⬅️ tighter padding */
-  border-radius: 10px;   /* ⬅️ slightly smaller radius */
+  padding: 0.3rem;       /* ⬅️ tighter padding */
+  border-radius: 8px;   /* ⬅️ slightly smaller radius */
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
-  font-size: 0.65rem;    /* ⬅️ matches compact tables */
+  font-size: 0.6rem;    /* ⬅️ matches compact tables */
 }
 
 .file-content-right {
@@ -31,13 +31,13 @@
 
 .file-table {
   border-collapse: collapse;
-  font-size: 0.75rem;
+  font-size: 0.6rem;
   width: 100%;
-  min-width: 600px;
+  min-width: 400px;
 }
 
 .file-table th, .file-table td {
-  padding: 0.6rem 0.9rem;
+  padding: 0.4rem 0.6rem;
   border-bottom: 1px solid #e0e0e0;
   text-align: left;
   white-space: nowrap;
@@ -291,19 +291,19 @@
   width: 100%;
   overflow-x: auto;   
   overflow-y: hidden; 
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .table-scroll-container::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 .table-scroll-container::-webkit-scrollbar-thumb {
   background-color: rgba(0,0,0,0.2);
-  border-radius: 4px;
+  border-radius: 3px;
 }
 .table-scroll-container::-webkit-scrollbar-track {
   background: #f1f1f1;
-  border-radius: 4px;
+  border-radius: 3px;
 }
 
 .status-header {

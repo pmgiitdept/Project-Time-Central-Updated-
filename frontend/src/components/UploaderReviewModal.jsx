@@ -1,57 +1,20 @@
 /* components/UploaderReviewModal.jsx */
 import { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
-import api from "../api";
 import FileTable from "./FileTable";
 import FileContent from "./FileContent";
 import UploadedPDFs from "./UploadedPDFs";
 import "./styles/ClientDashboard.css";
 import "./styles/UploaderReviewModal.css";
 
-export default function UploaderReviewModal({ onClose }) {
+export default function UploaderReviewModal({ uploader, onClose }) {
   const [uploaders, setUploaders] = useState([]);
-  const [selectedUploader, setSelectedUploader] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
 
   const rightContentRef = useRef(null);
   const topScrollRef = useRef(null);
-
-  /* ----------------------------------
-     Fetch uploaders (OPTION B)
-  ---------------------------------- */
-  useEffect(() => {
-    const fetchUploaders = async () => {
-      try {
-        const res = await api.get("/files/dtr/files/");
-        const files = res.data.results || res.data;
-
-        const uploaderMap = {};
-
-        files.forEach((file) => {
-          const u = file.uploaded_by;
-          if (u?.id) {
-            uploaderMap[u.id] = u;
-          }
-        });
-
-        const list = Object.values(uploaderMap);
-        setUploaders(list);
-
-        // Auto-select first uploader
-        if (list.length) {
-          setSelectedUploader(list[0]);
-        }
-      } catch (err) {
-        console.error("Failed to fetch uploaders:", err);
-      }
-    };
-
-    fetchUploaders();
-  }, []);
-
-  /* ----------------------------------
-     Scroll sync logic
-  ---------------------------------- */
+  
+  // --- Scroll sync logic
   useEffect(() => {
     const topScroll = topScrollRef.current;
     const content = rightContentRef.current;
@@ -69,9 +32,7 @@ export default function UploaderReviewModal({ onClose }) {
     };
   }, []);
 
-  /* ----------------------------------
-     ESC key closes modal
-  ---------------------------------- */
+  // --- ESC key closes modal
   useEffect(() => {
     const handleEsc = (e) => {
       if (e.key === "Escape") onClose();
@@ -80,20 +41,7 @@ export default function UploaderReviewModal({ onClose }) {
     return () => window.removeEventListener("keydown", handleEsc);
   }, [onClose]);
 
-  /* ----------------------------------
-     Loading guard
-  ---------------------------------- */
-  if (!selectedUploader) {
-    return (
-      <div className="uploader-modal-overlay">
-        <div className="uploader-modal">
-          <div style={{ padding: "2rem", textAlign: "center" }}>
-            Loading uploaders…
-          </div>
-        </div>
-      </div>
-    );
-  }
+  if (!selectedUploader) return null;
 
   return (
     <div className="uploader-modal-overlay" onClick={onClose}>
@@ -110,7 +58,7 @@ export default function UploaderReviewModal({ onClose }) {
           <h2>Uploader Review: {selectedUploader.username}</h2>
         </div>
 
-        {/* Select Uploader */}
+        {/* Select Uploader Dropdown */}
         <div
           style={{
             display: "flex",
@@ -122,19 +70,18 @@ export default function UploaderReviewModal({ onClose }) {
           }}
         >
           <label style={{ fontWeight: "bold" }}>Select Uploader:</label>
-
           <select
             className="upload-button"
-            value={selectedUploader.id}
+            value={selectedUploader?.id || ""}
             onChange={(e) => {
-              const u = uploaders.find(
+              const newUploader = (uploaders || []).find(
                 (u) => u.id === Number(e.target.value)
               );
-              setSelectedUploader(u);
+              setSelectedUploader(newUploader);
               setSelectedFile(null);
             }}
           >
-            {uploaders.map((u) => (
+            {(uploaders || []).map((u) => (
               <option key={u.id} value={u.id}>
                 {u.username}
               </option>
@@ -159,7 +106,6 @@ export default function UploaderReviewModal({ onClose }) {
                   embedded
                 />
               </div>
-
               {selectedFile && (
                 <div className="file-content-right">
                   <FileContent fileId={selectedFile.id} role="admin" />
@@ -173,7 +119,6 @@ export default function UploaderReviewModal({ onClose }) {
             <div className="right-top-scrollbar" ref={topScrollRef}>
               <div className="scroll-inner" />
             </div>
-
             <div className="right-content-scroll" ref={rightContentRef}>
               <UploadedPDFs
                 uploaderFilter={selectedUploader.id}

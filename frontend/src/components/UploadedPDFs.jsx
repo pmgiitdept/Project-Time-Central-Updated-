@@ -72,7 +72,7 @@ export default function UploadedPDFs({ refreshTrigger , currentUser, uploaderFil
     <div className="dashboard-layout">
       {/* Left sidebar for PDFs */}
       <motion.div
-        className="upload-card sidebar"
+        className="upload-card"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}

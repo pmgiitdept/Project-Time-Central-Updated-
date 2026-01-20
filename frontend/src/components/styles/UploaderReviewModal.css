@@ -56,6 +56,14 @@
   cursor: pointer;
 }
 
+/* --- Body --- */
+.uploader-modal-body.full-util {
+  display: flex;
+  flex: 1;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+}
+
 /* Columns */
 .uploader-column.full-height {
   display: flex;
@@ -65,6 +73,7 @@
 
 /* LEFT COLUMN */
 .uploader-column.left.full-height {
+  flex: 3; /* smaller */
   min-width: 420px;
   display: flex;
   flex-direction: column;
@@ -177,9 +186,6 @@
 
 /* Draggable vertical splitter */
 .horizontal-splitter {
-  position: absolute;
-  top: 0;
-  bottom: 0;
   width: 6px;
   cursor: col-resize;
   background: linear-gradient(
@@ -188,16 +194,11 @@
     #bbb,
     transparent
   );
-  z-index: 20;
-  transition: opacity 0.3s ease;
-}
-
-.horizontal-splitter.auto-hide {
-  opacity: 0;
-}
-
-.uploader-modal-body:hover .horizontal-splitter {
+  border-radius: 4px;
+  margin: 0 2px;
+  position: relative;
   opacity: 1;
+  transition: opacity 0.3s ease;
 }
 
 .horizontal-splitter:hover {
@@ -218,4 +219,12 @@
   right: 1px;
   background: rgba(0, 0, 0, 0.1);
   border-radius: 4px;
+}
+
+.horizontal-splitter.auto-hide {
+  opacity: 0;
+}
+
+.uploader-modal-body:hover .horizontal-splitter {
+  opacity: 1;
 }

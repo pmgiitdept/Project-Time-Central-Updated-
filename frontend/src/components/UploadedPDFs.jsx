@@ -147,9 +147,13 @@ export default function UploadedPDFs({ refreshTrigger , currentUser, uploaderFil
       </motion.div>
 
       {/* Main content for PDF viewer */}
-      <div className="main-content">
-        {selectedPDF && <PDFTextModal pdfData={selectedPDF} currentUser={currentUser} />}
-      </div>
+      {selectedPDF && (
+        <PDFTextModal
+          pdfData={selectedPDF}
+          currentUser={currentUser}
+          onClose={() => setSelectedPDF(null)}
+        />
+      )}
     </div>
   );
 }

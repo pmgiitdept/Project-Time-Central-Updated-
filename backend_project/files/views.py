@@ -148,21 +148,13 @@ class FileViewSet(viewsets.ModelViewSet):
             file_name = instance.file.name
             super().perform_destroy(instance)
             log_action(self.request.user, f"deleted file {file_name}", ip_address=get_client_ip(self.request))
-
-    @action(detail=True, methods=["get"], url_path="status")
-    def get_status(self, request, pk=None):
-        file = self.get_object()
-        return Response({
-            "id": file.id,
-            "status": file.status,
-            "rejection_reason": file.rejection_reason
-        })
-
+    
     @action(detail=True, methods=["patch"], url_path="status", parser_classes=[JSONParser])
     def update_status(self, request, pk=None):
         file = self.get_object()
         previous_status = file.status
 
+        # Apply the new status
         serializer = FileStatusSerializer(file, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -170,6 +162,7 @@ class FileViewSet(viewsets.ModelViewSet):
         new_status = serializer.data.get("status")
         rejection_reason = request.data.get("rejection_reason", None)
 
+        # Log the status change in the audit log
         log_action(
             user=request.user,
             action=(
@@ -182,7 +175,7 @@ class FileViewSet(viewsets.ModelViewSet):
         )
 
         return Response(serializer.data)
-
+    
     @action(detail=True, methods=["get"], url_path="content")
     def get_content(self, request, pk=None):
         file_obj = self.get_object()

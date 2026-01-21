@@ -163,7 +163,6 @@ class FileViewSet(viewsets.ModelViewSet):
         file = self.get_object()
         previous_status = file.status
 
-        # Apply the new status
         serializer = FileStatusSerializer(file, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -171,7 +170,6 @@ class FileViewSet(viewsets.ModelViewSet):
         new_status = serializer.data.get("status")
         rejection_reason = request.data.get("rejection_reason", None)
 
-        # Log the status change in the audit log
         log_action(
             user=request.user,
             action=(
@@ -184,7 +182,7 @@ class FileViewSet(viewsets.ModelViewSet):
         )
 
         return Response(serializer.data)
-    
+
     @action(detail=True, methods=["get"], url_path="content")
     def get_content(self, request, pk=None):
         file_obj = self.get_object()

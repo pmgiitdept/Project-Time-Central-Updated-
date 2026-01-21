@@ -70,18 +70,16 @@ export default function FileTable({ role, setSelectedFile, uploaderFilter = null
     }
   };
 
-  // ✅ Update file status
   const handleStatusChange = async (fileId, newStatus) => {
-    if (newStatus === "rejected") {
-      setRejectingFileId(fileId);
-      return;
-    }
+  if (newStatus === "rejected") {
+    setRejectingFileId(fileId);
+    return;
+  }
 
-    const token = localStorage.getItem("access_token");
+  const token = localStorage.getItem("access_token");
     try {
-      // PATCH to the custom DRF action endpoint
       await api.patch(
-        `/files/dtr/files/${fileId}/status/`,
+        `/files/dtr/files/${fileId}/`,
         { status: newStatus, rejection_reason: null },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -95,8 +93,7 @@ export default function FileTable({ role, setSelectedFile, uploaderFilter = null
       );
 
       toast.success(`Status updated to ${newStatus}`);
-    } catch (err) {
-      console.error(err);
+    } catch {
       toast.error("Failed to update status");
     }
   };
@@ -247,11 +244,14 @@ export default function FileTable({ role, setSelectedFile, uploaderFilter = null
               <button
                 className="action-btn delete"
                 onClick={async () => {
-                  const token = localStorage.getItem("access_token");
                   try {
+                    const token = localStorage.getItem("access_token");
                     await api.patch(
-                      `/files/dtr/files/${rejectingFileId}/status/`,
-                      { status: "rejected", rejection_reason: rejectionReason },
+                      `/files/dtr/files/${rejectingFileId}/`,
+                      {
+                        status: "rejected",
+                        rejection_reason: rejectionReason,
+                      },
                       { headers: { Authorization: `Bearer ${token}` } }
                     );
 
@@ -264,8 +264,7 @@ export default function FileTable({ role, setSelectedFile, uploaderFilter = null
                     );
 
                     toast.success("File rejected");
-                  } catch (err) {
-                    console.error(err);
+                  } catch {
                     toast.error("Failed to reject file");
                   } finally {
                     setRejectingFileId(null);

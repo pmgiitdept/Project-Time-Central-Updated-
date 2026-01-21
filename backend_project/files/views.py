@@ -149,21 +149,26 @@ class FileViewSet(viewsets.ModelViewSet):
         file = self.get_object()
         previous_status = file.status
 
+        # Apply the new status
         serializer = FileStatusSerializer(file, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
         new_status = serializer.data.get("status")
+        rejection_reason = request.data.get("rejection_reason", None)
 
-        if new_status == "rejected" and previous_status != "rejected":
-            user = file.owner
-            if user.phone_number:
-                try:
-                    send_rejection_sms(user.phone_number, file.file.name, user=user)
-                except Exception as e:
-                    log_action(request.user, f"failed to send rejection SMS to {user.username}: {str(e)}", status="error")
+        # Log the status change in the audit log
+        log_action(
+            user=request.user,
+            action=(
+                f"Updated status of file '{file.file.name}' "
+                f"from '{previous_status}' to '{new_status}'"
+                + (f" | Rejection reason: {rejection_reason}" if new_status == "rejected" and rejection_reason else "")
+            ),
+            status="success",
+            ip_address=get_client_ip(request)
+        )
 
-        log_action(request.user, f"updated status of file {file.file.name} to {new_status}", ip_address=get_client_ip(request))
         return Response(serializer.data)
     
     @action(detail=True, methods=["get"], url_path="content")

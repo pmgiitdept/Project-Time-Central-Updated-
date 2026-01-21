@@ -23,10 +23,10 @@ def get_client_ip(request) -> Optional[str]:
 
 
 def log_action(user, action: str, status: str = "success", ip: Optional[str] = None) -> None:
-    """
-    Create an audit log entry for a given action.
-    If user is not authenticated, stores None as user.
-    """
+    if getattr(user, "is_authenticated", False):
+        print(f"Logging action for {user.username}")
+    else:
+        print("Logging action for anonymous user")
     AuditLog.objects.create(
         user=user if getattr(user, "is_authenticated", False) else None,
         action=action,

@@ -70,31 +70,41 @@ export default function FileTable({ role, setSelectedFile, uploaderFilter = null
     }
   };
 
-  const handleStatusChange = async (fileId, newStatus) => {
-  if (newStatus === "rejected") {
-    setRejectingFileId(fileId);
-    return;
-  }
+  // ----------------------------
+  // Status change handler
+  // ----------------------------
+  const handleStatusChange = async (fileId, newStatus, rejectionReason = null) => {
+    const token = localStorage.getItem("access_token");
 
-  const token = localStorage.getItem("access_token");
     try {
+      const payload = { status: newStatus };
+      if (rejectionReason) payload.rejection_reason = rejectionReason;
+
       await api.patch(
-        `/files/dtr/files/${fileId}/`,
-        { status: newStatus, rejection_reason: null },
+        `/files/dtr/files/${fileId}/status/`,
+        payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       setFiles(prev =>
         prev.map(file =>
           file.id === fileId
-            ? { ...file, status: newStatus, rejection_reason: null }
+            ? { ...file, status: newStatus, rejection_reason: rejectionReason }
             : file
         )
       );
 
-      toast.success(`Status updated to ${newStatus}`);
-    } catch {
+      toast.success(
+        newStatus === "rejected"
+          ? "File rejected"
+          : `Status updated to ${newStatus}`
+      );
+    } catch (err) {
+      console.error(err);
       toast.error("Failed to update status");
+    } finally {
+      setRejectingFileId(null);
+      setRejectionReason("");
     }
   };
 
@@ -402,15 +412,24 @@ export default function FileTable({ role, setSelectedFile, uploaderFilter = null
 
                             <td>
                               {(role === "admin" || role === "viewer") ? (
-                                <select
-                                  value={file.status}
-                                  onChange={(e) => handleStatusChange(file.id, e.target.value)}
-                                  className={`status-select ${file.status}`}
-                                >
-                                  <option value="pending">Pending</option>
-                                  <option value="verified">Verified</option>
-                                  <option value="rejected">Rejected</option>
-                                </select>
+                               <select
+                                value={file.status}
+                                onChange={(e) => {
+                                  const newStatus = e.target.value;
+
+                                  // If user selects "rejected", open modal
+                                  if (newStatus === "rejected") {
+                                    setRejectingFileId(file.id);
+                                  } else {
+                                    handleStatusChange(file.id, newStatus);
+                                  }
+                                }}
+                                className={`status-select ${file.status}`}
+                              >
+                                <option value="pending">Pending</option>
+                                <option value="verified">Verified</option>
+                                <option value="rejected">Rejected</option>
+                              </select>
                               ) : (
                                 <span className={`status-badge status-${file.status}`}>
                                   {file.status}

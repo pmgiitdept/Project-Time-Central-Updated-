@@ -1467,37 +1467,43 @@ class DTRFileViewSet(viewsets.ModelViewSet):
             daily_start_col += 1
 
         # ----------------------------
-        # 📊 DATA ROWS
+        # Helper function
         # ----------------------------
-        totals = [0] * total_columns
-        row_idx = table_start + 2
-        max_col_lengths = [
-            len(str(h)) for h in headers_left + [d.strftime("%a") for d in dates] + headers_right
-        ]
+        def is_number(val):
+            try:
+                float(val)
+                return True
+            except (TypeError, ValueError):
+                return False
 
+        # ----------------------------
+        # Data rows
+        # ----------------------------
+        row_idx = table_start + 2
         daily_col_start = 7
         daily_col_end = daily_col_start + len(dates) - 1
 
-        def to_number(val):
-            """Convert to float if possible, else return None"""
-            try:
-                return float(val)
-            except (TypeError, ValueError):
-                return None
-
         for idx, entry in enumerate(dtr.entries.all(), start=1):
-            daily_vals = [entry.daily_data.get(str(d), "") for d in dates]
+            daily_vals = [entry.daily_data.get(d.strftime("%Y-%m-%d"), "") for d in dates]
+
+            # Compute numeric-only totals
+            numeric_vals = [float(v) for v in daily_vals if is_number(v)]
+            total_days = len(numeric_vals)
+            total_hours = sum(numeric_vals)
+            regular_ot = sum(max(v - 8, 0) for v in numeric_vals)
+
+            # Values to write
             values = (
                 [idx, entry.full_name, entry.employee_no, entry.position, entry.shift, entry.time]
                 + daily_vals
                 + [
-                    entry.total_days,
-                    entry.total_hours,
-                    entry.undertime_minutes,
-                    entry.regular_ot,
-                    entry.legal_holiday,
-                    entry.special_holiday,
-                    entry.night_diff,
+                    total_days,
+                    total_hours,
+                    entry.undertime_minutes or 0,
+                    regular_ot,
+                    entry.legal_holiday or 0,
+                    entry.special_holiday or 0,
+                    entry.night_diff or 0,
                 ]
             )
 
@@ -1507,7 +1513,7 @@ class DTRFileViewSet(viewsets.ModelViewSet):
                 cell.border = border
                 cell.alignment = center if c != 2 else left
 
-                # 🎨 DAILY VALUE COLORING
+                # 🎨 Daily coloring
                 if daily_col_start <= c <= daily_col_end:
                     if v in ("", None):
                         cell.fill = blank_fill
@@ -1515,21 +1521,6 @@ class DTRFileViewSet(viewsets.ModelViewSet):
                         cell.fill = absent_fill
                     elif str(v).upper() == "D":
                         cell.fill = dayoff_fill
-
-                # ✅ GRAND TOTALS
-                if daily_col_start <= c <= daily_col_end:
-                    if to_number(v) is not None:
-                        totals[c - 1] += 1
-                elif c > daily_col_end:
-                    num = to_number(v)
-                    if num is not None:
-                        totals[c - 1] += num
-
-                # Update max column length for auto width
-                max_col_lengths[c - 1] = max(
-                    max_col_lengths[c - 1],
-                    len(str(v)) if v is not None else 0
-                )
 
             ws.row_dimensions[row_idx].height = 18
             row_idx += 1

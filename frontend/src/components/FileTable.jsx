@@ -77,26 +77,29 @@ export default function FileTable({ role, setSelectedFile, uploaderFilter = null
   }
 
   const token = localStorage.getItem("access_token");
-    try {
-      await api.patch(
-        `/api/files/dtr/files/${fileId}/status/`,
-        { status: newStatus, rejection_reason: null },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
 
-      setFiles(prev =>
-        prev.map(file =>
-          file.id === fileId
-            ? { ...file, status: newStatus, rejection_reason: null }
-            : file
-        )
-      );
+  try {
+    await api.patch(
+      `/files/dtr/files/${fileId}/status/`,  // ✅ no extra /api
+      { status: newStatus, rejection_reason: null },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
 
-      toast.success(`Status updated to ${newStatus}`);
-    } catch {
-      toast.error("Failed to update status");
-    }
-  };
+    setFiles(prev =>
+      prev.map(file =>
+        file.id === fileId
+          ? { ...file, status: newStatus, rejection_reason: null }
+          : file
+      )
+    );
+
+    toast.success(`Status updated to ${newStatus}`);
+  } catch (err) {
+    console.error(err);
+    toast.error("Failed to update status");
+  }
+};
+
 
   const getFilteredFiles = () => {
     return files.filter((file) => {
@@ -242,38 +245,41 @@ export default function FileTable({ role, setSelectedFile, uploaderFilter = null
             <div className="modal-actions">
               <button onClick={() => setRejectingFileId(null)}>Cancel</button>
               <button
-                className="action-btn delete"
-                onClick={async () => {
-                  try {
-                    const token = localStorage.getItem("access_token");
-                    await api.patch(
-                      `/api/files/dtr/files/${rejectingFileId}/status/`,
-                      {
-                        status: "rejected",
-                        rejection_reason: rejectionReason,
-                      },
-                      { headers: { Authorization: `Bearer ${token}` } }
-                    );
+  className="action-btn delete"
+  onClick={async () => {
+    try {
+      const token = localStorage.getItem("access_token");
 
-                    setFiles(prev =>
-                      prev.map(file =>
-                        file.id === rejectingFileId
-                          ? { ...file, status: "rejected", rejection_reason: rejectionReason }
-                          : file
-                      )
-                    );
+      await api.patch(
+        `/files/dtr/files/${rejectingFileId}/status/`, // ✅ correct path
+        {
+          status: "rejected",
+          rejection_reason: rejectionReason,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-                    toast.success("File rejected");
-                  } catch {
-                    toast.error("Failed to reject file");
-                  } finally {
-                    setRejectingFileId(null);
-                    setRejectionReason("");
-                  }
-                }}
-              >
-                Reject
-              </button>
+      setFiles(prev =>
+        prev.map(file =>
+          file.id === rejectingFileId
+            ? { ...file, status: "rejected", rejection_reason: rejectionReason }
+            : file
+        )
+      );
+
+      toast.success("File rejected");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to reject file");
+    } finally {
+      setRejectingFileId(null);
+      setRejectionReason("");
+    }
+  }}
+>
+  Reject
+</button>
+
             </div>
           </div>
         </div>

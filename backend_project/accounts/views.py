@@ -19,7 +19,8 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from .models import User
 from .serializers import UserSerializer, RegisterSerializer
-
+from files.utils import log_action
+from files.utils import get_client_ip
 
 # Timeout used for determining online status
 ONLINE_TIMEOUT = timedelta(minutes=5)
@@ -65,9 +66,6 @@ class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
-    """
-    Custom JWT serializer that adds role info and updates online status.
-    """
 
     @classmethod
     def get_token(cls, user):
@@ -79,11 +77,18 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         data = super().validate(attrs)
         user = self.user
 
-        # Update online state & last seen
+        # Update online state
         user.is_online = True
         user.last_seen = timezone.now()
         user.save(update_fields=["is_online", "last_seen"])
         update_last_login(None, user)
+
+        # ✅ AUDIT LOG HERE
+        log_action(
+            user,
+            "login",
+            ip=get_client_ip(self.context["request"])
+        )
 
         data.update({
             "role": user.role.lower(),
@@ -100,26 +105,28 @@ class MyTokenObtainPairView(TokenObtainPairView):
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def custom_login(request):
-    """
-    Legacy/simple login (bypasses JWT auth). Use only for testing.
-    """
     username = request.data.get("username")
     password = request.data.get("password")
 
     if not username or not password:
-        return Response({"detail": "Username and password required."}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"detail": "Username and password required."}, status=400)
 
     user = authenticate(username=username, password=password)
     if not user:
-        return Response({"detail": "Invalid credentials."}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({"detail": "Invalid credentials."}, status=401)
 
-    # Update online status
     user.is_online = True
     user.last_seen = timezone.now()
     user.save(update_fields=["is_online", "last_seen"])
     update_last_login(None, user)
 
-    # Generate tokens manually
+    # ✅ AUDIT LOG HERE
+    log_action(
+        user,
+        "login",
+        ip=get_client_ip(request)
+    )
+
     refresh = RefreshToken.for_user(user)
 
     return Response({

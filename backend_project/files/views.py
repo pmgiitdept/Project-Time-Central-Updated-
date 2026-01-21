@@ -149,6 +149,15 @@ class FileViewSet(viewsets.ModelViewSet):
             super().perform_destroy(instance)
             log_action(self.request.user, f"deleted file {file_name}", ip_address=get_client_ip(self.request))
 
+    @action(detail=True, methods=["get"], url_path="status")
+    def get_status(self, request, pk=None):
+        file = self.get_object()
+        return Response({
+            "id": file.id,
+            "status": file.status,
+            "rejection_reason": file.rejection_reason
+        })
+
     @action(detail=True, methods=["patch"], url_path="status", parser_classes=[JSONParser])
     def update_status(self, request, pk=None):
         file = self.get_object()

@@ -641,31 +641,6 @@ def file_stats(request):
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def file_audit_logs(request):
-    # Filter logs that are relevant to file actions
-    logs = AuditLog.objects.filter(
-        action__icontains="uploaded"
-    ).union(
-        AuditLog.objects.filter(action__icontains="deleted")
-    ).union(
-        AuditLog.objects.filter(action__icontains="Updated status")
-    ).order_by("-timestamp")
-
-    data = [
-        {
-            "user": log.user.username if log.user else "Unknown",
-            "role": log.user.role if log.user else "Unknown",
-            "action": log.action,
-            "status": log.status,
-            "ip_address": log.ip_address,
-            "timestamp": log.timestamp,
-        }
-        for log in logs
-    ]
-    return Response(data)
-
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
 def rejected_files(request):
     user = request.user
     files = File.objects.filter(owner=user, status="rejected").order_by("-uploaded_at")

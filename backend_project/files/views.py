@@ -16,7 +16,6 @@ from django.db.models import Count, Q
 from django.db.models.functions import TruncDay, TruncWeek, TruncMonth
 from .utils import log_action, get_client_ip
 from django.core.exceptions import ValidationError
-from .utils import send_rejection_sms
 import pandas as pd
 from decimal import Decimal, InvalidOperation
 from datetime import timedelta

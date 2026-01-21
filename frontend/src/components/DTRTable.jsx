@@ -185,11 +185,11 @@ export default function DTRTable({ role , fileId}) {
   };
 
   const staticColumns = [
-    { key: "full_name", label: "Full Name" },
-    { key: "employee_no", label: "Employee #" },
+    { key: "full_name", label: "Full Name" }
   ];
 
   const extraColumns = [
+    { key: "employee_no", label: "Employee #" },
     { key: "position", label: "Position" },
     { key: "shift", label: "Shift" },
     { key: "time", label: "Time" },

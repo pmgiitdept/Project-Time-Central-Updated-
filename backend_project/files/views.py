@@ -642,8 +642,13 @@ def file_stats(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def file_audit_logs(request):
+    # Filter logs that are relevant to file actions
     logs = AuditLog.objects.filter(
-        action__in=["upload", "delete", "update"]
+        action__icontains="uploaded"
+    ).union(
+        AuditLog.objects.filter(action__icontains="deleted")
+    ).union(
+        AuditLog.objects.filter(action__icontains="Updated status")
     ).order_by("-timestamp")
 
     data = [

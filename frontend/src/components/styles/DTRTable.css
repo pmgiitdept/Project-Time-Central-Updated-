@@ -348,6 +348,14 @@
   z-index: 5;
 }
 
+.dtr-table th:nth-child(2),
+.dtr-table td:nth-child(2) {
+  position: sticky;
+  left: 90px;
+  min-width: 90px;
+  background: #fff;
+  z-index: 5;
+}
 
 .dtr-table td.edit-column {
   position: sticky;

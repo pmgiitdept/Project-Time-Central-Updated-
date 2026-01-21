@@ -79,7 +79,7 @@ export default function FileTable({ role, setSelectedFile, uploaderFilter = null
   const token = localStorage.getItem("access_token");
     try {
       await api.patch(
-        `/files/files/${fileId}/status/`,
+        `/files/dtr/files/${fileId}/`,
         { status: newStatus, rejection_reason: null },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -247,7 +247,7 @@ export default function FileTable({ role, setSelectedFile, uploaderFilter = null
                   try {
                     const token = localStorage.getItem("access_token");
                     await api.patch(
-                      `/files/files/${rejectingFileId}/status/`,
+                      `/files/dtr/files/${rejectingFileId}/`,
                       {
                         status: "rejected",
                         rejection_reason: rejectionReason,

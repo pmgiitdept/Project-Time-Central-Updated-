@@ -48,8 +48,14 @@ class FileViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
+
+        # 🔓 Allow full access for status updates
+        if self.action == "update_status" and user.role in ["admin", "viewer"]:
+            return File.objects.all().order_by("-uploaded_at")
+
         if user.role == "client":
             return File.objects.filter(owner=user).order_by("-uploaded_at")
+
         return File.objects.all().order_by("-uploaded_at")
 
     def get_permissions(self):

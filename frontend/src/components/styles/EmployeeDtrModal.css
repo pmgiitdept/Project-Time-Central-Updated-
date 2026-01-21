@@ -91,22 +91,6 @@
   min-width: 120px;
 }
 
-.dtr-table th:nth-child(2){
-  position: sticky;
-  left: 130px;                /* adjust left for smaller column */
-  background: linear-gradient(135deg, #41099b, #7528cc);
-  min-width: 90px;            /* narrower column */
-  font-weight: bold;
-}
-
-.dtr-table td:nth-child(2) {
-  position: sticky;
-  left: 130px;
-  z-index: 3;
-  background: #ffffff;
-  min-width: 90px;
-}
-
 /*
 .dtr-table th:nth-child(3) {
   position: sticky;

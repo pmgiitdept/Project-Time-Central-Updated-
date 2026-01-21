@@ -185,11 +185,11 @@ export default function DTRTable({ role , fileId}) {
   };
 
   const staticColumns = [
-    { key: "full_name", label: "Full Name" }
+    { key: "full_name", label: "Full Name" },
+    { key: "employee_no", label: "Employee #" },
   ];
 
   const extraColumns = [
-    { key: "employee_no", label: "Employee #" },
     { key: "position", label: "Position" },
     { key: "shift", label: "Shift" },
     { key: "time", label: "Time" },
@@ -359,25 +359,22 @@ export default function DTRTable({ role , fileId}) {
                         </td>
                       )}
 
-                      {/* Extra Columns */}
-                      {extraColumns.map(
-                        (col) =>
-                          !hiddenColumns.includes(col.key) && (
-                            <td key={col.key}>
-                              {editableRow === rIdx ? (
-                                <input
-                                  type="text"
-                                  value={row?.[col.key] ?? ""}
-                                  onChange={(e) =>
-                                    handleEditChange(rIdx, col.key, e.target.value)
-                                  }
-                                  className="editable-input"
-                                />
-                              ) : (
-                                row?.[col.key] ?? "-"
-                              )}
-                            </td>
-                          )
+                      {/* Employee # - Sticky Col */}
+                      {!hiddenColumns.includes("employee_no") && (
+                        <td>
+                          {editableRow === rIdx ? (
+                            <input
+                              type="text"
+                              value={row?.employee_no ?? ""}
+                              onChange={(e) =>
+                                handleEditChange(rIdx, "employee_no", e.target.value)
+                              }
+                              className="editable-input"
+                            />
+                          ) : (
+                            row?.employee_no ?? "-"
+                          )}
+                        </td>
                       )}
 
                       {/* Daily Data Columns */}

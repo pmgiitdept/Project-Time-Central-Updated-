@@ -1016,6 +1016,19 @@ class DTRFileViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.data)
     
+    @action(detail=True, methods=["post"], url_path="log-update")
+    def log_update(self, request, pk=None):
+        dtr = self.get_object()
+        message = request.data.get("message", "Updated DTR")
+
+        log_action(
+            user=request.user,
+            action=f"{message} - DTR File ID {dtr.id}",
+            ip_address=request.META.get("REMOTE_ADDR"),
+        )
+
+        return Response({"detail": "Audit log created."}, status=201)
+    
     @action(detail=True, methods=["get"], url_path="download")
     def download(self, request, pk=None):
         file = self.get_object()

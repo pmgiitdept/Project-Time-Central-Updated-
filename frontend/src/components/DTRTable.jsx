@@ -122,6 +122,12 @@ export default function DTRTable({ role , fileId}) {
       await api.post(`/files/dtr/files/${selectedFile}/update-rows/`, { rows: fileContents });
       toast.success("DTR updated successfully!");
       await handleViewFile();
+
+      // 🔹 Audit log
+      await api.post(`/files/dtr/files/${selectedFile}/log-update/`, {
+        message: `Updated entire DTR file (${fileContents.length} rows)`,
+      });
+
     } catch (err) {
       toast.error("Failed to save changes.");
     } finally {
@@ -153,11 +159,16 @@ export default function DTRTable({ role , fileId}) {
     try {
       setSaving(true);
       const rowToSave = fileContents[rIdx];
-      // API expects { rows: [...] } — send single row
+
       await api.post(`/files/dtr/files/${selectedFile}/update-rows/`, { rows: [rowToSave] });
       toast.success("Row updated successfully!");
-      // refresh list / content
       await handleViewFile(selectedFile);
+
+      // 🔹 Audit log for single row
+      await api.post(`/files/dtr/files/${selectedFile}/log-update/`, {
+        message: `Updated DTR row id=${rowToSave.id} (${rowToSave.full_name})`,
+      });
+
       originalRowRef.current = null;
       setEditableRow(null);
     } catch (err) {

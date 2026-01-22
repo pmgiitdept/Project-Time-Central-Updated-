@@ -550,7 +550,6 @@
 .dtr-table th.sticky-col {
   background: #1e40af; 
   color: #f9fafb;
-  z-index: 5;
   font-weight: 700;
 }
 

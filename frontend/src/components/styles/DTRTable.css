@@ -111,7 +111,6 @@
 .dtr-table th.sticky-col {
   background: #1e40af;
   color: #f9fafb;
-  z-index: 5;
   font-weight: 700;
   font-size: 0.65rem;      /* smaller sticky header */
 }
@@ -354,7 +353,6 @@
   left: 90px;
   min-width: 90px;
   background: #fff;
-  z-index: 5;
 }
 
 .dtr-table td.edit-column {

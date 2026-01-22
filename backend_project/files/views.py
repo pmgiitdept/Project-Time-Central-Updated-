@@ -999,8 +999,7 @@ class DTRFileViewSet(viewsets.ModelViewSet):
 
         log_action(
             user=request.user,
-            action="update",  # short, for stats and filtering
-            description=(
+            action=(
                 f"Updated status of file '{file.file.name}' "
                 f"from '{previous_status}' to '{new_status}'"
                 + (
@@ -1014,7 +1013,7 @@ class DTRFileViewSet(viewsets.ModelViewSet):
         )
 
         return Response(serializer.data)
-
+    
     @action(detail=True, methods=["get"], url_path="download")
     def download(self, request, pk=None):
         file = self.get_object()

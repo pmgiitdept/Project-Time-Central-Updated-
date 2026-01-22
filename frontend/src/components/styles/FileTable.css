@@ -289,6 +289,7 @@
 
 .table-scroll-container {
   width: 100%;
+  max-height: 320px;
   overflow-x: auto;   
   overflow-y: hidden; 
   margin-bottom: 0.5rem;
@@ -423,6 +424,14 @@
   .file-table {
     width: 100%;
     overflow-x: auto; 
+  }
+
+  .file-table thead th {
+    position: sticky;
+    top: 0;
+    background: #f9fafb;
+    z-index: 2;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
   }
 
   .file-table th,

@@ -1146,6 +1146,7 @@ export default function AdminDashboard() {
               </div>
             </motion.div>
           )}
+          
           {/* Audit Logs Section */}
           {activeSection === "audit" && (
             <motion.div
@@ -1312,7 +1313,12 @@ export default function AdminDashboard() {
                               {log.role || "-"}
                             </span>
                           </td>
-                          <td>{log.action}</td>
+                          <td>
+                            <strong>{log.action}</strong>
+                            {log.details && (
+                              <div className="text-xs text-gray-500">{log.details}</div>
+                            )}
+                          </td>
                           <td>
                             <span
                               className={`status-badge ${

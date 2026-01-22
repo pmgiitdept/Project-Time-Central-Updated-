@@ -26,12 +26,13 @@ from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from openpyxl.drawing.image import Image
 from openpyxl.utils import get_column_letter
 
-def log_action(user, action, status="success", ip_address=None):
+def log_action(user, action, status="success", ip_address=None, details=""):
     AuditLog.objects.create(
         user=user if user.is_authenticated else None,
         action=action,
         status=status,
-        ip_address=ip_address
+        ip_address=ip_address,
+        details=details
     )
 
 class FileViewSet(viewsets.ModelViewSet):
@@ -171,19 +172,22 @@ class FileViewSet(viewsets.ModelViewSet):
         new_status = serializer.validated_data.get("status")
         rejection_reason = serializer.validated_data.get("rejection_reason")
 
+        # ✅ Build readable details
+        details = (
+            f"File '{file.file.name}' status changed "
+            f"from '{previous_status}' to '{new_status}'"
+        )
+
+        if new_status == "rejected" and rejection_reason:
+            details += f" | Reason: {rejection_reason}"
+
+        # ✅ LOG USING ACTION CHOICES
         log_action(
             user=request.user,
-            action=(
-                f"Updated status of file '{file.file.name}' "
-                f"from '{previous_status}' to '{new_status}'"
-                + (
-                    f" | Rejection reason: {rejection_reason}"
-                    if new_status == "rejected" and rejection_reason
-                    else ""
-                )
-            ),
+            action="update_status",   # 👈 MUST match choices
             status="success",
-            ip_address=get_client_ip(request)
+            ip_address=get_client_ip(request),
+            details=details
         )
 
         return Response(serializer.data)

@@ -1192,6 +1192,13 @@ class DTRFileViewSet(viewsets.ModelViewSet):
             status="pending",  # same lifecycle
         )
 
+        # 🔹 Log manual creation for audit
+        log_action(
+            user=request.user,
+            action=f"Created manual DTR: {dtr_file.id} ({start_date} to {end_date})",
+            ip_address=request.META.get("REMOTE_ADDR")
+        )
+
         # 2️⃣ Create DTREntry rows (same fields parse() fills)
         for row in rows:
             DTREntry.objects.create(

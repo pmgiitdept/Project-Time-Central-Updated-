@@ -505,22 +505,31 @@ export default function AdminDashboard() {
     try {
       const response = await api.get("/files/audit-logs/");
 
-      // console.log("Audit logs fetched:", response.data);
-
       const logs = Array.isArray(response.data)
         ? response.data
         : Array.isArray(response.data.results)
         ? response.data.results
         : [];
 
-      const normalizedLogs = logs.map((log) => ({
-        user: log.user || "Unknown",
-        role: log.role || "-",
-        action: log.action || "-",
-        status: log.status || "success",
-        ip_address: log.ip_address || "N/A",
-        timestamp: log.timestamp ? new Date(log.timestamp) : new Date(),
-      }));
+      const normalizedLogs = logs.map((log) => {
+        // Try to extract file name from the action/description
+        let fileName = null;
+        const match = log.action.match(/file '(.*?)'/);
+        if (match && match[1]) {
+          fileName = match[1];
+        }
+
+        return {
+          user: log.user || "Unknown",
+          role: log.role || "-",
+          action: log.action || "-",
+          description: log.action, // keep full text
+          fileName: fileName,       // extracted file name
+          status: log.status || "success",
+          ip_address: log.ip_address || "N/A",
+          timestamp: log.timestamp ? new Date(log.timestamp) : new Date(),
+        };
+      });
 
       setAuditLogs(normalizedLogs);
     } catch (error) {
@@ -1272,6 +1281,7 @@ export default function AdminDashboard() {
                       <th onClick={() => handleSort("user")}>User</th>
                       <th onClick={() => handleSort("role")}>Role</th>
                       <th onClick={() => handleSort("action")}>Action</th>
+                      <th onClick={() => handleSort("fileName")}>FileName</th>
                       <th onClick={() => handleSort("status")}>Status</th>
                       <th onClick={() => handleSort("ip_address")}>IP</th>
                       <th onClick={() => handleSort("timestamp")}>Timestamp</th>
@@ -1312,6 +1322,7 @@ export default function AdminDashboard() {
                               {log.role || "-"}
                             </span>
                           </td>
+                          <td>{log.fileName || "Manual DTR"}</td>
                           <td>{log.description || log.action}</td>
                           <td>
                             <span

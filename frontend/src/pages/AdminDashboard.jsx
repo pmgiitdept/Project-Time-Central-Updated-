@@ -1313,7 +1313,7 @@ export default function AdminDashboard() {
                               {log.role || "-"}
                             </span>
                           </td>
-                          <td>{log.action}</td>
+                          <td>{log.description || log.action}</td>
                           <td>
                             <span
                               className={`status-badge ${

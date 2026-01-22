@@ -1313,12 +1313,7 @@ export default function AdminDashboard() {
                               {log.role || "-"}
                             </span>
                           </td>
-                          <td>
-                            <strong>{log.action}</strong>
-                            {log.details && (
-                              <div className="text-xs text-gray-500">{log.details}</div>
-                            )}
-                          </td>
+                          <td>{log.action}</td>
                           <td>
                             <span
                               className={`status-badge ${

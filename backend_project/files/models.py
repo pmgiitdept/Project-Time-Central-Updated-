@@ -21,32 +21,14 @@ class File(models.Model):
 
 
 class AuditLog(models.Model):
-    ACTION_CHOICES = [
-        ("login", "Login"),
-        ("upload", "File Upload"),
-        ("delete", "File Delete"),
-        ("update_status", "File Status Update"),
-    ]
-
-    STATUS_CHOICES = [
-        ("success", "Success"),
-        ("failed", "Failed"),
-    ]
-
-    user = models.ForeignKey(
-        "accounts.User",
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True
-    )
-    action = models.CharField(max_length=50, choices=ACTION_CHOICES)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="success")
-    details = models.TextField(blank=True)   # 👈 NEW
+    user = models.ForeignKey("accounts.User", on_delete=models.CASCADE, null=True, blank=True)
+    action = models.CharField(max_length=255)
+    status = models.CharField(max_length=20, default="success")
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.user or 'Unknown'} - {self.action}"
+        return f"{self.user.username if self.user else 'Unknown'} - {self.action} at {self.timestamp}"
 
 
 class SystemSettings(models.Model):

@@ -123,7 +123,6 @@ export default function AdminDashboard() {
 
         files.forEach((file) => {
           const uploader = file.uploaded_by;
-
           if (uploader && uploader.id) {
             uploaderMap[uploader.id] = uploader;
           }
@@ -211,8 +210,8 @@ export default function AdminDashboard() {
   const sortedLogs = [...auditLogs].sort((a, b) => {
     if (!sortConfig.key) return 0;
 
-    const valA = a[sortConfig.key];
-    const valB = b[sortConfig.key];
+    const valA = a[sortConfig.key] ?? a.description ?? "";
+    const valB = b[sortConfig.key] ?? b.description ?? "";
 
     if (sortConfig.key === "timestamp") {
       return sortConfig.direction === "asc"
@@ -239,12 +238,12 @@ export default function AdminDashboard() {
   };
 
   const [timeFilter, setTimeFilter] = useState("monthly");
-  
+
   const handleDownloadLogs = () => {
     const filteredLogs = sortedLogs.filter((log) => {
       const matchesSearch =
         log.user.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        log.action.toLowerCase().includes(searchQuery.toLowerCase());
+        (log.description ?? log.action).toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchesAction = actionFilter ? log.action === actionFilter : true;
       const matchesRole = roleFilter ? log.role === roleFilter : true;
@@ -258,7 +257,7 @@ export default function AdminDashboard() {
       return matchesSearch && matchesAction && matchesRole && matchesStatus && matchesDate;
     });
 
-    const headers = ["User", "Role", "Action", "Status", "IP", "Timestamp"];
+    const headers = ["User", "Role", "Action / Description", "Status", "IP", "Timestamp"];
     const rows = filteredLogs.map((log) => [
       log.user,
       log.role || "-",
@@ -268,7 +267,7 @@ export default function AdminDashboard() {
       new Date(log.timestamp).toLocaleString(),
     ]);
 
-    const csvContent = [headers, ...rows].map(row => row.join(",")).join("\n");
+    const csvContent = [headers, ...rows].map((row) => row.join(",")).join("\n");
 
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);

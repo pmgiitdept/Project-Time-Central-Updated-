@@ -4,36 +4,6 @@ import api from "../api";
 import { toast } from "react-toastify";
 import "./styles/DTRTable.css";
 
-const isNumeric = (val) => {
-  if (val === null || val === undefined) return false;
-  return !isNaN(val) && val !== "" && Number(val) >= 0;
-};
-
-const calculateTotals = (dailyData) => {
-  let totalHours = 0;
-  let overtime = 0;
-  let totalDays = 0;
-
-  Object.values(dailyData || {}).forEach((val) => {
-    if (isNumeric(val)) {
-      const hours = Number(val);
-      totalHours += hours;
-
-      if (hours > 8) {
-        overtime += hours - 8;
-      }
-
-      totalDays += 1;
-    }
-  });
-
-  return {
-    total_hours: totalHours,
-    regular_ot: overtime,
-    total_days: totalDays,
-  };
-};
-
 export default function DTRTable({ role , fileId}) {
   const [dtrFiles, setDtrFiles] = useState([]);
   const [selectedFile, setSelectedFile] = useState("");
@@ -135,21 +105,8 @@ export default function DTRTable({ role , fileId}) {
       const row = { ...updated[rowIndex] };
 
       if (dateKey) {
-        // Update daily data cell
-        const newDailyData = {
-          ...row.daily_data,
-          [dateKey]: value,
-        };
-
-        // 🔥 Recalculate totals
-        const totals = calculateTotals(newDailyData);
-
-        row.daily_data = newDailyData;
-        row.total_hours = totals.total_hours;
-        row.regular_ot = totals.regular_ot;
-        row.total_days = totals.total_days;
+        row.daily_data = { ...row.daily_data, [dateKey]: value };
       } else {
-        // Non-daily editable fields (name, shift, etc.)
         row[field] = value;
       }
 
@@ -209,7 +166,7 @@ export default function DTRTable({ role , fileId}) {
 
       // 🔹 Audit log for single row
       await api.post(`/files/dtr/files/${selectedFile}/log-update/`, {
-        message: `Updated DTR row for ${rowToSave.full_name} (row ID: ${rowToSave.id})`,
+        message: `Updated DTR row id=${rowToSave.id} (${rowToSave.full_name})`,
       });
 
       originalRowRef.current = null;
@@ -238,8 +195,6 @@ export default function DTRTable({ role , fileId}) {
     );
   };
 
-  const computedColumns = ["total_days", "total_hours", "regular_ot"];
-
   const staticColumns = [
     { key: "full_name", label: "Full Name" },
     { key: "employee_no", label: "Employee #" },
@@ -265,29 +220,31 @@ export default function DTRTable({ role , fileId}) {
   const [isFullTableOpen, setIsFullTableOpen] = useState(false);
 
   // 🔍 Filter fileContents by searchTerm
-  const filteredContents = fileContents
-    .map((row, index) => ({ row, index }))
-    .filter(({ row }) => {
-      if (!searchTerm.trim()) return true;
-      const term = searchTerm.toLowerCase();
+  const filteredContents = fileContents.filter((row) => {
+    if (!searchTerm.trim()) return true;
+    const term = searchTerm.toLowerCase();
 
-      const fieldsToCheck = [
-        row.full_name,
-        row.employee_no,
-        row.position,
-        row.shift,
-        row.total_hours,
-        row.regular_ot,
-      ];
+    // Convert row fields to searchable strings
+    const fieldsToCheck = [
+      row.full_name,
+      row.employee_no,
+      row.position,
+      row.shift,
+      row.total_hours,
+      row.regular_ot,
+    ];
 
-      if (row.daily_data) {
-        fieldsToCheck.push(...Object.values(row.daily_data));
-      }
+    // Include all daily_data values
+    if (row.daily_data) {
+      fieldsToCheck.push(...Object.values(row.daily_data));
+    }
 
-      return fieldsToCheck.some(
-        (val) => val && val.toString().toLowerCase().includes(term)
-      );
-    });
+    // Match if any field contains the term
+    return fieldsToCheck.some(
+      (val) => val && val.toString().toLowerCase().includes(term)
+    );
+  });
+
 
   return (
     <div className="dtr-dashboard">
@@ -457,19 +414,17 @@ export default function DTRTable({ role , fileId}) {
                         (col) =>
                           !hiddenColumns.includes(col.key) && (
                             <td key={col.key}>
-                              {computedColumns.includes(col.key) ? (
-                                <strong>{row?.[col.key] ?? 0}</strong>
-                              ) : editableRow === rIdx ? (
+                              {editableRow === rIdx ? (
                                 <input
                                   type="text"
-                                  value={row[col.key] ?? ""}
+                                  value={row?.[col.key] ?? ""}
                                   onChange={(e) =>
                                     handleEditChange(rIdx, col.key, e.target.value)
                                   }
                                   className="editable-input"
                                 />
                               ) : (
-                                row[col.key]
+                                row?.[col.key] ?? "-"
                               )}
                             </td>
                           )
@@ -617,8 +572,8 @@ export default function DTRTable({ role , fileId}) {
                 </thead>
 
                 <tbody>
-                  {filteredContents.map(({ row, index: rIdx }) => (
-                    <tr key={row.id ?? `row-${rIdx}`}>
+                  {filteredContents.map((row, rIdx) => (
+                    <tr key={rIdx}>
                       {staticColumns.map(
                         (col) =>
                           !hiddenColumns.includes(col.key) && (

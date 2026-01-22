@@ -142,51 +142,6 @@ class FileViewSet(viewsets.ModelViewSet):
             file_name = instance.file.name
             super().perform_destroy(instance)
             log_action(self.request.user, f"deleted file {file_name}", ip_address=get_client_ip(self.request))
-    
-    @action(
-        detail=True,
-        methods=["get", "patch"],
-        url_path="status",
-        parser_classes=[JSONParser],
-        permission_classes=[IsAuthenticated, CanEditStatus],
-    )
-    def status(self, request, pk=None):
-        file = self.get_object()
-
-        # ---------- GET ----------
-        if request.method == "GET":
-            return Response({
-                "id": file.id,
-                "status": file.status,
-                "rejection_reason": file.rejection_reason
-            })
-
-        # ---------- PATCH ----------
-        previous_status = file.status
-
-        serializer = FileStatusSerializer(file, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-
-        new_status = serializer.validated_data.get("status")
-        rejection_reason = serializer.validated_data.get("rejection_reason")
-
-        log_action(
-            user=request.user,
-            action=(
-                f"Updated status of file '{file.file.name}' "
-                f"from '{previous_status}' to '{new_status}'"
-                + (
-                    f" | Rejection reason: {rejection_reason}"
-                    if new_status == "rejected" and rejection_reason
-                    else ""
-                )
-            ),
-            status="success",
-            ip_address=get_client_ip(request)
-        )
-
-        return Response(serializer.data)
 
     @action(detail=True, methods=["get"], url_path="content")
     def get_content(self, request, pk=None):
@@ -1013,6 +968,51 @@ class DTRFileViewSet(viewsets.ModelViewSet):
             "end_date": dtr_file.end_date,
             "rows": serializer.data
         })
+    
+    @action(
+        detail=True,
+        methods=["get", "patch"],
+        url_path="status",
+        parser_classes=[JSONParser],
+        permission_classes=[IsAuthenticated, CanEditStatus],
+    )
+    def status(self, request, pk=None):
+        file = self.get_object()
+
+        # ---------- GET ----------
+        if request.method == "GET":
+            return Response({
+                "id": file.id,
+                "status": file.status,
+                "rejection_reason": file.rejection_reason
+            })
+
+        # ---------- PATCH ----------
+        previous_status = file.status
+
+        serializer = FileStatusSerializer(file, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        new_status = serializer.validated_data.get("status")
+        rejection_reason = serializer.validated_data.get("rejection_reason")
+
+        log_action(
+            user=request.user,
+            action=(
+                f"Updated status of file '{file.file.name}' "
+                f"from '{previous_status}' to '{new_status}'"
+                + (
+                    f" | Rejection reason: {rejection_reason}"
+                    if new_status == "rejected" and rejection_reason
+                    else ""
+                )
+            ),
+            status="success",
+            ip_address=get_client_ip(request)
+        )
+
+        return Response(serializer.data)
     
     @action(detail=True, methods=["get"], url_path="download")
     def download(self, request, pk=None):

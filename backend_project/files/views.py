@@ -997,10 +997,12 @@ class DTRFileViewSet(viewsets.ModelViewSet):
         new_status = serializer.validated_data.get("status")
         rejection_reason = serializer.validated_data.get("rejection_reason")
 
+        file_name = file.file.name if file.file and file.file.name else f"Manual DTR ({file.id})"
+
         log_action(
             user=request.user,
             action=(
-                f"Updated status of file '{file.file.name}' "
+                f"Updated status of file '{file_name}' "
                 f"from '{previous_status}' to '{new_status}'"
                 + (
                     f" | Rejection reason: {rejection_reason}"

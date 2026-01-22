@@ -262,7 +262,7 @@ export default function AdminDashboard() {
     const rows = filteredLogs.map((log) => [
       log.user,
       log.role || "-",
-      log.action,
+      log.description || log.action,
       log.status || "success",
       log.ip_address || "N/A",
       new Date(log.timestamp).toLocaleString(),

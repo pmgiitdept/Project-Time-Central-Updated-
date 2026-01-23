@@ -10,7 +10,6 @@
 .upload-card {
   flex: 1;
   min-width: 300px;  
-  height: 300px;
   display: flex;
   justify-content: center;
 }

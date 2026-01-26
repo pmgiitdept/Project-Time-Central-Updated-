@@ -269,7 +269,7 @@ export default function PDFTextModal({ pdfData, currentUser }) {
               {viewMode === "parsed" ? "📄 View PDF" : "🧾 View Parsed"}
             </button>
 
-            {isAdmin && viewMode === "parsed" && (
+            {viewMode === "parsed" && (
               <>
                 <button className="save-button" onClick={handleSave}>
                   💾 Save Changes
@@ -284,66 +284,63 @@ export default function PDFTextModal({ pdfData, currentUser }) {
       </div>
 
       <div className="pdf-card-body">
-        {viewMode === "pdf" ? (
-          <object
-            data={getFullPDFUrl(pdfData.file)}
-            type="application/pdf"
-            width="100%"
-            height="100%"
-            style={{
-              border: "none",
-              minHeight: "70vh",
-            }}
-          >
-            <p>
-              PDF preview not supported by your browser.
-              <br />
-              <a
-                href={getFullPDFUrl(pdfData.file)}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Open PDF in new tab
-              </a>
-            </p>
-          </object>
-        ) : (
+        {pageData ? (
           <>
-            {pageData ? (
-              <>
-                {pageData.header_text?.length > 0 ? (
-                  <div className="pdf-header-text">
-                    {pageData.header_text.map((line, i) => (
-                      <p key={i}>
-                        <strong>{line}</strong>
-                      </p>
-                    ))}
-                  </div>
-                ) : (
-                  <p>No header text found.</p>
-                )}
+            {/* Pagination */}
+            <div className="pagination-controls1">
+              <button onClick={goPrev} disabled={currentPage === 1}>
+                ◀ Prev
+              </button>
+              <span>
+                Page {currentPage} of {totalPages}
+              </span>
+              <button onClick={goNext} disabled={currentPage === totalPages}>
+                Next ▶
+              </button>
+            </div>
+
+            {/* Display content */}
+            {viewMode === "pdf" ? (
+              <div className="pdf-text-view" style={{ minHeight: "70vh" }}>
+                {pageData.header_text?.map((line, i) => (
+                  <p key={i}>
+                    <strong>{line}</strong>
+                  </p>
+                ))}
 
                 {pageData.tables?.length > 0 ? (
+                  pageData.tables.map((table, tIdx) => (
+                    <div key={tIdx} className="table-text-view">
+                      {table.map((row, rIdx) => (
+                        <p key={rIdx}>
+                          {row.map((cell) =>
+                            typeof cell === "object" ? cell.text : cell
+                          ).join(" | ")}
+                        </p>
+                      ))}
+                    </div>
+                  ))
+                ) : (
+                  <p>No table data</p>
+                )}
+              </div>
+            ) : (
+              <>
+                {/* Parsed editable tables */}
+                {pageData.tables?.length > 0 ? (
                   pageData.tables.map((table, tIdx) => {
-                    if (!table || table.length === 0) return null;
                     const headerRows = table.slice(0, 2);
                     const bodyRows = table.slice(2);
 
                     return (
                       <div key={tIdx} className="table-container">
-                        <table
-                          className={`pdf-table ${
-                            isAdmin ? "editable-table" : ""
-                          }`}
-                        >
+                        <table className={`pdf-table ${isAdmin ? "editable-table" : ""}`}>
                           <thead>
                             {headerRows.map((row, rIdx) => (
                               <tr key={rIdx}>
                                 {row.map((cell, cIdx) => (
                                   <th key={cIdx}>
-                                    {typeof cell === "object"
-                                      ? cell?.text
-                                      : cell}
+                                    {typeof cell === "object" ? cell?.text : cell}
                                   </th>
                                 ))}
                               </tr>
@@ -357,18 +354,9 @@ export default function PDFTextModal({ pdfData, currentUser }) {
                                     {isAdmin ? (
                                       <input
                                         type="text"
-                                        value={
-                                          typeof cell === "object"
-                                            ? cell?.text
-                                            : cell
-                                        }
+                                        value={typeof cell === "object" ? cell?.text : cell}
                                         onChange={(e) =>
-                                          handleEditCell(
-                                            tIdx,
-                                            rIdx + 2,
-                                            cIdx,
-                                            e.target.value
-                                          )
+                                          handleEditCell(tIdx, rIdx + 2, cIdx, e.target.value)
                                         }
                                       />
                                     ) : typeof cell === "object" ? (
@@ -386,28 +374,13 @@ export default function PDFTextModal({ pdfData, currentUser }) {
                     );
                   })
                 ) : (
-                  <p>No tables found on this page.</p>
+                  <p>No tables found</p>
                 )}
-
-                <div className="pagination-controls1">
-                  <button onClick={goPrev} disabled={currentPage === 1}>
-                    ◀ Prev
-                  </button>
-                  <span>
-                    Page {currentPage} of {totalPages}
-                  </span>
-                  <button
-                    onClick={goNext}
-                    disabled={currentPage === totalPages}
-                  >
-                    Next ▶
-                  </button>
-                </div>
               </>
-            ) : (
-              <p>No parsed data available.</p>
             )}
           </>
+        ) : (
+          <p>No parsed data available</p>
         )}
       </div>
     </div>

@@ -2,7 +2,7 @@
 import { useState } from "react";
 import api from "../api";
 import { toast } from "react-toastify";
-import "./styles/ClientDashboard.css";
+import "./styles/ClientDashboard.css"; 
 import { motion } from "framer-motion";
 
 /* ======== Cutoff Logic ======== */
@@ -13,13 +13,16 @@ function getDTRCutoffStatus() {
   const year = today.getFullYear();
   const month = today.getMonth();
 
+  // 15th cutoff → valid until 20
   const cutoff15Start = new Date(year, month, 15);
   const cutoff15End = new Date(year, month, 20);
 
+  // 30th cutoff → valid for 5 days (spills to next month)
   const cutoff30Start = new Date(year, month, 30);
   const cutoff30End = new Date(cutoff30Start);
   cutoff30End.setDate(cutoff30End.getDate() + 5);
 
+  // Previous month 30th cutoff (for early month dates like Jan 2–4)
   const prev30Start = new Date(year, month - 1, 30);
   const prev30End = new Date(prev30Start);
   prev30End.setDate(prev30End.getDate() + 5);
@@ -69,12 +72,14 @@ export default function FileUpload({ refreshFiles, refreshPDFs }) {
 
     try {
       if (isExcel) {
-        await api.post("/files/files/", formData, {
+        // Upload Excel
+        const res = await api.post("/files/files/", formData, {
           headers: { Authorization: `Bearer ${token}` },
         });
         toast.success("Excel DTR uploaded successfully!");
         refreshFiles();
       } else if (isPDF) {
+        // Upload PDF
         await api.post("/files/pdfs/", formData, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -82,22 +87,13 @@ export default function FileUpload({ refreshFiles, refreshPDFs }) {
         refreshPDFs();
       }
 
-      setHasSubmitted(true);
+      setHasSubmitted(true); // 🔒 lock after submission
       setFile(null);
     } catch (err) {
       console.error(err);
       toast.error("File upload failed.");
     } finally {
       setUploading(false);
-    }
-  };
-
-  const scrollToUploaded = () => {
-    const section = document.getElementById("uploaded-pdfs");
-    if (section) {
-      section.scrollIntoView({ behavior: "smooth" });
-    } else {
-      toast.info("Uploaded DTRs section not found.");
     }
   };
 
@@ -128,7 +124,6 @@ export default function FileUpload({ refreshFiles, refreshPDFs }) {
           onChange={(e) => setFile(e.target.files[0])}
           className="file-input"
         />
-
         <button
           type="submit"
           disabled={uploading || !canSubmit || hasSubmitted}
@@ -141,16 +136,6 @@ export default function FileUpload({ refreshFiles, refreshPDFs }) {
             : "Upload File"}
         </button>
       </form>
-
-      {/* NEW BUTTON */}
-      <button
-        type="button"
-        onClick={scrollToUploaded}
-        className="upload-button"
-        style={{ marginTop: "0.75rem", background: "#457b9d" }}
-      >
-        📂 View Uploaded DTRs
-      </button>
 
       {file && <p className="selected-file">📂 {file.name}</p>}
     </motion.div>

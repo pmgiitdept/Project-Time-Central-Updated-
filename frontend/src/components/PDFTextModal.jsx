@@ -285,16 +285,28 @@ export default function PDFTextModal({ pdfData, currentUser }) {
 
       <div className="pdf-card-body">
         {viewMode === "pdf" ? (
-          <iframe
-            src={getFullPDFUrl(pdfData.file)}
-            title="PDF Preview"
+          <object
+            data={getFullPDFUrl(pdfData.file)}
+            type="application/pdf"
             width="100%"
             height="100%"
             style={{
               border: "none",
               minHeight: "70vh",
             }}
-          />
+          >
+            <p>
+              PDF preview not supported by your browser.
+              <br />
+              <a
+                href={getFullPDFUrl(pdfData.file)}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Open PDF in new tab
+              </a>
+            </p>
+          </object>
         ) : (
           <>
             {pageData ? (

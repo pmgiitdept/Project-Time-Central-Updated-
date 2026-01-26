@@ -12,14 +12,6 @@ export default function UploadedPDFs({ refreshTrigger , currentUser, uploaderFil
   const [selectedPDF, setSelectedPDF] = useState(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  const [previewPDF, setPreviewPDF] = useState(null);
-
-  const getFullPDFUrl = (pdfUrl) => {
-    return pdfUrl.startsWith("http")
-      ? pdfUrl
-      : `${import.meta.env.VITE_API_URL || "http://localhost:8000"}${pdfUrl}`;
-  };
-
   useEffect(() => {
     const fetchPDFs = async () => {
       setLoading(true);
@@ -131,13 +123,6 @@ export default function UploadedPDFs({ refreshTrigger , currentUser, uploaderFil
                       >
                         📄 View PDF File
                       </button> */}
-                      <button
-                        onClick={() => setPreviewPDF(pdf)}
-                        className="upload-button"
-                        style={{ background: "#6c757d" }}
-                      >
-                        📄 View PDF
-                      </button>
                       {/* Delete Button - Only Visible to Admin */}
                       {currentUser?.role === "admin" && (
                         <button

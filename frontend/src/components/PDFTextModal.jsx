@@ -2,12 +2,12 @@ import React, { useState, useEffect } from "react";
 import api from "../api";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable"; 
-import "./styles/PDFModal.css";
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
-import pdfWorker from "pdfjs-dist/legacy/build/pdf.worker?url";
+import "./styles/PDFModal.css";
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
-
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+  
 export default function PDFTextModal({ pdfData, currentUser }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [editableData, setEditableData] = useState(pdfData?.parsed_pages || {});

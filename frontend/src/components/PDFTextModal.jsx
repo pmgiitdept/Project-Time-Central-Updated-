@@ -2,8 +2,6 @@ import React, { useState } from "react";
 import api from "../api";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable"; 
-import * as pdfjsLib from "pdfjs-dist/build/pdf";
-import "pdfjs-dist/build/pdf.worker.entry";
 import "./styles/PDFModal.css";
 
 export default function PDFTextModal({ pdfData, currentUser }) {
@@ -12,8 +10,6 @@ export default function PDFTextModal({ pdfData, currentUser }) {
   const [changes, setChanges] = useState({});
   const isAdmin = currentUser?.role === "admin";
   const [viewMode, setViewMode] = useState("parsed");
-  const [pdfPages, setPdfPages] = useState([]);
-  const [loadingPdf, setLoadingPdf] = useState(false);
 
   if (!pdfData) return null;
 
@@ -58,36 +54,6 @@ export default function PDFTextModal({ pdfData, currentUser }) {
       return updated;
     });
 
-    // Load PDF pages as text
-    useEffect(() => {
-      if (!pdfData?.file || viewMode !== "pdf") return;
-
-      const fetchPdfPages = async () => {
-        setLoadingPdf(true);
-        try {
-          const url = getFullPDFUrl(pdfData.file);
-          const pdf = await pdfjsLib.getDocument(url).promise;
-          const pages = [];
-
-          for (let i = 1; i <= pdf.numPages; i++) {
-            const page = await pdf.getPage(i);
-            const textContent = await page.getTextContent();
-            const pageText = textContent.items.map(item => item.str).join(" ");
-            pages.push(pageText);
-          }
-
-          setPdfPages(pages);
-        } catch (err) {
-          console.error("Failed to load PDF:", err);
-          setPdfPages([]);
-        } finally {
-          setLoadingPdf(false);
-        }
-      };
-
-      fetchPdfPages();
-    }, [pdfData, viewMode]);
-    
     // Track changes for backend
     setChanges((prev) => {
       const pageKey = String(currentPage);
@@ -319,23 +285,30 @@ export default function PDFTextModal({ pdfData, currentUser }) {
 
       <div className="pdf-card-body">
         {viewMode === "pdf" ? (
-          loadingPdf ? (
-            <p>Loading PDF pages...</p>
-          ) : pdfPages.length > 0 ? (
-            <div className="pdf-pages-container">
-              {pdfPages.map((page, idx) => (
-                <div key={idx} className="pdf-page">
-                  <h4>Page {idx + 1}</h4>
-                  <p>{page}</p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p>Failed to load PDF content.</p>
-          )
+          <object
+            data={getFullPDFUrl(pdfData.file)}
+            type="application/pdf"
+            width="100%"
+            height="100%"
+            style={{
+              border: "none",
+              minHeight: "70vh",
+            }}
+          >
+            <p>
+              PDF preview not supported by your browser.
+              <br />
+              <a
+                href={getFullPDFUrl(pdfData.file)}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Open PDF in new tab
+              </a>
+            </p>
+          </object>
         ) : (
           <>
-            {/* Parsed tables and pagination (unchanged) */}
             {pageData ? (
               <>
                 {pageData.header_text?.length > 0 ? (

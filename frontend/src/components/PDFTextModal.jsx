@@ -312,29 +312,42 @@ export default function PDFTextModal({ pdfData, currentUser }) {
                     <div key={tIdx} className="table-container">
                       <table className={`pdf-table ${isAdmin ? "editable-table" : ""}`}>
                         <thead>
-                          {headerRows.map((row, rIdx) => (
-                            <tr key={rIdx}>
-                              {row.map((cell, cIdx) => <th key={cIdx}>{typeof cell === "object" ? cell.text : cell}</th>)}
-                            </tr>
-                          ))}
-                        </thead>
+  {headerRows.map((row, rIdx) => (
+    <tr key={rIdx}>
+      {row.map((cell, cIdx) => {
+        const cellValue = cell && typeof cell === "object" ? cell.text || "" : cell || "";
+        return <th key={cIdx}>{cellValue}</th>;
+      })}
+    </tr>
+  ))}
+</thead>
+
                         <tbody>
-                          {bodyRows.map((row, rIdx) => (
-                            <tr key={rIdx}>
-                              {row.map((cell, cIdx) => (
-                                <td key={cIdx}>
-                                  {isAdmin ? (
-                                    <input
-                                      type="text"
-                                      value={typeof cell === "object" ? cell.text : cell}
-                                      onChange={(e) => handleEditCell(tIdx, rIdx + 2, cIdx, e.target.value)}
-                                    />
-                                  ) : (typeof cell === "object" ? cell.text : cell)}
-                                </td>
-                              ))}
-                            </tr>
-                          ))}
-                        </tbody>
+  {bodyRows.map((row, rIdx) => (
+    <tr key={rIdx}>
+      {row.map((cell, cIdx) => {
+        const cellValue = cell && typeof cell === "object" ? cell.text || "" : cell || "";
+
+        return (
+          <td key={cIdx}>
+            {isAdmin ? (
+              <input
+                type="text"
+                value={cellValue}
+                onChange={(e) =>
+                  handleEditCell(tIdx, rIdx + 2, cIdx, e.target.value) // keep your +2 if needed for headers
+                }
+              />
+            ) : (
+              cellValue
+            )}
+          </td>
+        );
+      })}
+    </tr>
+  ))}
+</tbody>
+
                       </table>
                     </div>
                   );

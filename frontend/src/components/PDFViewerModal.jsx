@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
-import pdfWorker from "pdfjs-dist/build/pdf.worker.min.js?url";
+import workerSrc from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 import "./styles/PDFModal.css";
 
-pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
+pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
 
 export default function PDFViewerModal({ pdfUrl, onClose }) {
   const [numPages, setNumPages] = useState(null);

@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import api from "../api";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable"; 
+import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
 import "./styles/PDFModal.css";
 
 export default function PDFTextModal({ pdfData, currentUser }) {
@@ -9,7 +10,39 @@ export default function PDFTextModal({ pdfData, currentUser }) {
   const [editableData, setEditableData] = useState(pdfData?.parsed_pages || {});
   const [changes, setChanges] = useState({});
   const isAdmin = currentUser?.role === "admin";
-  const [viewMode, setViewMode] = useState("parsed");
+
+  const [viewMode, setViewMode] = useState("parsed"); // "parsed" or "pdf"
+  const [pdfPagesText, setPdfPagesText] = useState([]);
+
+  const getFullPDFUrl = (pdfUrl) => {
+    return pdfUrl.startsWith("http")
+      ? pdfUrl
+      : `${import.meta.env.VITE_API_URL || "http://localhost:8000"}${pdfUrl}`;
+  };
+
+  const loadPdfText = async () => {
+    if (!pdfData?.file) return;
+
+    const pdfUrl = getFullPDFUrl(pdfData.file);
+    const loadingTask = pdfjsLib.getDocument(pdfUrl);
+    const pdf = await loadingTask.promise;
+
+    const pagesText = [];
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      const strings = content.items.map((item) => item.str);
+      pagesText.push(strings.join(" "));
+    }
+
+    setPdfPagesText(pagesText);
+  };
+
+  useEffect(() => {
+    if (viewMode === "pdf") {
+      loadPdfText();
+    }
+  }, [viewMode]);
 
   if (!pdfData) return null;
 
@@ -20,12 +53,6 @@ export default function PDFTextModal({ pdfData, currentUser }) {
     currentPage < totalPages && setCurrentPage(currentPage + 1);
   const goPrev = () =>
     currentPage > 1 && setCurrentPage(currentPage - 1);
-
-  const getFullPDFUrl = (pdfUrl) => {
-    return pdfUrl.startsWith("http")
-      ? pdfUrl
-      : `${import.meta.env.VITE_API_URL || "http://localhost:8000"}${pdfUrl}`;
-  };
 
   // Handle editing a single cell (admin only)
   const handleEditCell = (tableIdx, rowIdx, colIdx, newValue) => {
@@ -284,98 +311,104 @@ export default function PDFTextModal({ pdfData, currentUser }) {
       </div>
 
       <div className="pdf-card-body">
-        {pageData ? (
-          <>
-            {pageData.header_text?.length > 0 ? (
-              <div className="pdf-header-text">
-                {pageData.header_text.map((line, i) => (
-                  <p key={i}>
-                    <strong>{line}</strong>
-                  </p>
-                ))}
-              </div>
-            ) : (
-              <p>No header text found.</p>
-            )}
-
-            {pageData.tables?.length > 0 ? (
-              pageData.tables.map((table, tIdx) => {
-                if (!table || table.length === 0) return null;
-                const headerRows = table.slice(0, 2);
-                const bodyRows = table.slice(2);
-
-                return (
-                  <div key={tIdx} className="table-container">
-                    <table
-                      className={`pdf-table ${isAdmin ? "editable-table" : ""}`}
-                    >
-                      <thead>
-                        {headerRows.map((row, rIdx) => (
-                          <tr key={rIdx}>
-                            {row.map((cell, cIdx) => (
-                              <th key={cIdx}>
-                                {typeof cell === "object" ? cell?.text : cell}
-                              </th>
-                            ))}
-                          </tr>
-                        ))}
-                      </thead>
-                      <tbody>
-                        {bodyRows.map((row, rIdx) => (
-                          <tr key={rIdx}>
-                            {row.map((cell, cIdx) => (
-                              <td key={cIdx}>
-                                {isAdmin ? (
-                                  <input
-                                    type="text"
-                                    value={
-                                      typeof cell === "object"
-                                        ? cell?.text
-                                        : cell
-                                    }
-                                    onChange={(e) =>
-                                      handleEditCell(
-                                        tIdx,
-                                        rIdx + 2,
-                                        cIdx,
-                                        e.target.value
-                                      )
-                                    }
-                                  />
-                                ) : typeof cell === "object" ? (
-                                  cell?.text
-                                ) : (
-                                  cell
-                                )}
-                              </td>
-                            ))}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                );
-              })
-            ) : (
-              <p>No tables found on this page.</p>
-            )}
-
-            <div className="pagination-controls1">
-              <button onClick={goPrev} disabled={currentPage === 1}>
-                ◀ Prev
-              </button>
-              <span>
-                Page {currentPage} of {totalPages}
-              </span>
-              <button onClick={goNext} disabled={currentPage === totalPages}>
-                Next ▶
-              </button>
-            </div>
-          </>
+  {viewMode === "pdf" ? (
+    <div className="pdf-view-container" style={{ minHeight: "70vh" }}>
+      {pdfPagesText.length > 0 ? (
+        pdfPagesText.map((pageText, idx) => (
+          <div key={idx} className="pdf-page-display" style={{ marginBottom: "40px" }}>
+            <h4>Page {idx + 1}</h4>
+            <p style={{ whiteSpace: "pre-wrap" }}>{pageText}</p>
+          </div>
+        ))
+      ) : (
+        <p>Loading PDF content...</p>
+      )}
+    </div>
+  ) : (
+    // original parsed page display
+    pageData ? (
+      <>
+        {pageData.header_text?.length > 0 ? (
+          <div className="pdf-header-text">
+            {pageData.header_text.map((line, i) => (
+              <p key={i}>
+                <strong>{line}</strong>
+              </p>
+            ))}
+          </div>
         ) : (
-          <p>No parsed data available.</p>
+          <p>No header text found.</p>
         )}
-      </div>
+
+        {pageData.tables?.length > 0 ? (
+          pageData.tables.map((table, tIdx) => {
+            if (!table || table.length === 0) return null;
+            const headerRows = table.slice(0, 2);
+            const bodyRows = table.slice(2);
+
+            return (
+              <div key={tIdx} className="table-container">
+                <table className={`pdf-table ${isAdmin ? "editable-table" : ""}`}>
+                  <thead>
+                    {headerRows.map((row, rIdx) => (
+                      <tr key={rIdx}>
+                        {row.map((cell, cIdx) => (
+                          <th key={cIdx}>
+                            {typeof cell === "object" ? cell?.text : cell}
+                          </th>
+                        ))}
+                      </tr>
+                    ))}
+                  </thead>
+                  <tbody>
+                    {bodyRows.map((row, rIdx) => (
+                      <tr key={rIdx}>
+                        {row.map((cell, cIdx) => (
+                          <td key={cIdx}>
+                            {isAdmin ? (
+                              <input
+                                type="text"
+                                value={typeof cell === "object" ? cell?.text : cell}
+                                onChange={(e) =>
+                                  handleEditCell(tIdx, rIdx + 2, cIdx, e.target.value)
+                                }
+                              />
+                            ) : typeof cell === "object" ? (
+                              cell?.text
+                            ) : (
+                              cell
+                            )}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            );
+          })
+        ) : (
+          <p>No tables found on this page.</p>
+        )}
+
+        <div className="pagination-controls1">
+          <button onClick={goPrev} disabled={currentPage === 1}>
+            ◀ Prev
+          </button>
+          <span>
+            Page {currentPage} of {totalPages}
+          </span>
+          <button onClick={goNext} disabled={currentPage === totalPages}>
+            Next ▶
+          </button>
+        </div>
+      </>
+    ) : (
+      <p>No parsed data available.</p>
+    )
+  )}
+</div>
+
     </div>
   );
 }

@@ -313,9 +313,11 @@ export default function PDFTextModal({ pdfData, currentUser }) {
                     <div key={tIdx} className="table-text-view">
                       {table.map((row, rIdx) => (
                         <p key={rIdx}>
-                          {row.map((cell) =>
-                            typeof cell === "object" ? cell.text : cell
-                          ).join(" | ")}
+                          {row
+                            .map((cell) =>
+                              cell && typeof cell === "object" ? cell.text || "" : cell || ""
+                            )
+                            .join(" | ")}
                         </p>
                       ))}
                     </div>

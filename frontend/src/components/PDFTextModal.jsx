@@ -1,51 +1,22 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import api from "../api";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable"; 
-import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
 import "./styles/PDFModal.css";
 
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-  `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
-  
 export default function PDFTextModal({ pdfData, currentUser }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [editableData, setEditableData] = useState(pdfData?.parsed_pages || {});
   const [changes, setChanges] = useState({});
   const isAdmin = currentUser?.role === "admin";
 
-  const [viewMode, setViewMode] = useState("parsed"); // "parsed" or "pdf"
-  const [pdfPagesText, setPdfPagesText] = useState([]);
+  const [viewMode, setViewMode] = useState("parsed"); // "parsed" or "pdf
 
   const getFullPDFUrl = (pdfUrl) => {
     return pdfUrl.startsWith("http")
       ? pdfUrl
       : `${import.meta.env.VITE_API_URL || "http://localhost:8000"}${pdfUrl}`;
   };
-
-  const loadPdfText = async () => {
-    if (!pdfData?.file) return;
-
-    const pdfUrl = getFullPDFUrl(pdfData.file);
-    const loadingTask = pdfjsLib.getDocument(pdfUrl);
-    const pdf = await loadingTask.promise;
-
-    const pagesText = [];
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const page = await pdf.getPage(i);
-      const content = await page.getTextContent();
-      const strings = content.items.map((item) => item.str);
-      pagesText.push(strings.join(" "));
-    }
-
-    setPdfPagesText(pagesText);
-  };
-
-  useEffect(() => {
-    if (viewMode === "pdf") {
-      loadPdfText();
-    }
-  }, [viewMode]);
 
   if (!pdfData) return null;
 
@@ -281,67 +252,55 @@ export default function PDFTextModal({ pdfData, currentUser }) {
     doc.save(`${projectName}_DTR(UPDATED).pdf`);
   };
 
-  return (
+   return (
     <div className="pdf-card-container">
       <div className="pdf-card-header">
-        <h3>
-          PROJECT: <strong>{pdfData.uploaded_by_name || "Unknown"}</strong>
-        </h3>
+        <h3>PROJECT: <strong>{pdfData.uploaded_by_name || "Unknown"}</strong></h3>
 
-        {isAdmin && (
-          <div className="header-buttons">
-            <button
-              className="export-button"
-              onClick={() =>
-                setViewMode(viewMode === "parsed" ? "pdf" : "parsed")
-              }
-            >
-              {viewMode === "parsed" ? "📄 View PDF" : "🧾 View Parsed"}
-            </button>
+        <div className="header-buttons">
+          <button
+            className="export-button"
+            onClick={() => setViewMode(viewMode === "parsed" ? "pdf" : "parsed")}
+          >
+            {viewMode === "parsed" ? "📄 View PDF" : "🧾 View Parsed"}
+          </button>
 
-            {isAdmin && viewMode === "parsed" && (
-              <>
-                <button className="save-button" onClick={handleSave}>
-                  💾 Save Changes
-                </button>
-                <button className="export-button" onClick={handleExportPDF}>
-                  📄 Export as PDF
-                </button>
-              </>
-            )}
-          </div>
-        )}
+          {isAdmin && viewMode === "parsed" && (
+            <>
+              <button className="save-button" onClick={handleSave}>💾 Save Changes</button>
+              <button className="export-button" onClick={handleExportPDF}>📄 Export as PDF</button>
+            </>
+          )}
+        </div>
       </div>
 
       <div className="pdf-card-body">
         {viewMode === "pdf" ? (
-          <div className="pdf-view-container" style={{ minHeight: "70vh" }}>
-            {pdfPagesText.length > 0 ? (
-              pdfPagesText.map((pageText, idx) => (
-                <div key={idx} className="pdf-page-display" style={{ marginBottom: "40px" }}>
-                  <h4>Page {idx + 1}</h4>
-                  <p style={{ whiteSpace: "pre-wrap" }}>{pageText}</p>
-                </div>
-              ))
-            ) : (
-              <p>Loading PDF content...</p>
-            )}
+          <div className="pdf-view-container" style={{ width: "100%", height: "70vh", border: "1px solid #ccc" }}>
+            <iframe
+              src={getFullPDFUrl(pdfData.file)}
+              type="application/pdf"
+              width="100%"
+              height="100%"
+              style={{ border: "none" }}
+            >
+              <p>
+                Your browser does not support PDFs. 
+                <a href={getFullPDFUrl(pdfData.file)} target="_blank" rel="noopener noreferrer">
+                  Open PDF in a new tab
+                </a>
+              </p>
+            </iframe>
           </div>
         ) : (
-          // original parsed page display
+          // Original parsed view
           pageData ? (
             <>
               {pageData.header_text?.length > 0 ? (
                 <div className="pdf-header-text">
-                  {pageData.header_text.map((line, i) => (
-                    <p key={i}>
-                      <strong>{line}</strong>
-                    </p>
-                  ))}
+                  {pageData.header_text.map((line, i) => <p key={i}><strong>{line}</strong></p>)}
                 </div>
-              ) : (
-                <p>No header text found.</p>
-              )}
+              ) : <p>No header text found.</p>}
 
               {pageData.tables?.length > 0 ? (
                 pageData.tables.map((table, tIdx) => {
@@ -355,11 +314,7 @@ export default function PDFTextModal({ pdfData, currentUser }) {
                         <thead>
                           {headerRows.map((row, rIdx) => (
                             <tr key={rIdx}>
-                              {row.map((cell, cIdx) => (
-                                <th key={cIdx}>
-                                  {typeof cell === "object" ? cell?.text : cell}
-                                </th>
-                              ))}
+                              {row.map((cell, cIdx) => <th key={cIdx}>{typeof cell === "object" ? cell.text : cell}</th>)}
                             </tr>
                           ))}
                         </thead>
@@ -371,16 +326,10 @@ export default function PDFTextModal({ pdfData, currentUser }) {
                                   {isAdmin ? (
                                     <input
                                       type="text"
-                                      value={typeof cell === "object" ? cell?.text : cell}
-                                      onChange={(e) =>
-                                        handleEditCell(tIdx, rIdx + 2, cIdx, e.target.value)
-                                      }
+                                      value={typeof cell === "object" ? cell.text : cell}
+                                      onChange={(e) => handleEditCell(tIdx, rIdx + 2, cIdx, e.target.value)}
                                     />
-                                  ) : typeof cell === "object" ? (
-                                    cell?.text
-                                  ) : (
-                                    cell
-                                  )}
+                                  ) : (typeof cell === "object" ? cell.text : cell)}
                                 </td>
                               ))}
                             </tr>
@@ -390,25 +339,15 @@ export default function PDFTextModal({ pdfData, currentUser }) {
                     </div>
                   );
                 })
-              ) : (
-                <p>No tables found on this page.</p>
-              )}
+              ) : <p>No tables found on this page.</p>}
 
               <div className="pagination-controls1">
-                <button onClick={goPrev} disabled={currentPage === 1}>
-                  ◀ Prev
-                </button>
-                <span>
-                  Page {currentPage} of {totalPages}
-                </span>
-                <button onClick={goNext} disabled={currentPage === totalPages}>
-                  Next ▶
-                </button>
+                <button onClick={goPrev} disabled={currentPage === 1}>◀ Prev</button>
+                <span>Page {currentPage} of {totalPages}</span>
+                <button onClick={goNext} disabled={currentPage === totalPages}>Next ▶</button>
               </div>
             </>
-          ) : (
-            <p>No parsed data available.</p>
-          )
+          ) : <p>No parsed data available.</p>
         )}
       </div>
     </div>

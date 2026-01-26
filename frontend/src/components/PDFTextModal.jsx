@@ -257,6 +257,7 @@ export default function PDFTextModal({ pdfData, currentUser }) {
         <h3>
           PROJECT: <strong>{pdfData.uploaded_by_name || "Unknown"}</strong>
         </h3>
+
         {isAdmin && (
           <div className="header-buttons">
             <button
@@ -267,7 +268,8 @@ export default function PDFTextModal({ pdfData, currentUser }) {
             >
               {viewMode === "parsed" ? "📄 View PDF" : "🧾 View Parsed"}
             </button>
-            {viewMode === "parsed" && (
+
+            {isAdmin && viewMode === "parsed" && (
               <>
                 <button className="save-button" onClick={handleSave}>
                   💾 Save Changes
@@ -283,55 +285,128 @@ export default function PDFTextModal({ pdfData, currentUser }) {
 
       <div className="pdf-card-body">
         {viewMode === "pdf" ? (
-          <div style={{ minHeight: "70vh", whiteSpace: "pre-wrap" }}>
-            {pageData?.text_content?.length > 0 ? (
-              pageData.text_content.map((line, idx) => (
-                <p key={idx}>{line}</p>
-              ))
-            ) : (
-              <p>No text content available for this page.</p>
-            )}
-
-            <div className="pagination-controls1">
-              <button onClick={goPrev} disabled={currentPage === 1}>◀ Prev</button>
-              <span>Page {currentPage} of {totalPages}</span>
-              <button onClick={goNext} disabled={currentPage === totalPages}>Next ▶</button>
-            </div>
-          </div>
+          <object
+            data={getFullPDFUrl(pdfData.file)}
+            type="application/pdf"
+            width="100%"
+            height="100%"
+            style={{
+              border: "none",
+              minHeight: "70vh",
+            }}
+          >
+            <p>
+              PDF preview not supported by your browser.
+              <br />
+              <a
+                href={getFullPDFUrl(pdfData.file)}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Open PDF in new tab
+              </a>
+            </p>
+          </object>
         ) : (
           <>
-            {pageData?.header_text?.length > 0 && (
-              <div className="pdf-header-text">
-                {pageData.header_text.map((line, i) => (
-                  <p key={i}><strong>{line}</strong></p>
-                ))}
-              </div>
-            )}
+            {pageData ? (
+              <>
+                {pageData.header_text?.length > 0 ? (
+                  <div className="pdf-header-text">
+                    {pageData.header_text.map((line, i) => (
+                      <p key={i}>
+                        <strong>{line}</strong>
+                      </p>
+                    ))}
+                  </div>
+                ) : (
+                  <p>No header text found.</p>
+                )}
 
-            {pageData?.text_content?.length > 0 ? (
-              pageData.text_content.map((line, idx) => (
-                <p key={idx}>
-                  {isAdmin ? (
-                    <input
-                      type="text"
-                      value={line}
-                      onChange={(e) => handleEditLine(idx, e.target.value)}
-                      style={{ width: "100%", marginBottom: "0.25rem" }}
-                    />
-                  ) : (
-                    line
-                  )}
-                </p>
-              ))
+                {pageData.tables?.length > 0 ? (
+                  pageData.tables.map((table, tIdx) => {
+                    if (!table || table.length === 0) return null;
+                    const headerRows = table.slice(0, 2);
+                    const bodyRows = table.slice(2);
+
+                    return (
+                      <div key={tIdx} className="table-container">
+                        <table
+                          className={`pdf-table ${
+                            isAdmin ? "editable-table" : ""
+                          }`}
+                        >
+                          <thead>
+                            {headerRows.map((row, rIdx) => (
+                              <tr key={rIdx}>
+                                {row.map((cell, cIdx) => (
+                                  <th key={cIdx}>
+                                    {typeof cell === "object"
+                                      ? cell?.text
+                                      : cell}
+                                  </th>
+                                ))}
+                              </tr>
+                            ))}
+                          </thead>
+                          <tbody>
+                            {bodyRows.map((row, rIdx) => (
+                              <tr key={rIdx}>
+                                {row.map((cell, cIdx) => (
+                                  <td key={cIdx}>
+                                    {isAdmin ? (
+                                      <input
+                                        type="text"
+                                        value={
+                                          typeof cell === "object"
+                                            ? cell?.text
+                                            : cell
+                                        }
+                                        onChange={(e) =>
+                                          handleEditCell(
+                                            tIdx,
+                                            rIdx + 2,
+                                            cIdx,
+                                            e.target.value
+                                          )
+                                        }
+                                      />
+                                    ) : typeof cell === "object" ? (
+                                      cell?.text
+                                    ) : (
+                                      cell
+                                    )}
+                                  </td>
+                                ))}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <p>No tables found on this page.</p>
+                )}
+
+                <div className="pagination-controls1">
+                  <button onClick={goPrev} disabled={currentPage === 1}>
+                    ◀ Prev
+                  </button>
+                  <span>
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <button
+                    onClick={goNext}
+                    disabled={currentPage === totalPages}
+                  >
+                    Next ▶
+                  </button>
+                </div>
+              </>
             ) : (
               <p>No parsed data available.</p>
             )}
-
-            <div className="pagination-controls1">
-              <button onClick={goPrev} disabled={currentPage === 1}>◀ Prev</button>
-              <span>Page {currentPage} of {totalPages}</span>
-              <button onClick={goNext} disabled={currentPage === totalPages}>Next ▶</button>
-            </div>
           </>
         )}
       </div>

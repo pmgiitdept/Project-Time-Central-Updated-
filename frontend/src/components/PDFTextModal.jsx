@@ -2,8 +2,6 @@ import React, { useState } from "react";
 import api from "../api";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable"; 
-import * as pdfjsLib from "pdfjs-dist/build/pdf";
-import "pdfjs-dist/build/pdf.worker.entry"; // important!
 import "./styles/PDFModal.css";
 
 export default function PDFTextModal({ pdfData, currentUser }) {
@@ -28,35 +26,6 @@ export default function PDFTextModal({ pdfData, currentUser }) {
       ? pdfUrl
       : `${import.meta.env.VITE_API_URL || "http://localhost:8000"}${pdfUrl}`;
   };
-
-  // --- Load PDF text when viewMode === "pdf" ---
-  useEffect(() => {
-    if (viewMode !== "pdf") return;
-
-    const fetchPDFText = async () => {
-      const url = getFullPDFUrl(pdfData.file);
-
-      try {
-        const loadingTask = pdfjsLib.getDocument(url);
-        const pdf = await loadingTask.promise;
-        const pagesText = [];
-
-        for (let i = 1; i <= pdf.numPages; i++) {
-          const page = await pdf.getPage(i);
-          const textContent = await page.getTextContent();
-          const pageText = textContent.items.map((item) => item.str).join(" ");
-          pagesText.push(pageText);
-        }
-
-        setPdfPagesText(pagesText);
-      } catch (err) {
-        console.error("Error loading PDF:", err);
-        setPdfPagesText(["Failed to load PDF content."]);
-      }
-    };
-
-    fetchPDFText();
-  }, [viewMode, pdfData]);
 
   // Handle editing a single cell (admin only)
   const handleEditCell = (tableIdx, rowIdx, colIdx, newValue) => {
@@ -293,17 +262,19 @@ export default function PDFTextModal({ pdfData, currentUser }) {
           <div className="header-buttons">
             <button
               className="export-button"
-              onClick={() => setViewMode(viewMode === "parsed" ? "pdf" : "parsed")}
+              onClick={() =>
+                setViewMode(viewMode === "parsed" ? "pdf" : "parsed")
+              }
             >
               {viewMode === "parsed" ? "📄 View PDF" : "🧾 View Parsed"}
             </button>
 
             {isAdmin && viewMode === "parsed" && (
               <>
-                <button className="save-button" onClick={() => alert("Save Changes")}>
+                <button className="save-button" onClick={handleSave}>
                   💾 Save Changes
                 </button>
-                <button className="export-button" onClick={() => alert("Export PDF")}>
+                <button className="export-button" onClick={handleExportPDF}>
                   📄 Export as PDF
                 </button>
               </>
@@ -314,18 +285,28 @@ export default function PDFTextModal({ pdfData, currentUser }) {
 
       <div className="pdf-card-body">
         {viewMode === "pdf" ? (
-          <div style={{ minHeight: "70vh", whiteSpace: "pre-wrap" }}>
-            {pdfPagesText.length === 0 ? (
-              <p>Loading PDF content...</p>
-            ) : (
-              pdfPagesText.map((text, idx) => (
-                <div key={idx} style={{ marginBottom: "2rem" }}>
-                  <h4>Page {idx + 1}</h4>
-                  <p>{text}</p>
-                </div>
-              ))
-            )}
-          </div>
+          <object
+            data={getFullPDFUrl(pdfData.file)}
+            type="application/pdf"
+            width="100%"
+            height="100%"
+            style={{
+              border: "none",
+              minHeight: "70vh",
+            }}
+          >
+            <p>
+              PDF preview not supported by your browser.
+              <br />
+              <a
+                href={getFullPDFUrl(pdfData.file)}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Open PDF in new tab
+              </a>
+            </p>
+          </object>
         ) : (
           <>
             {pageData ? (
@@ -360,7 +341,9 @@ export default function PDFTextModal({ pdfData, currentUser }) {
                               <tr key={rIdx}>
                                 {row.map((cell, cIdx) => (
                                   <th key={cIdx}>
-                                    {typeof cell === "object" ? cell?.text : cell}
+                                    {typeof cell === "object"
+                                      ? cell?.text
+                                      : cell}
                                   </th>
                                 ))}
                               </tr>
@@ -380,7 +363,12 @@ export default function PDFTextModal({ pdfData, currentUser }) {
                                             : cell
                                         }
                                         onChange={(e) =>
-                                          console.log("Editing cell")
+                                          handleEditCell(
+                                            tIdx,
+                                            rIdx + 2,
+                                            cIdx,
+                                            e.target.value
+                                          )
                                         }
                                       />
                                     ) : typeof cell === "object" ? (

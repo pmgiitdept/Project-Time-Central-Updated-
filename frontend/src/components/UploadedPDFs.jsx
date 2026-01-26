@@ -4,7 +4,6 @@ import api from "../api";
 import { motion } from "framer-motion";
 import "./styles/ClientDashboard.css";
 import PDFTextModal from "./PDFTextModal";
-import PDFViewerModal from "./PDFViewerModal";
 
 export default function UploadedPDFs({ refreshTrigger , currentUser, uploaderFilter}) {
   const [pdfFiles, setPdfFiles] = useState([]);
@@ -12,7 +11,6 @@ export default function UploadedPDFs({ refreshTrigger , currentUser, uploaderFil
   const [error, setError] = useState("");
   const [selectedPDF, setSelectedPDF] = useState(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [viewingPDF, setViewingPDF] = useState(null);
 
   useEffect(() => {
     const fetchPDFs = async () => {
@@ -126,18 +124,6 @@ export default function UploadedPDFs({ refreshTrigger , currentUser, uploaderFil
                         📄 View PDF File
                       </button> */}
                       {/* Delete Button - Only Visible to Admin */}
-                      <button
-                        onClick={() =>
-                          setViewingPDF(
-                            pdf.file.startsWith("http")
-                              ? pdf.file
-                              : `${import.meta.env.VITE_API_URL || "http://localhost:8000"}${pdf.file}`
-                          )
-                        }
-                        className="upload-button view-pdf-btn"
-                      >
-                        📄 View PDF
-                      </button>
                       {currentUser?.role === "admin" && (
                         <button
                           onClick={() => handleDeletePDF(pdf.id)}
@@ -166,13 +152,6 @@ export default function UploadedPDFs({ refreshTrigger , currentUser, uploaderFil
           pdfData={selectedPDF}
           currentUser={currentUser}
           onClose={() => setSelectedPDF(null)}
-        />
-      )}
-
-      {viewingPDF && (
-        <PDFViewerModal
-          pdfUrl={viewingPDF}
-          onClose={() => setViewingPDF(null)}
         />
       )}
     </div>

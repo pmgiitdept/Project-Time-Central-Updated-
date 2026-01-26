@@ -277,8 +277,8 @@ export default function PDFTextModal({ pdfData, currentUser }) {
       <div className="pdf-card-body">
         {viewMode === "pdf" ? (
           <div className="pdf-view-container" style={{ width: "100%", height: "70vh", border: "1px solid #ccc" }}>
-            <iframe
-              src={getFullPDFUrl(pdfData.file)}
+            <a
+              href={getFullPDFUrl(pdfData.file)}
               type="application/pdf"
               width="100%"
               height="100%"
@@ -290,7 +290,7 @@ export default function PDFTextModal({ pdfData, currentUser }) {
                   Open PDF in a new tab
                 </a>
               </p>
-            </iframe>
+            </a>
           </div>
         ) : (
           // Original parsed view
@@ -312,42 +312,41 @@ export default function PDFTextModal({ pdfData, currentUser }) {
                     <div key={tIdx} className="table-container">
                       <table className={`pdf-table ${isAdmin ? "editable-table" : ""}`}>
                         <thead>
-  {headerRows.map((row, rIdx) => (
-    <tr key={rIdx}>
-      {row.map((cell, cIdx) => {
-        const cellValue = cell && typeof cell === "object" ? cell.text || "" : cell || "";
-        return <th key={cIdx}>{cellValue}</th>;
-      })}
-    </tr>
-  ))}
-</thead>
+                          {headerRows.map((row, rIdx) => (
+                            <tr key={rIdx}>
+                              {row.map((cell, cIdx) => {
+                                const cellValue = cell && typeof cell === "object" ? cell.text || "" : cell || "";
+                                return <th key={cIdx}>{cellValue}</th>;
+                              })}
+                            </tr>
+                          ))}
+                        </thead>
 
                         <tbody>
-  {bodyRows.map((row, rIdx) => (
-    <tr key={rIdx}>
-      {row.map((cell, cIdx) => {
-        const cellValue = cell && typeof cell === "object" ? cell.text || "" : cell || "";
+                          {bodyRows.map((row, rIdx) => (
+                            <tr key={rIdx}>
+                              {row.map((cell, cIdx) => {
+                                const cellValue = cell && typeof cell === "object" ? cell.text || "" : cell || "";
 
-        return (
-          <td key={cIdx}>
-            {isAdmin ? (
-              <input
-                type="text"
-                value={cellValue}
-                onChange={(e) =>
-                  handleEditCell(tIdx, rIdx + 2, cIdx, e.target.value) // keep your +2 if needed for headers
-                }
-              />
-            ) : (
-              cellValue
-            )}
-          </td>
-        );
-      })}
-    </tr>
-  ))}
-</tbody>
-
+                                return (
+                                  <td key={cIdx}>
+                                    {isAdmin ? (
+                                      <input
+                                        type="text"
+                                        value={cellValue}
+                                        onChange={(e) =>
+                                          handleEditCell(tIdx, rIdx + 2, cIdx, e.target.value) // keep your +2 if needed for headers
+                                        }
+                                      />
+                                    ) : (
+                                      cellValue
+                                    )}
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          ))}
+                        </tbody>
                       </table>
                     </div>
                   );

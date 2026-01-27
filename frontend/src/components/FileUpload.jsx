@@ -2,7 +2,7 @@
 import { useState } from "react";
 import api from "../api";
 import { toast } from "react-toastify";
-import "./styles/ClientDashboard.css"; 
+import "./styles/ClientDashboard.css";
 import { motion } from "framer-motion";
 
 /* ======== Cutoff Logic ======== */
@@ -13,16 +13,13 @@ function getDTRCutoffStatus() {
   const year = today.getFullYear();
   const month = today.getMonth();
 
-  // 15th cutoff → valid until 20
   const cutoff15Start = new Date(year, month, 15);
   const cutoff15End = new Date(year, month, 20);
 
-  // 30th cutoff → valid for 5 days (spills to next month)
   const cutoff30Start = new Date(year, month, 30);
   const cutoff30End = new Date(cutoff30Start);
   cutoff30End.setDate(cutoff30End.getDate() + 5);
 
-  // Previous month 30th cutoff (for early month dates like Jan 2–4)
   const prev30Start = new Date(year, month - 1, 30);
   const prev30End = new Date(prev30Start);
   prev30End.setDate(prev30End.getDate() + 5);
@@ -49,20 +46,26 @@ export default function FileUpload({ refreshFiles, refreshPDFs }) {
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [uploadType, setUploadType] = useState(null); // "pdf" | "excel"
 
   const { canSubmit, message } = getDTRCutoffStatus();
 
   const handleUpload = async (e) => {
     e.preventDefault();
+
     if (!canSubmit) return toast.error("Submission is unavailable outside cutoff.");
     if (!file) return toast.error("Select a file first.");
+    if (!uploadType) return toast.error("Select upload type.");
 
-    const fileType = file.type;
     const isExcel = /\.(xlsx|xls|csv)$/i.test(file.name);
-    const isPDF = fileType === "application/pdf";
+    const isPDF = file.type === "application/pdf";
 
-    if (!isExcel && !isPDF) {
-      return toast.error("Only Excel (.xlsx, .xls, .csv) or PDF files allowed!");
+    if (uploadType === "excel" && !isExcel) {
+      return toast.error("Please upload an Excel file (.xlsx, .xls, .csv).");
+    }
+
+    if (uploadType === "pdf" && !isPDF) {
+      return toast.error("Please upload a PDF file.");
     }
 
     setUploading(true);
@@ -71,15 +74,15 @@ export default function FileUpload({ refreshFiles, refreshPDFs }) {
     formData.append("file", file);
 
     try {
-      if (isExcel) {
-        // Upload Excel
-        const res = await api.post("/files/files/", formData, {
+      if (uploadType === "excel") {
+        await api.post("/files/files/", formData, {
           headers: { Authorization: `Bearer ${token}` },
         });
         toast.success("Excel DTR uploaded successfully!");
         refreshFiles();
-      } else if (isPDF) {
-        // Upload PDF
+      }
+
+      if (uploadType === "pdf") {
         await api.post("/files/pdfs/", formData, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -87,8 +90,9 @@ export default function FileUpload({ refreshFiles, refreshPDFs }) {
         refreshPDFs();
       }
 
-      setHasSubmitted(true); // 🔒 lock after submission
+      setHasSubmitted(true);
       setFile(null);
+      setUploadType(null);
     } catch (err) {
       console.error(err);
       toast.error("File upload failed.");
@@ -105,7 +109,7 @@ export default function FileUpload({ refreshFiles, refreshPDFs }) {
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.5, ease: "easeInOut" }}
     >
-      <h2 className="upload-title">Upload DTR / PDF</h2>
+      <h2 className="upload-title">Upload DTR</h2>
 
       <p
         style={{
@@ -124,17 +128,26 @@ export default function FileUpload({ refreshFiles, refreshPDFs }) {
           onChange={(e) => setFile(e.target.files[0])}
           className="file-input"
         />
-        <button
-          type="submit"
-          disabled={uploading || !canSubmit || hasSubmitted}
-          className="upload-button"
-        >
-          {hasSubmitted
-            ? "Already Submitted"
-            : uploading
-            ? "Uploading..."
-            : "Upload File"}
-        </button>
+
+        <div style={{ display: "flex", gap: "0.5rem" }}>
+          <button
+            type="submit"
+            className="upload-button"
+            disabled={uploading || !canSubmit || hasSubmitted}
+            onClick={() => setUploadType("excel")}
+          >
+            📊 Upload DTR Excel
+          </button>
+
+          <button
+            type="submit"
+            className="upload-button"
+            disabled={uploading || !canSubmit || hasSubmitted}
+            onClick={() => setUploadType("pdf")}
+          >
+            📄 Upload PDF
+          </button>
+        </div>
       </form>
 
       {file && <p className="selected-file">📂 {file.name}</p>}

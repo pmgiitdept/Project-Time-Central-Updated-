@@ -118,7 +118,7 @@ export default function ChatSection({
       localStorage.getItem("token");
 
     const wsUrl = `${wsScheme}://${backendHost}/ws/chat/${roomName}/?token=${token}`;
-    console.log("🧠 Attempting WebSocket connection:", wsUrl);
+    //console.log("🧠 Attempting WebSocket connection:", wsUrl);
 
     try {
       ws.current = new WebSocket(wsUrl);
@@ -128,7 +128,7 @@ export default function ChatSection({
     }
 
     ws.current.onopen = () => {
-      console.log("✅ WebSocket connected!");
+      //console.log("✅ WebSocket connected!");
       setConnected(true);
     };
 
@@ -147,7 +147,7 @@ export default function ChatSection({
     };
 
     ws.current.onclose = (e) => {
-      console.warn("⚠️ WS closed:", e.code, e.reason);
+      //console.warn("⚠️ WS closed:", e.code, e.reason);
       setConnected(false);
     };
 

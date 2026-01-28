@@ -60,7 +60,7 @@ export function AuthProvider({ children }) {
     let isMounted = true;
 
     const checkAuth = async () => {
-      console.log("🔹 Running AuthContext checkAuth...");
+      // console.log("🔹 Running AuthContext checkAuth...");
       const access = localStorage.getItem("access_token");
 
       if (!access) {
@@ -83,9 +83,9 @@ export function AuthProvider({ children }) {
       }
 
       try {
-        console.log("🌐 Checking user at /auth/me/");
+        //console.log("🌐 Checking user at /auth/me/");
         const res = await api.get("auth/me/");
-        console.log("✅ Auth verified, user:", res.data);
+        //console.log("✅ Auth verified, user:", res.data);
         if (isMounted) {
           setCurrentUser(res.data);
           // 🔹 Persist user for instant next load
@@ -100,7 +100,7 @@ export function AuthProvider({ children }) {
         if (err.response?.status === 401) localStorage.clear();
         if (isMounted) setCurrentUser(null);
       } finally {
-        console.log("🔹 AuthContext check complete");
+        //console.log("🔹 AuthContext check complete");
       }
     };
 

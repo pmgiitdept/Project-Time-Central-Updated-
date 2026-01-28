@@ -517,6 +517,7 @@ export default function AdminDashboard() {
         user: log.user || "Unknown",
         role: log.role || "-",
         action: log.action || "-",
+        description: log.description || "",
         status: log.status || "success",
         ip_address: log.ip_address || "N/A",
         timestamp: log.timestamp ? new Date(log.timestamp) : new Date(),
@@ -536,6 +537,17 @@ export default function AdminDashboard() {
     fetchAuditLogs();
     fetchFileStats("day");
   }, []);
+
+  const getActionType = (log) => {
+    const text = (log.action + " " + log.description).toLowerCase();
+
+    if (text.includes("login")) return "login";
+    if (text.includes("upload")) return "upload";
+    if (text.includes("delete")) return "delete";
+    if (text.includes("update") || text.includes("updated")) return "update";
+
+    return "other";
+  };
 
   useEffect(() => {
     fetchUserStats(timeFilter);
@@ -1175,7 +1187,7 @@ export default function AdminDashboard() {
                   <h3 className="text-lg font-semibold">File Actions</h3>
                   <p className="text-xl font-bold">
                     {auditLogs.filter(log =>
-                      ["upload","delete","update"].includes(log.action)
+                      ["upload","delete","update"].includes(getActionType(log))
                     ).length}
                   </p>
                 </div>
@@ -1284,7 +1296,9 @@ export default function AdminDashboard() {
                           log.user.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           log.action.toLowerCase().includes(searchQuery.toLowerCase());
 
-                        const matchesAction = actionFilter ? log.action === actionFilter : true;
+                        const matchesAction = actionFilter
+                          ? getActionType(log) === actionFilter
+                          : true;
                         const matchesRole = roleFilter ? log.role === roleFilter : true;
                         const matchesStatus = statusFilter ? (log.status || "success") === statusFilter : true;
 

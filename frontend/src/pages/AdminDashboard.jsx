@@ -1332,8 +1332,9 @@ export default function AdminDashboard() {
                       ))}
                   </tbody>
                 </table>
+              </div>
 
-                <div className="pagination flex justify-between mt-4">
+              <div className="pagination flex justify-between mt-4">
                   <button
                     className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
                     disabled={!prevPage}
@@ -1352,7 +1353,6 @@ export default function AdminDashboard() {
                     Next
                   </button>
                 </div>
-              </div>
             </motion.div>
           )}
 

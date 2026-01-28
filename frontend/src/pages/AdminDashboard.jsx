@@ -1285,7 +1285,9 @@ export default function AdminDashboard() {
 
                         const matchesAction = actionFilter ? log.action === actionFilter : true;
                         const matchesRole = roleFilter ? log.role === roleFilter : true;
-                        const matchesStatus = statusFilter ? (log.status || "success") === statusFilter : true;
+                        const matchesStatus = statusFilter
+                          ? (log.status || "success") === statusFilter
+                          : true;
 
                         const logDate = new Date(log.timestamp);
                         const matchesDate =
@@ -1294,20 +1296,11 @@ export default function AdminDashboard() {
 
                         return matchesSearch && matchesAction && matchesRole && matchesStatus && matchesDate;
                       })
-                      .slice((currentPage - 1) * logsPerPage, currentPage * logsPerPage)
                       .map((log, idx) => (
                         <tr key={idx}>
                           <td>{log.user}</td>
                           <td>
-                            <span
-                              className={`role-badge ${
-                                log.role === "admin"
-                                  ? "admin"
-                                  : log.role === "client"
-                                  ? "client"
-                                  : "viewer"
-                              }`}
-                            >
+                            <span className={`role-badge ${log.role || "viewer"}`}>
                               {log.role || "-"}
                             </span>
                           </td>
@@ -1315,9 +1308,7 @@ export default function AdminDashboard() {
                           <td>
                             <span
                               className={`status-badge ${
-                                (log.status || "success") === "failed"
-                                  ? "inactive"
-                                  : "active"
+                                (log.status || "success") === "failed" ? "inactive" : "active"
                               }`}
                             >
                               {log.status || "success"}
@@ -1331,28 +1322,6 @@ export default function AdminDashboard() {
                       ))}
                   </tbody>
                 </table>
-              </div>
-              {/* Pagination */}
-              <div className="pagination-controls flex justify-center mt-4 gap-2">
-                <button
-                  className="btn-secondary"
-                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                >
-                  Prev
-                </button>
-                <span>Page {currentPage}</span>
-                <button
-                  className="btn-secondary"
-                  onClick={() =>
-                    setCurrentPage((prev) =>
-                      prev * logsPerPage < auditLogs.length ? prev + 1 : prev
-                    )
-                  }
-                  disabled={currentPage * logsPerPage >= auditLogs.length}
-                >
-                  Next
-                </button>
               </div>
             </motion.div>
           )}

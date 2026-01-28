@@ -500,15 +500,16 @@ export default function AdminDashboard() {
     }
   };
 
-  const fetchAuditLogs = async () => {
+  const [page, setPage] = useState(1);
+  const [totalLogs, setTotalLogs] = useState(0);
+  const [nextPage, setNextPage] = useState(null);
+  const [prevPage, setPrevPage] = useState(null);
+
+  const fetchAuditLogs = async (pageNumber = 1) => {
     try {
-      const response = await api.get("/files/audit-logs/");
+      const response = await api.get(`/files/audit-logs/?page=${pageNumber}`);
 
-      // console.log("Audit logs fetched:", response.data);
-
-      const logs = Array.isArray(response.data)
-        ? response.data
-        : Array.isArray(response.data.results)
+      const logs = Array.isArray(response.data.results)
         ? response.data.results
         : [];
 
@@ -516,18 +517,27 @@ export default function AdminDashboard() {
         user: log.user || "Unknown",
         role: log.role || "-",
         action: log.action || "-",
+        description: log.description || "",
         status: log.status || "success",
         ip_address: log.ip_address || "N/A",
         timestamp: log.timestamp ? new Date(log.timestamp) : new Date(),
       }));
 
       setAuditLogs(normalizedLogs);
+      setTotalLogs(response.data.count);
+      setNextPage(response.data.next);
+      setPrevPage(response.data.previous);
+      setPage(pageNumber);
     } catch (error) {
       console.error("Error fetching audit logs:", error.response?.data || error);
       setAuditLogs([]);
     }
   };
-  
+
+  useEffect(() => {
+    fetchAuditLogs();
+  }, []);
+
   useEffect(() => {
     fetchDashboardStats();
     fetchUsers();
@@ -1322,6 +1332,26 @@ export default function AdminDashboard() {
                       ))}
                   </tbody>
                 </table>
+
+                <div className="pagination flex justify-between mt-4">
+                  <button
+                    className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+                    disabled={!prevPage}
+                    onClick={() => fetchAuditLogs(page - 1)}
+                  >
+                    Previous
+                  </button>
+                  <span>
+                    Page {page} / {Math.ceil(totalLogs / 50)} {/* 50 = PAGE_SIZE */}
+                  </span>
+                  <button
+                    className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+                    disabled={!nextPage}
+                    onClick={() => fetchAuditLogs(page + 1)}
+                  >
+                    Next
+                  </button>
+                </div>
               </div>
             </motion.div>
           )}

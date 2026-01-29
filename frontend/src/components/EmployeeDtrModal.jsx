@@ -148,6 +148,7 @@ export default function EmployeeDtrModal({
                     const headers = [
                       { key: "full_name", label: "Full Name" },
                       { key: "employee_no", label: "Employee #" },
+                      { key: "time", label: "Time" },
                       ...dailyDates.map((d) => ({
                         key: d,
                         label: formatDailyHeader(d),
@@ -194,7 +195,7 @@ export default function EmployeeDtrModal({
                                   <tr key={rIdx}>
                                     <td>{rec.full_name}</td>
                                     <td>{rec.employee_no}</td>
-
+                                    <td>{rec.time}</td>
                                     {dailyDates.map((d) => (
                                       <td key={d}>{rec.daily_data[d] || ""}</td>
                                     ))}

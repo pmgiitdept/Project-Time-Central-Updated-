@@ -418,8 +418,9 @@
 .users-table thead th {
   position: sticky;
   top: 0; /* distance from the top of the scrollable container */
-  background-color: #f7fafc; /* same as your current header bg */
+  background: linear-gradient(135deg, #2563eb, #1e40af);
   z-index: 10; /* ensures it stays above table body rows */
+  color: black;
 }
 
 .users-table thead {

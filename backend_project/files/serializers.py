@@ -191,23 +191,3 @@ class PDFFileSerializer(serializers.ModelSerializer):
             print("⚠️ Failed to format period:", e)
             return f"{start} → {end}"
         
-class ParsedDTRSerializer(serializers.ModelSerializer):
-    uploaded_by_name = serializers.SerializerMethodField(read_only=True)
-
-    class Meta:
-        model = ParsedDTR
-        fields = "__all__"
-        read_only_fields = [
-            "uploaded_by",
-            "uploaded_at",
-            "updated_at",
-            "status",
-        ]
-
-    def get_uploaded_by_name(self, obj):
-        user = obj.uploaded_by
-        if not user:
-            return "N/A"
-
-        full_name = f"{user.first_name} {user.last_name}".strip()
-        return full_name if full_name else user.username

@@ -9,7 +9,6 @@ from .models import (
     DTREntry,
     Employee,
     PDFFile,
-    ParsedDTR,
 )
 from .utils import extract_pdf_pages
 from datetime import datetime

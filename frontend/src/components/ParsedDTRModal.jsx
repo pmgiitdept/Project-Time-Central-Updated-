@@ -4,7 +4,7 @@ import "./styles/PDFModal.css"; // we can reuse same CSS
 import api from "../api";
 
 export default function ParsedDTRModal({ dtrData, currentUser, onClose }) {
-  const [editableData, setEditableData] = useState(dtrData?.days || []);
+  const [editableData, setEditableData] = useState(dtrData?.rows || []);
   const [changes, setChanges] = useState({});
   const isAdmin = currentUser?.role === "admin";
 
@@ -30,7 +30,7 @@ export default function ParsedDTRModal({ dtrData, currentUser, onClose }) {
 
     try {
       await api.put(`/files/parsed-dtrs/${dtrData.id}/`, {
-        days: editableData,
+        rows: editableData,
         remarks: dtrData.remarks,
       });
       alert("✅ Changes saved successfully!");

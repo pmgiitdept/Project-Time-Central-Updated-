@@ -130,14 +130,14 @@ export default function FileUpload({ refreshFiles, refreshPDFs }) {
       />
 
       <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem" }}>
-        <button
+        {/* <button
           type="button"
           className="upload-button"
           disabled={uploading || !canSubmit || hasSubmitted}
           onClick={handleExcelUpload}
         >
           📊 Upload DTR Excel
-        </button>
+        </button> */}
 
         <button
           type="button"

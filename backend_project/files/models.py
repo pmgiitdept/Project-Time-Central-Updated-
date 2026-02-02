@@ -172,9 +172,7 @@ class ParsedDTR(models.Model):
     """
     Parsed DTR coming from frontend Excel parsing (fixed template, multi-sheet)
     """
-    source_file_name = models.CharField(max_length=255)  # Excel filename
-    source_file_id = models.UUIDField(null=True, blank=True)  # optional
-    
+
     uploaded_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,

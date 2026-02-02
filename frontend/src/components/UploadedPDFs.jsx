@@ -1,5 +1,5 @@
 /* UploadedPDFs.jsx */
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import api from "../api";
 import { motion } from "framer-motion";
 import "./styles/ClientDashboard.css";
@@ -31,7 +31,7 @@ export default function UploadedPDFs({ refreshTrigger, currentUser, uploaderFilt
     }
   };
 
-  // Fetch Parsed DTRs (Excel)
+  // Fetch Parsed DTRs
   const fetchParsedDTRs = async () => {
     try {
       const res = await api.get("/files/parsed-dtrs/");
@@ -49,33 +49,13 @@ export default function UploadedPDFs({ refreshTrigger, currentUser, uploaderFilt
   useEffect(() => {
     setLoading(true);
     setError("");
-    Promise.all([fetchPDFs(), fetchParsedDTRs()]).finally(() =>
-      setLoading(false)
-    );
+    Promise.all([fetchPDFs(), fetchParsedDTRs()]).finally(() => setLoading(false));
   }, [refreshTrigger]);
 
   const toggleCollapse = () => setIsCollapsed(!isCollapsed);
 
-  // 🔥 Combine PDFs + Parsed DTRs into ONE list
-  const combinedDTRs = useMemo(() => {
-    const pdfItems = pdfFiles.map(pdf => ({
-      id: `pdf-${pdf.id}`,
-      type: "pdf",
-      uploaded_at: pdf.uploaded_at,
-      data: pdf,
-    }));
-
-    const parsedItems = parsedDTRs.map(dtr => ({
-      id: `parsed-${dtr.id}`,
-      type: "parsed",
-      uploaded_at: dtr.uploaded_at,
-      data: dtr,
-    }));
-
-    return [...pdfItems, ...parsedItems].sort(
-      (a, b) => new Date(b.uploaded_at) - new Date(a.uploaded_at)
-    );
-  }, [pdfFiles, parsedDTRs]);
+  const selectPDF = (pdf) => setSelectedPDF(pdf);
+  const selectParsedDTR = (dtr) => setSelectedParsedDTR(dtr);
 
   const handleDeletePDF = async (pdfId) => {
     const confirmed = window.confirm("Are you sure you want to delete this PDF?");
@@ -93,16 +73,15 @@ export default function UploadedPDFs({ refreshTrigger, currentUser, uploaderFilt
 
   return (
     <div className="dashboard-layout">
+      {/* Left sidebar for PDFs and Parsed DTRs */}
       <motion.div
         className="upload-card sidebar1"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
         transition={{ duration: 0.5, ease: "easeInOut" }}
       >
-        <div
-          className="upload-card-header"
-          style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}
-        >
+        <div className="upload-card-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <h2 className="upload-title">Uploaded DTRs</h2>
           <button onClick={toggleCollapse} className="collapse-btn">
             {isCollapsed ? "🔽 Show" : "🔼 Hide"}
@@ -112,72 +91,48 @@ export default function UploadedPDFs({ refreshTrigger, currentUser, uploaderFilt
         {!isCollapsed && (
           <>
             {loading ? (
-              <p>Loading DTRs...</p>
+              <p>Loading files...</p>
             ) : error ? (
               <p style={{ color: "red" }}>{error}</p>
-            ) : combinedDTRs.length === 0 ? (
+            ) : pdfFiles.length === 0 && parsedDTRs.length === 0 ? (
               <p>No uploaded DTRs yet.</p>
             ) : (
               <div className="pdf-grid">
-                {combinedDTRs.map(item => {
-                  const { type, data } = item;
+                {/* Render PDF files */}
+                {pdfFiles.map(pdf => (
+                  <motion.div key={pdf.id} className="pdf-card" whileHover={{ scale: 1.03 }} transition={{ duration: 0.2 }}>
+                    <p className="pdf-name">📄 {pdf.file.split("/").pop()}</p>
+                    <p className="pdf-info">Uploaded: <strong>{new Date(pdf.uploaded_at).toLocaleString()}</strong></p>
+                    <p className="pdf-info">Period: <strong>{pdf.readable_period || "N/A"}</strong></p>
+                    <p className="pdf-info">Project: <strong>{pdf.uploaded_by_name || "N/A"}</strong></p>
 
-                  return (
-                    <motion.div
-                      key={item.id}
-                      className="pdf-card"
-                      whileHover={{ scale: 1.03 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <p className="pdf-name">
-                        {type === "pdf" ? "📄" : "🗂"}{" "}
-                        {type === "pdf"
-                          ? data.file.split("/").pop()
-                          : `${data.employee_name} (${data.employee_no})`}
-                      </p>
-
-                      <p className="pdf-info">
-                        Source: <strong>{type === "pdf" ? "PDF Upload" : "Excel Upload"}</strong>
-                      </p>
-
-                      <p className="pdf-info">
-                        Period:{" "}
-                        <strong>
-                          {type === "pdf"
-                            ? data.readable_period || "N/A"
-                            : `${data.period_from} → ${data.period_to}`}
-                        </strong>
-                      </p>
-
-                      <div className="pdf-buttons">
+                    <div className="pdf-buttons">
+                      <button onClick={() => selectPDF(pdf)} className="upload-button">🧾 View DTR</button>
+                      {currentUser?.role === "admin" && (
                         <button
-                          className="upload-button"
-                          onClick={() =>
-                            type === "pdf"
-                              ? setSelectedPDF(data)
-                              : setSelectedParsedDTR(data)
-                          }
+                          onClick={() => handleDeletePDF(pdf.id)}
+                          className="upload-button delete-btn"
+                          style={{ background: "#e63946", color: "white", marginLeft: "0.5rem" }}
                         >
-                          🧾 View DTR
+                          🗑️ Delete
                         </button>
+                      )}
+                    </div>
+                  </motion.div>
+                ))}
 
-                        {type === "pdf" && currentUser?.role === "admin" && (
-                          <button
-                            onClick={() => handleDeletePDF(data.id)}
-                            className="upload-button delete-btn"
-                            style={{
-                              background: "#e63946",
-                              color: "white",
-                              marginLeft: "0.5rem",
-                            }}
-                          >
-                            🗑️ Delete
-                          </button>
-                        )}
-                      </div>
-                    </motion.div>
-                  );
-                })}
+                {/* Render Parsed DTRs */}
+                {parsedDTRs.map(dtr => (
+                  <motion.div key={dtr.id} className="pdf-card" whileHover={{ scale: 1.03 }} transition={{ duration: 0.2 }}>
+                    <p className="pdf-name">🗂 {dtr.employee_name} ({dtr.employee_no})</p>
+                    <p className="pdf-info">Period: <strong>{dtr.period_from} → {dtr.period_to}</strong></p>
+                    <p className="pdf-info">Project: <strong>{dtr.project || "N/A"}</strong></p>
+
+                    <div className="pdf-buttons">
+                      <button onClick={() => selectParsedDTR(dtr)} className="upload-button">🧾 View Parsed DTR</button>
+                    </div>
+                  </motion.div>
+                ))}
               </div>
             )}
           </>

@@ -921,7 +921,19 @@ class DTRFileViewSet(viewsets.ModelViewSet):
                 if end_date_val and not dtr_file.end_date:
                     dtr_file.end_date = end_date_val
                 dtr_file.save()
-                
+
+                # --------------------------------
+                # Extract PROJECT NAME (Row 8, C:F)
+                # --------------------------------
+                project_name = None
+
+                try:
+                    raw_project = df.iloc[7, 2]  # Row 8, Column C
+                    if not pd.isna(raw_project):
+                        project_name = str(raw_project).strip()
+                except Exception:
+                    project_name = None
+
                 # --------------------------------
                 # Employee rows start at row 15
                 # --------------------------------
@@ -950,6 +962,7 @@ class DTRFileViewSet(viewsets.ModelViewSet):
                         dtr_file=dtr_file,
                         sheet_name=sheet_name,
                         full_name=safe_string(name),
+                        project_name=project_name,
                         employee_no=emp_code,
                         position=safe_string(row[4]) if len(row) > 4 else None,
                         shift=safe_string(row[5]) if len(row) > 5 else None,

@@ -948,6 +948,7 @@ class DTRFileViewSet(viewsets.ModelViewSet):
 
                     DTREntry.objects.create(
                         dtr_file=dtr_file,
+                        sheet_name=sheet_name,
                         full_name=safe_string(name),
                         employee_no=emp_code,
                         position=safe_string(row[4]) if len(row) > 4 else None,
@@ -973,13 +974,22 @@ class DTRFileViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["get"])
     def content(self, request, pk=None):
         dtr_file = self.get_object()
-        entries = dtr_file.entries.all()
-        serializer = DTREntrySerializer(entries, many=True)
+        from collections import defaultdict
+
+        grouped = defaultdict(list)
+
+        for entry in dtr_file.entries.all():
+            grouped[entry.sheet_name].append(entry)
+
         return Response({
             "start_date": dtr_file.start_date,
             "end_date": dtr_file.end_date,
-            "rows": serializer.data
+            "sheets": {
+                sheet: DTREntrySerializer(rows, many=True).data
+                for sheet, rows in grouped.items()
+            }
         })
+
     
     @action(
         detail=True,

@@ -128,8 +128,6 @@ export default function FileUpload({ refreshFiles, refreshPDFs }) {
         onChange={(e) => setFile(e.target.files[0])}
         className="file-input"
       />
-
-      <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem" }}>
         {/* <button
           type="button"
           className="upload-button"
@@ -147,7 +145,6 @@ export default function FileUpload({ refreshFiles, refreshPDFs }) {
         >
           📄 Upload PDF
         </button>
-      </div>
 
       {file && <p className="selected-file">📂 {file.name}</p>}
     </motion.div>

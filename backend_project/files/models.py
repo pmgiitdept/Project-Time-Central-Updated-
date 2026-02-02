@@ -168,3 +168,61 @@ class PDFFile(models.Model):
 
     def __str__(self):
         return f"PDF: {self.file.name}"
+
+class ParsedDTR(models.Model):
+    """
+    Parsed DTR coming from frontend Excel parsing (fixed template, multi-sheet)
+    """
+
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="parsed_dtrs"
+    )
+
+    # --- Employee / Header Info ---
+    employee_name = models.CharField(max_length=255)
+    employee_no = models.CharField(max_length=50, db_index=True)
+    department = models.CharField(max_length=100, blank=True, null=True)
+    project = models.CharField(max_length=255, blank=True, null=True)
+
+    period_from = models.DateField()
+    period_to = models.DateField()
+
+    time_from = models.CharField(max_length=20, blank=True, null=True)
+    time_to = models.CharField(max_length=20, blank=True, null=True)
+    rest_day = models.CharField(max_length=20, blank=True, null=True)
+    time_shift = models.CharField(max_length=50, blank=True, null=True)
+
+    sheet_name = models.CharField(max_length=50)
+
+    # --- DTR Data ---
+    days = models.JSONField(default=list)      # rows 17–32
+    totals = models.JSONField(default=dict)    # summary cells
+
+    status = models.CharField(
+        max_length=20,
+        choices=[
+            ("pending", "Pending"),
+            ("approved", "Approved"),
+            ("rejected", "Rejected"),
+        ],
+        default="pending",
+    )
+
+    remarks = models.TextField(blank=True, null=True)
+
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = (
+            "employee_no",
+            "period_from",
+            "period_to",
+            "sheet_name",
+        )
+        ordering = ["-uploaded_at"]
+
+    def __str__(self):
+        return f"{self.employee_no} | {self.period_from} - {self.period_to}"

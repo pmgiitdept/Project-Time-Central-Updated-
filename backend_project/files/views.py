@@ -1,8 +1,8 @@
 #files/views.py
 from rest_framework import viewsets, permissions, status
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
-from .models import File, AuditLog, SystemSettings, EmployeeDirectory, DTRFile, DTREntry, Employee, PDFFile
-from .serializers import FileSerializer, FileStatusSerializer, AuditLogSerializer, SystemSettingsSerializer, EmployeeDirectorySerializer, DTREntrySerializer, DTRFileSerializer, EmployeeSerializer, PDFFileSerializer
+from .models import File, AuditLog, SystemSettings, EmployeeDirectory, DTRFile, DTREntry, Employee, PDFFile, ParsedDTR
+from .serializers import FileSerializer, FileStatusSerializer, AuditLogSerializer, SystemSettingsSerializer, EmployeeDirectorySerializer, DTREntrySerializer, DTRFileSerializer, EmployeeSerializer, PDFFileSerializer, ParsedDTRSerializer
 from accounts.permissions import ReadOnlyForViewer, IsOwnerOrAdmin, CanEditStatus, IsAdmin
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
@@ -2064,3 +2064,113 @@ class PDFFileViewSet(viewsets.ModelViewSet):
         pdf.parsed_pages = parsed_pages
         pdf.save()
         return Response({"message": "✅ Parsed data updated successfully!"})
+
+
+class ParsedDTRViewSet(viewsets.ModelViewSet):
+    """
+    Handles frontend-parsed Excel DTRs (fixed template, multi-sheet)
+    """
+
+    serializer_class = ParsedDTRSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+
+        queryset = ParsedDTR.objects.all()
+
+        # 🔐 Non-admin users only see their own uploads
+        if not user.is_staff:
+            queryset = queryset.filter(uploaded_by=user)
+
+        # 🔎 Optional filters
+        employee_no = self.request.query_params.get("employee_no")
+        period_from = self.request.query_params.get("period_from")
+        period_to = self.request.query_params.get("period_to")
+        status_param = self.request.query_params.get("status")
+
+        if employee_no:
+            queryset = queryset.filter(employee_no=employee_no)
+
+        if period_from and period_to:
+            queryset = queryset.filter(
+                period_from__gte=period_from,
+                period_to__lte=period_to,
+            )
+
+        if status_param:
+            queryset = queryset.filter(status=status_param)
+
+        return queryset
+
+    def perform_create(self, serializer):
+        serializer.save(uploaded_by=self.request.user)
+
+    @action(detail=False, methods=["post"], url_path="bulk")
+    def bulk_upload(self, request):
+        """
+        Accepts an array of parsed DTR sheets from frontend
+        """
+        if not isinstance(request.data, list):
+            return Response(
+                {"error": "Expected a list of parsed sheets."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        created = []
+        errors = []
+
+        for index, sheet in enumerate(request.data):
+            serializer = ParsedDTRSerializer(data=sheet, context={"request": request})
+
+            if serializer.is_valid():
+                serializer.save(uploaded_by=request.user)
+                created.append(serializer.data)
+            else:
+                errors.append({
+                    "sheet_index": index,
+                    "sheet_name": sheet.get("sheet_name"),
+                    "errors": serializer.errors,
+                })
+
+        return Response(
+            {
+                "created": created,
+                "errors": errors,
+                "created_count": len(created),
+                "error_count": len(errors),
+            },
+            status=status.HTTP_207_MULTI_STATUS if errors else status.HTTP_201_CREATED,
+        )
+
+    @action(detail=True, methods=["post"])
+    def approve(self, request, pk=None):
+        dtr = self.get_object()
+        dtr.status = "approved"
+        dtr.remarks = None
+        dtr.save()
+
+        return Response(
+            {"message": "DTR approved successfully."},
+            status=status.HTTP_200_OK,
+        )
+
+    @action(detail=True, methods=["post"])
+    def reject(self, request, pk=None):
+        dtr = self.get_object()
+        reason = request.data.get("remarks")
+
+        if not reason:
+            return Response(
+                {"error": "Rejection remarks are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        dtr.status = "rejected"
+        dtr.remarks = reason
+        dtr.save()
+
+        return Response(
+            {"message": "DTR rejected successfully."},
+            status=status.HTTP_200_OK,
+        )

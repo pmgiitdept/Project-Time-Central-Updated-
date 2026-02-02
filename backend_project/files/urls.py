@@ -21,6 +21,7 @@ from .views import (
     backup_employee_directory,
     restore_employee_directory,
     PDFFileViewSet,
+    ParsedDTRViewSet,
 )
 
 # DRF router setup
@@ -31,7 +32,7 @@ router.register(r"settings", SystemSettingsViewSet, basename="systemsettings")
 router.register(r"dtr/files", DTRFileViewSet, basename="dtrfile")
 router.register(r"dtr/entries", DTREntryViewSet, basename="dtrentry")
 router.register(r'pdfs', PDFFileViewSet, basename='pdffile')
-
+router.register(r"parsed-dtrs", ParsedDTRViewSet, basename="parseddtr")
 # URL patterns
 urlpatterns = [
     path("", include(router.urls)),

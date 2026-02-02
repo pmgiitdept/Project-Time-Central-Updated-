@@ -872,19 +872,15 @@ class DTRFileViewSet(viewsets.ModelViewSet):
             """Safely parse a date from Excel cell (merged cells, strings, numbers)"""
             if pd.isna(val):
                 return None
-            # Excel serial number
             if isinstance(val, (int, float)):
                 try:
                     return (pd.to_datetime("1899-12-30") + pd.to_timedelta(val, "D")).date()
                 except:
                     return None
-            # Already datetime
             if isinstance(val, (pd.Timestamp, datetime)):
                 return val.date()
-            # String parsing
             try:
                 s = str(val).strip()
-                # Remove prefix like "Start Date: "
                 if ":" in s:
                     s = s.split(":")[-1]
                 return pd.to_datetime(s, errors="coerce").date()
@@ -892,65 +888,81 @@ class DTRFileViewSet(viewsets.ModelViewSet):
                 return None
 
         try:
-            df = pd.read_excel(file_path, header=None)
+            # 🔥 READ ALL SHEETS
+            all_sheets = pd.read_excel(file_path, sheet_name=None, header=None)
 
-            # Extract start_date from D9:E9 (row 8, cols 3-4)
             start_date_val = None
-            for val in df.iloc[8, 3:5]:
-                start_date_val = parse_excel_date(val)
-                if start_date_val:
-                    break
-
-            # Extract end_date from D10:E10 (row 9, cols 3-4)
             end_date_val = None
-            for val in df.iloc[9, 3:5]:
-                end_date_val = parse_excel_date(val)
-                if end_date_val:
-                    break
 
-            # Save to model
-            dtr_file.start_date = start_date_val
-            dtr_file.end_date = end_date_val
-            dtr_file.save()
+            for sheet_name, df in all_sheets.items():
 
-            # Employee rows start from row 15 (index 14)
-            employee_df = df.iloc[14:, :]
-
-            for _, row in employee_df.iterrows():
-                name = row[2] if len(row) > 2 else None
-                emp_no = row[3] if len(row) > 3 else None
-                if pd.isna(name) or pd.isna(emp_no):
+                # Skip empty / invalid sheets
+                if df.empty or df.shape[0] < 15:
                     continue
 
-                emp_code = str(emp_no).strip()
-                if emp_code.startswith("PM"):
-                    emp_code = emp_code[2:]
-                emp_code = "".join(filter(str.isdigit, emp_code))
+                # --------------------------------
+                # Extract start & end date ONCE
+                # --------------------------------
+                if not start_date_val:
+                    for val in df.iloc[8, 3:5]:  # D9:E9
+                        start_date_val = parse_excel_date(val)
+                        if start_date_val:
+                            break
 
-                daily_data = {}
-                if dtr_file.start_date:
-                    for idx, col in enumerate(range(7, 23)):  # H → W
-                        day = dtr_file.start_date + timedelta(days=idx)
-                        val = row[col] if col < len(row) else None
-                        daily_data[str(day)] = None if pd.isna(val) else val
+                if not end_date_val:
+                    for val in df.iloc[9, 3:5]:  # D10:E10
+                        end_date_val = parse_excel_date(val)
+                        if end_date_val:
+                            break
 
-                DTREntry.objects.create(
-                    dtr_file=dtr_file,
-                    full_name=safe_string(name),
-                    employee_no=emp_code,
-                    position=safe_string(row[4]) if len(row) > 4 else None,
-                    shift=safe_string(row[5]) if len(row) > 5 else None,
-                    time=safe_string(row[6]) if len(row) > 6 else None,
-                    daily_data=daily_data,
-                    total_days=safe_number(row[23]) if len(row) > 23 else 0,
-                    total_hours=safe_number(row[24]) if len(row) > 24 else 0,
-                    undertime_minutes=safe_number(row[25]) if len(row) > 25 else 0,
-                    regular_ot=safe_number(row[26]) if len(row) > 26 else 0,
-                    legal_holiday=safe_number(row[27]) if len(row) > 27 else 0,
-                    unworked_reg_holiday=safe_number(row[28]) if len(row) > 28 else 0,
-                    special_holiday=safe_number(row[29]) if len(row) > 29 else 0,
-                    night_diff=safe_number(row[30]) if len(row) > 30 else 0,
-                )
+                # Save dates once
+                if start_date_val and not dtr_file.start_date:
+                    dtr_file.start_date = start_date_val
+                if end_date_val and not dtr_file.end_date:
+                    dtr_file.end_date = end_date_val
+                dtr_file.save()
+
+                # --------------------------------
+                # Employee rows start at row 15
+                # --------------------------------
+                employee_df = df.iloc[14:, :]
+
+                for _, row in employee_df.iterrows():
+                    name = row[2] if len(row) > 2 else None
+                    emp_no = row[3] if len(row) > 3 else None
+
+                    if pd.isna(name) or pd.isna(emp_no):
+                        continue
+
+                    emp_code = str(emp_no).strip()
+                    if emp_code.startswith("PM"):
+                        emp_code = emp_code[2:]
+                    emp_code = "".join(filter(str.isdigit, emp_code))
+
+                    daily_data = {}
+                    if dtr_file.start_date:
+                        for idx, col in enumerate(range(7, 23)):  # H → W
+                            day = dtr_file.start_date + timedelta(days=idx)
+                            val = row[col] if col < len(row) else None
+                            daily_data[str(day)] = None if pd.isna(val) else val
+
+                    DTREntry.objects.create(
+                        dtr_file=dtr_file,
+                        full_name=safe_string(name),
+                        employee_no=emp_code,
+                        position=safe_string(row[4]) if len(row) > 4 else None,
+                        shift=safe_string(row[5]) if len(row) > 5 else None,
+                        time=safe_string(row[6]) if len(row) > 6 else None,
+                        daily_data=daily_data,
+                        total_days=safe_number(row[23]) if len(row) > 23 else 0,
+                        total_hours=safe_number(row[24]) if len(row) > 24 else 0,
+                        undertime_minutes=safe_number(row[25]) if len(row) > 25 else 0,
+                        regular_ot=safe_number(row[26]) if len(row) > 26 else 0,
+                        legal_holiday=safe_number(row[27]) if len(row) > 27 else 0,
+                        unworked_reg_holiday=safe_number(row[28]) if len(row) > 28 else 0,
+                        special_holiday=safe_number(row[29]) if len(row) > 29 else 0,
+                        night_diff=safe_number(row[30]) if len(row) > 30 else 0,
+                    )
 
             return Response({"message": "DTR file parsed successfully."})
 

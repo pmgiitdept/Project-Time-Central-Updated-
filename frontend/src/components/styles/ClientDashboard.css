@@ -140,6 +140,21 @@
   box-shadow: none; 
 }
 
+/* Make sure <select> keeps the color */
+select.upload-button {
+  appearance: none;        /* Chrome / Safari */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-color: #1d4ed8;
+  color: #ffffff;
+}
+
+/* Dropdown options */
+select.upload-button option {
+  background-color: #ffffff; /* options stay readable */
+  color: #000000;
+}
+
 .selected-file {
   margin-top: 1rem;
   font-size: 0.95rem;

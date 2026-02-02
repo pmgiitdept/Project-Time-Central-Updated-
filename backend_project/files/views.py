@@ -889,12 +889,12 @@ class DTRFileViewSet(viewsets.ModelViewSet):
 
         try:
             # 🔥 READ ALL SHEETS
-            all_sheets = pd.read_excel(file_path, sheet_name=None, header=None)
+            all_sheets = pd.read_excel(file_path, name_sheet=None, header=None)
 
             start_date_val = None
             end_date_val = None
 
-            for sheet_name, df in all_sheets.items():
+            for name_sheet, df in all_sheets.items():
 
                 # Skip empty / invalid sheets
                 if df.empty or df.shape[0] < 15:
@@ -948,7 +948,7 @@ class DTRFileViewSet(viewsets.ModelViewSet):
 
                     DTREntry.objects.create(
                         dtr_file=dtr_file,
-                        sheet_name=sheet_name,
+                        name_sheet=name_sheet,
                         full_name=safe_string(name),
                         employee_no=emp_code,
                         position=safe_string(row[4]) if len(row) > 4 else None,

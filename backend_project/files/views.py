@@ -2096,19 +2096,34 @@ class ParsedDTRViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["post"], url_path="bulk")
     def bulk_upload(self, request):
         """
-        Accepts an array of parsed DTR sheets from frontend
+        Accepts an array of parsed DTR sheets from ONE Excel file (Option A)
         """
-        if not isinstance(request.data, list):
+
+        if not isinstance(request.data, dict):
             return Response(
-                {"error": "Expected a list of parsed sheets."},
+                {"error": "Expected payload with file info and sheets."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        source_file_name = request.data.get("file_name")
+        sheets = request.data.get("sheets")
+
+        if not source_file_name or not isinstance(sheets, list):
+            return Response(
+                {"error": "file_name and sheets[] are required."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         created = []
         errors = []
 
-        for index, sheet in enumerate(request.data):
-            serializer = ParsedDTRSerializer(data=sheet, context={"request": request})
+        for index, sheet in enumerate(sheets):
+            sheet["source_file_name"] = source_file_name
+
+            serializer = ParsedDTRSerializer(
+                data=sheet,
+                context={"request": request},
+            )
 
             if serializer.is_valid():
                 serializer.save(uploaded_by=request.user)
@@ -2122,6 +2137,7 @@ class ParsedDTRViewSet(viewsets.ModelViewSet):
 
         return Response(
             {
+                "file_name": source_file_name,
                 "created": created,
                 "errors": errors,
                 "created_count": len(created),
@@ -2161,3 +2177,27 @@ class ParsedDTRViewSet(viewsets.ModelViewSet):
             {"message": "DTR rejected successfully."},
             status=status.HTTP_200_OK,
         )
+
+    @action(detail=False, methods=["get"], url_path="grouped-by-file")
+    def grouped_by_file(self, request):
+        """
+        Returns Parsed DTRs grouped by uploaded Excel file (Option A)
+        """
+        queryset = self.get_queryset()
+
+        grouped = {}
+
+        for dtr in queryset:
+            key = dtr.source_file_name or "Unknown File"
+
+            if key not in grouped:
+                grouped[key] = {
+                    "file_name": key,
+                    "uploaded_by": dtr.uploaded_by.username,
+                    "uploaded_at": dtr.created_at,
+                    "sheets": [],
+                }
+
+            grouped[key]["sheets"].append(ParsedDTRSerializer(dtr).data)
+
+        return Response(list(grouped.values()), status=status.HTTP_200_OK)

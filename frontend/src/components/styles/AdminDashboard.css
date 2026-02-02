@@ -415,6 +415,13 @@
   border-bottom: 1px solid #e2e8f0;
 }
 
+.users-table thead th {
+  position: sticky;
+  top: 0; /* distance from the top of the scrollable container */
+  background-color: #f7fafc; /* same as your current header bg */
+  z-index: 10; /* ensures it stays above table body rows */
+}
+
 .users-table thead {
   background-color: #f7fafc;
   font-weight: 600;

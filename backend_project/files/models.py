@@ -121,7 +121,7 @@ class DTRFile(models.Model):
 
 class DTREntry(models.Model):
     dtr_file = models.ForeignKey(DTRFile, on_delete=models.CASCADE, related_name="entries")
-    sheet_name = models.CharField(max_length=100)
+    sheet_name = models.CharField(max_length=100, null=True, blank=True)
     full_name = models.CharField(max_length=150)
     employee_no = models.CharField(max_length=50, null=True, blank=True)
     position = models.CharField(max_length=100, blank=True, null=True)

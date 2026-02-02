@@ -974,22 +974,13 @@ class DTRFileViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["get"])
     def content(self, request, pk=None):
         dtr_file = self.get_object()
-        from collections import defaultdict
-
-        grouped = defaultdict(list)
-
-        for entry in dtr_file.entries.all():
-            grouped[entry.sheet_name].append(entry)
-
+        entries = dtr_file.entries.all()
+        serializer = DTREntrySerializer(entries, many=True)
         return Response({
             "start_date": dtr_file.start_date,
             "end_date": dtr_file.end_date,
-            "sheets": {
-                sheet: DTREntrySerializer(rows, many=True).data
-                for sheet, rows in grouped.items()
-            }
+            "rows": serializer.data
         })
-
     
     @action(
         detail=True,

@@ -199,36 +199,3 @@
   flex: 1;
   overflow: auto; /* allows both horizontal & vertical scroll */
 }
-
-/* Uploader Select Dropdown in Modal */
-.upload-button {
-  background-color: #1f3a5f; /* dark background */
-  color: #ffffff;            /* white text */
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  cursor: pointer;
-  min-width: 200px;
-  transition: background 0.2s, border 0.2s;
-}
-
-/* Hover & Focus for the select */
-.upload-button:hover,
-.upload-button:focus {
-  background-color: #32527a;
-  outline: none;
-  border-color: #4a90e2;
-}
-
-/* Options in the dropdown */
-.upload-button option {
-  background-color: #1f3a5f; /* same dark background */
-  color: #ffffff;            /* white text */
-  padding: 0.3rem 0.5rem;
-}
-
-/* Optional: highlight on hover (not supported in all browsers for <option>) */
-.upload-button option:hover {
-  background-color: #32527a;
-  color: #fff;
-}

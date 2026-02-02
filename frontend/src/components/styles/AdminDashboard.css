@@ -1317,24 +1317,3 @@
   box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 }
 
-/* Style for uploader select */
-.upload-button {
-  background-color: #1f3a5f; /* dark background */
-  color: #ffffff;            /* white text */
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  padding: 0.85rem 1.5rem;
-  font-size: 0.9rem;
-}
-
-/* Optional: on focus */
-.upload-button:focus {
-  outline: none;
-  border-color: #4a90e2;
-}
-
-/* Optional: for the dropdown arrow to be more visible */
-.upload-button option {
-  background-color: #1f3a5f; /* same dark bg */
-  color: #ffffff;            /* white text */
-}

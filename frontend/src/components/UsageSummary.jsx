@@ -28,7 +28,7 @@ export default function UsageSummary({ role, currentUser }) {
       if (endDate) params.end_date = endDate;
 
       // ✅ Use the correct backend endpoint
-      const res = await api.get("/files/dtr/files/employee/", {
+      const res = await api.get("/dtr/entries/employee/", {
         headers: { Authorization: `Bearer ${token}` },
         params,
       });

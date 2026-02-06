@@ -244,7 +244,19 @@ export default function DTRTable({ role , fileId}) {
       (val) => val && val.toString().toLowerCase().includes(term)
     );
   });
+  
+  // ✅ Total unique employees (by employee_no)
+  const totalEmployees = (() => {
+    const uniqueEmployees = new Set();
 
+    fileContents.forEach((row) => {
+      if (row?.employee_no) {
+        uniqueEmployees.add(row.employee_no.trim());
+      }
+    });
+
+    return uniqueEmployees.size;
+  })();
 
   return (
     <div className="dtr-dashboard">
@@ -300,7 +312,12 @@ export default function DTRTable({ role , fileId}) {
       {/* File Content Table */}
       {fileContents.length > 0 && (
         <div className="dtr-file-content">
-          <h3 className="content-title">Summary Forms</h3>
+          <h3 className="content-title">
+            Summary Forms
+            <span style={{ marginLeft: "12px", fontSize: "14px", fontWeight: "normal" }}>
+              👥 Total Employees: <strong>{totalEmployees}</strong>
+            </span>
+          </h3>
 
           {/* 🔍 Search Bar 
           <div className="search-bar">
@@ -521,6 +538,10 @@ export default function DTRTable({ role , fileId}) {
                 <div className="info-item">
                   <strong>End Date:</strong>
                   <span>{selectedFileObj?.end_date ? new Date(selectedFileObj.end_date).toLocaleDateString() : "N/A"}</span>
+                </div>
+                <div className="info-item">
+                  <strong>Total Employees:</strong>
+                  <span>{totalEmployees}</span>
                 </div>
               </div>
 

@@ -183,7 +183,7 @@ export default function UsageSummary() {
               {/* 🔍 Employee Search */}
               <input
                 type="text"
-                className="employee-search"
+                className="search-employee"
                 placeholder="Search employee no or name..."
                 value={employeeSearch[proj.file_id] || ""}
                 onChange={(e) =>

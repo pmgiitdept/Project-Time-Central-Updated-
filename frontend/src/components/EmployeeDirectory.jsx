@@ -302,7 +302,7 @@ export default function EmployeeDirectory() {
 
           if (employee_no || fullName) {
             employees.push({
-              employee_no: String(employee_no).replace(/\D/g, "").padStart(5, "0"),
+              employee_no: String(employee_no).trim(),
               employee_name: fullName.replace(/\s+/g, " ").trim(),
             });
           }

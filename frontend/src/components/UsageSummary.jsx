@@ -41,21 +41,20 @@ export default function UsageSummary() {
         // Map employees from rows directly
         const employeeMap = new Map();
         rows.forEach((row) => {
-  if (!row?.employee_no) return;
+            if (!row?.employee_no) return;
 
-  if (!employeeMap.has(row.employee_no)) {
-    employeeMap.set(row.employee_no, {
-      full_name: row.full_name,
-      employee_no: row.employee_no,
-      employee_code: row.employee_no,
-      rows: [],
-    });
-  }
+            if (!employeeMap.has(row.employee_no)) {
+                employeeMap.set(row.employee_no, {
+                full_name: row.full_name,
+                employee_no: row.employee_no,
+                employee_code: row.employee_no,
+                rows: [],
+                });
+            }
 
-  // ✅ Add all rows to the employee
-  employeeMap.get(row.employee_no).rows.push(row);
-});
-
+            // ✅ Add all rows to the employee
+            employeeMap.get(row.employee_no).rows.push(row);
+            });
 
         summaries.push({
           file_id: file.id,
@@ -129,7 +128,7 @@ export default function UsageSummary() {
     return { logged: 0, expected: 0, totalHours: 0 };
   }
 
-  // Expected days = project coverage days (same as before)
+  // Expected days = project coverage days
   const start = new Date(projStart);
   const end = new Date(projEnd);
   const expectedDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
@@ -140,7 +139,7 @@ export default function UsageSummary() {
   emp.rows.forEach((row) => {
     if (!row.daily_data) return;
 
-    // ✅ Count each date entry per row (even duplicates)
+    // Count each date entry per row (even duplicates)
     Object.keys(row.daily_data).forEach((date) => {
       const val = row.daily_data[date];
       if (val !== null && val !== "" && !isNaN(val)) {
@@ -148,9 +147,12 @@ export default function UsageSummary() {
       }
     });
 
-    // ✅ Sum total_hours for all rows
-    totalHours += row.total_hours || 0;
+    // ✅ Sum total_hours for all rows safely
+    totalHours += Number(row.total_hours) || 0;
   });
+
+  // Avoid showing 0 before actual calculation
+  totalHours = totalHours ? totalHours : 0;
 
   return { logged: loggedDays, expected: expectedDays, totalHours };
 };
@@ -248,7 +250,7 @@ export default function UsageSummary() {
                             {summary.logged} / {summary.expected}{" "}
                             {summary.logged < summary.expected && <span className="missing-days">⚠</span>}
                           </td>
-                          <td>{summary.totalHours} hrs</td>
+                          <td>{summary.totalHours.toFixed(2).replace(/\.00$/, "")} hrs</td>
                         </tr>
                       );
                     })}

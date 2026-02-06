@@ -12,7 +12,7 @@ export default function UsageSummary() {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
 
-  // 🔍 Employee search per project (Step 2)
+  // 🔍 Employee search per project
   const [employeeSearch, setEmployeeSearch] = useState({});
 
   useEffect(() => {
@@ -85,9 +85,7 @@ export default function UsageSummary() {
     let maxDate = null;
 
     filteredProjects.forEach((proj) => {
-      proj.employees.forEach((e) =>
-        employeeSet.add(e.employee_no)
-      );
+      proj.employees.forEach((e) => employeeSet.add(e.employee_no));
 
       if (proj.start_date) {
         const sd = new Date(proj.start_date);
@@ -108,6 +106,30 @@ export default function UsageSummary() {
     };
   }, [filteredProjects]);
 
+  // 🔽 STEP 3: Export CSV
+  const exportCSV = (proj, filteredEmployees) => {
+    const headers = ["Employee No", "Full Name"];
+    const rows = filteredEmployees.map((e) => [e.employee_no, e.full_name]);
+
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      [headers, ...rows].map((r) => r.join(",")).join("\n");
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute(
+      "href",
+      encodedUri
+    );
+    link.setAttribute(
+      "download",
+      `${proj.project.replace(/\s+/g, "_")}_employees.csv`
+    );
+    document.body.appendChild(link); // Required for Firefox
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="usage-summary">
       <h2>📊 Project Manpower Usage Summary</h2>
@@ -122,13 +144,8 @@ export default function UsageSummary() {
         </div>
         <div>
           📅 <strong>Coverage:</strong>{" "}
-          {summary.start
-            ? summary.start.toLocaleDateString()
-            : "N/A"}{" "}
-          –{" "}
-          {summary.end
-            ? summary.end.toLocaleDateString()
-            : "N/A"}
+          {summary.start ? summary.start.toLocaleDateString() : "N/A"} –{" "}
+          {summary.end ? summary.end.toLocaleDateString() : "N/A"}
         </div>
       </div>
 
@@ -188,8 +205,7 @@ export default function UsageSummary() {
               </div>
 
               <p>
-                👥 <strong>Total Employees:</strong>{" "}
-                {proj.totalEmployees}
+                👥 <strong>Total Employees:</strong> {proj.totalEmployees}
               </p>
 
               {/* 🔍 Employee Search */}
@@ -205,6 +221,14 @@ export default function UsageSummary() {
                   }))
                 }
               />
+
+              {/* 🆕 Export CSV Button */}
+              <button
+                className="export-btn"
+                onClick={() => exportCSV(proj, filteredEmployees)}
+              >
+                Export CSV
+              </button>
 
               <div className="usage-table-wrapper">
                 <table className="usage-table">
@@ -232,9 +256,7 @@ export default function UsageSummary() {
               )}
 
               {filteredEmployees.length === 0 && (
-                <div className="table-hint">
-                  No matching employees found
-                </div>
+                <div className="table-hint">No matching employees found</div>
               )}
             </div>
           );

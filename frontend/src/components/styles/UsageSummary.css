@@ -146,12 +146,29 @@
 
 /* ===== Employee Search ===== */
 .employee-search {
-  width: 100%;
+  width: 25%;
   margin: 10px 0 8px;
   padding: 8px 10px;
   font-size: 14px;
   border-radius: 6px;
   border: 1px solid #d1d5db;
+}
+
+/* Export button */
+.export-btn {
+  background-color: #1e88e5;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-bottom: 12px;
+  transition: background-color 0.2s ease;
+}
+
+.export-btn:hover {
+  background-color: #1565c0;
 }
 
 /* ===== Responsive ===== */

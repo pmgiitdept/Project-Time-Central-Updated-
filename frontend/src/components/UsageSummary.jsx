@@ -12,68 +12,62 @@ export default function UsageSummary({ role, currentUser }) {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  // Fetch usage summary from backend
   const fetchData = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem("access_token");
-      if (!token) {
+        const token = localStorage.getItem("access_token");
+        if (!token) {
         toast.error("No authentication token found. Please login again.");
-        setLoading(false);
         return;
-      }
+        }
 
-      const params = {};
-      if (startDate) params.start_date = startDate;
-      if (endDate) params.end_date = endDate;
+        const params = {};
+        if (startDate) params.start_date = startDate;
+        if (endDate) params.end_date = endDate;
 
-      // ✅ Use the correct backend endpoint
-      const res = await api.get("/files/dtr/files/employee/", {
+        // ✅ CORRECT endpoint
+        const res = await api.get("/files/dtr/files/by-employee/", {
         headers: { Authorization: `Bearer ${token}` },
         params,
-      });
+        });
 
-      if (!Array.isArray(res.data)) {
+        if (!Array.isArray(res.data)) {
         toast.error("Invalid response format from server.");
-        setLoading(false);
         return;
-      }
+        }
 
-      // Group totals by employee → project/uploader
-      const grouped = {};
-      res.data.forEach((entry) => {
-        const employee = entry.employee_name || entry.employee_no || "Unknown";
-        const project = entry.project || "Unknown";
+        // 🔁 Group by employee → project (uploader)
+        const grouped = {};
+        res.data.forEach((entry) => {
+        const employee =
+            entry.employee_name || entry.employee_no || "Unknown";
+        const project = entry.uploader_name || entry.project || "Unknown";
 
         if (!grouped[employee]) grouped[employee] = {};
         if (!grouped[employee][project]) grouped[employee][project] = 0;
 
         grouped[employee][project] += entry.total_hours || 0;
-      });
-
-      // Transform grouped data to array for table
-      const tableData = Object.keys(grouped).map((employee) => {
-        const row = { employee };
-        Object.keys(grouped[employee]).forEach((project) => {
-          row[project] = grouped[employee][project];
         });
-        return row;
-      });
 
-      setData(tableData);
+        const tableData = Object.keys(grouped).map((employee) => ({
+        employee,
+        ...grouped[employee],
+        }));
+
+        setData(tableData);
     } catch (err) {
-      console.error(err);
-      if (err.response?.status === 401) {
+        console.error(err);
+        if (err.response?.status === 401) {
         toast.error("Unauthorized. Please login again.");
-      } else if (err.response?.status === 404) {
-        toast.error("Endpoint not found. Check backend URL.");
-      } else {
+        } else if (err.response?.status === 404) {
+        toast.error("Usage summary endpoint not found.");
+        } else {
         toast.error("Failed to fetch usage summary.");
-      }
+        }
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+    };
 
   // Excel export
   const handleExport = () => {

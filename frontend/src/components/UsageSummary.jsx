@@ -25,56 +25,55 @@ export default function UsageSummary() {
   }, []);
 
   const fetchUsageSummary = async () => {
-  setLoading(true);
-  try {
-    const res = await api.get("/files/dtr/files/");
-    const files = res.data.results || res.data;
+    setLoading(true);
+    try {
+        const res = await api.get("/files/dtr/files/");
+        const files = res.data.results || res.data;
 
-    // ✅ Only include verified files
-    const verifiedFiles = files.filter(file => file.status === "verified");
+        // ✅ Only include verified files
+        const verifiedFiles = files.filter(file => file.status === "verified");
 
-    const summaries = [];
+        const summaries = [];
 
-    for (const file of verifiedFiles) {
-      const contentRes = await api.get(
-        `/files/dtr/files/${file.id}/content/`
-      );
+        for (const file of verifiedFiles) {
+        const contentRes = await api.get(
+            `/files/dtr/files/${file.id}/content/`
+        );
 
-      const rows = contentRes.data.rows || [];
-      const employeeMap = new Map();
+        const rows = contentRes.data.rows || [];
+        const employeeMap = new Map();
 
-      rows.forEach((row) => {
-        if (row?.employee_no) {
-          employeeMap.set(row.employee_no, {
-            full_name: row.full_name,
-            employee_no: row.employee_no,
-            employee_code: row.employee_no,
-            rows: row.rows || [],
-          });
+        rows.forEach((row) => {
+            if (row?.employee_no) {
+            employeeMap.set(row.employee_no, {
+                full_name: row.full_name,
+                employee_no: row.employee_no,
+                employee_code: row.employee_no,
+                rows: row.rows || [],
+            });
+            }
+        });
+
+        summaries.push({
+            file_id: file.id,
+            project:
+            file.uploaded_by?.full_name ||
+            file.uploaded_by?.username ||
+            "Unknown",
+            start_date: file.start_date,
+            end_date: file.end_date,
+            totalEmployees: employeeMap.size,
+            employees: Array.from(employeeMap.values()),
+        });
         }
-      });
 
-      summaries.push({
-        file_id: file.id,
-        project:
-          file.uploaded_by?.full_name ||
-          file.uploaded_by?.username ||
-          "Unknown",
-        start_date: file.start_date,
-        end_date: file.end_date,
-        totalEmployees: employeeMap.size,
-        employees: Array.from(employeeMap.values()),
-      });
+        setProjects(summaries);
+    } catch (err) {
+        console.error("Failed to load usage summary:", err);
+    } finally {
+        setLoading(false);
     }
-
-    setProjects(summaries);
-  } catch (err) {
-    console.error("Failed to load usage summary:", err);
-  } finally {
-    setLoading(false);
-  }
-};
-
+   };
 
   // 🔍 Apply filters
   const filteredProjects = useMemo(() => {

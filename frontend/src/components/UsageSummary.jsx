@@ -1,22 +1,22 @@
 /* components/UsageSummary.jsx */
 import { useEffect, useMemo, useState } from "react";
 import api from "../api";
-import EmployeeDtrModal from "./EmployeeDtrModal"; 
+import EmployeeDtrModal from "./EmployeeDtrModal"; // ✅ Use your modal
 import "./styles/UsageSummary.css";
 
 export default function UsageSummary() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Filters
+  // 🔽 Filters
   const [selectedProject, setSelectedProject] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
 
-  // Employee search per project
+  // 🔍 Employee search per project
   const [employeeSearch, setEmployeeSearch] = useState({});
 
-  // Drill-down modal
+  // 🆕 Step 5: Drill-down modal
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -27,50 +27,57 @@ export default function UsageSummary() {
   const fetchUsageSummary = async () => {
     setLoading(true);
     try {
-      const res = await api.get("/files/dtr/files/");
-      const files = res.data.results || res.data;
+        const res = await api.get("/files/dtr/files/");
+        const files = res.data.results || res.data;
 
-      // Only verified files
-      const verifiedFiles = files.filter(file => file.status === "verified");
+        // ✅ Only include verified files
+        const verifiedFiles = files.filter(file => file.status === "verified");
 
-      const summaries = [];
+        const summaries = [];
 
-      for (const file of verifiedFiles) {
-        const contentRes = await api.get(`/files/dtr/files/${file.id}/content/`);
+        for (const file of verifiedFiles) {
+        const contentRes = await api.get(
+            `/files/dtr/files/${file.id}/content/`
+        );
+
         const rows = contentRes.data.rows || [];
         const employeeMap = new Map();
 
-        rows.forEach(row => {
-          if (row?.employee_no) {
+        rows.forEach((row) => {
+            if (row?.employee_no) {
             employeeMap.set(row.employee_no, {
-              full_name: row.full_name,
-              employee_no: row.employee_no,
-              rows: row.rows || [],
+                full_name: row.full_name,
+                employee_no: row.employee_no,
+                employee_code: row.employee_no,
+                rows: row.rows || [],
             });
-          }
+            }
         });
 
         summaries.push({
-          file_id: file.id,
-          project: file.uploaded_by?.full_name || file.uploaded_by?.username || "Unknown",
-          start_date: file.start_date,
-          end_date: file.end_date,
-          totalEmployees: employeeMap.size,
-          employees: Array.from(employeeMap.values()),
+            file_id: file.id,
+            project:
+            file.uploaded_by?.full_name ||
+            file.uploaded_by?.username ||
+            "Unknown",
+            start_date: file.start_date,
+            end_date: file.end_date,
+            totalEmployees: employeeMap.size,
+            employees: Array.from(employeeMap.values()),
         });
-      }
+        }
 
-      setProjects(summaries);
+        setProjects(summaries);
     } catch (err) {
-      console.error("Failed to load usage summary:", err);
+        console.error("Failed to load usage summary:", err);
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+   };
 
-  // Filters
+  // 🔍 Apply filters
   const filteredProjects = useMemo(() => {
-    return projects.filter(p => {
+    return projects.filter((p) => {
       if (selectedProject && p.project !== selectedProject) return false;
       if (fromDate && new Date(p.start_date) < new Date(fromDate)) return false;
       if (toDate && new Date(p.end_date) > new Date(toDate)) return false;
@@ -78,16 +85,17 @@ export default function UsageSummary() {
     });
   }, [projects, selectedProject, fromDate, toDate]);
 
-  const projectOptions = [...new Set(projects.map(p => p.project))];
+  // 🧠 Unique project list for dropdown
+  const projectOptions = [...new Set(projects.map((p) => p.project))];
 
-  // Summary Metrics
+  // 🆕 STEP 1: Summary Metrics
   const summary = useMemo(() => {
     const employeeSet = new Set();
     let minDate = null;
     let maxDate = null;
 
-    filteredProjects.forEach(proj => {
-      proj.employees.forEach(e => employeeSet.add(e.employee_no));
+    filteredProjects.forEach((proj) => {
+      proj.employees.forEach((e) => employeeSet.add(e.employee_no));
 
       if (proj.start_date) {
         const sd = new Date(proj.start_date);
@@ -100,145 +108,158 @@ export default function UsageSummary() {
       }
     });
 
-    const avgEmployees =
-      filteredProjects.length === 0
-        ? 0
-        : Math.round(filteredProjects.reduce((sum, p) => sum + p.employees.length, 0) / filteredProjects.length);
-
     return {
       projectCount: filteredProjects.length,
       employeeCount: employeeSet.size,
       start: minDate,
       end: maxDate,
-      avgEmployees,
     };
   }, [filteredProjects]);
 
-  const getEmployeeBadge = count => {
+  // 🔹 Helper: employee count badge
+  const getEmployeeBadge = (count) => {
     if (count >= 200) return { text: "⚠ High manpower usage", color: "#d32f2f" };
     if (count >= 100) return { text: "ℹ️ Large manpower", color: "#fbc02d" };
     return null;
   };
 
-  // Attendance calculation
-  const calculateAttendance = (emp, proj) => {
-    if (!emp.rows || !proj.start_date || !proj.end_date) return { logged: 0, expected: 0 };
+  // 🔹 Helper: calculate attendance summary for display
+    const calculateEmployeeSummary = (emp, proj) => {
+    if (!emp.rows || !proj.start_date || !proj.end_date) return { logged: 0, expected: 0, totalHours: 0 };
+
     const start = new Date(proj.start_date);
     const end = new Date(proj.end_date);
     const expectedDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
 
-    const loggedDays = emp.rows.reduce((count, row) => {
-      if (row?.daily_data) {
-        const daysLogged = Object.values(row.daily_data).filter(val => val !== null && val !== "").length;
-        return count + daysLogged;
-      }
-      return count;
-    }, 0);
+    let loggedDays = 0;
+    let totalHours = 0;
 
-    const totalHours = emp.rows.reduce((sum, row) => sum + (row.total_hours || 0), 0);
+    emp.rows.forEach((row) => {
+        if (row?.daily_data) {
+        loggedDays += Object.values(row.daily_data).filter(val => val !== null && val !== "").length;
+        totalHours += row.total_hours || 0;
+        }
+    });
 
     return { logged: loggedDays, expected: expectedDays, totalHours };
-  };
+    };
 
   return (
     <div className="usage-summary">
       <h2>📊 Project Manpower Usage Summary</h2>
 
-      {/* Summary Bar */}
+      {/* 🆕 STEP 1: Summary Bar */}
       <div className="usage-summary-bar">
         <div>📦 <strong>Projects:</strong> {summary.projectCount}</div>
         <div>👥 <strong>Employees:</strong> {summary.employeeCount}</div>
-        <div>👥 <strong>Avg Employees/Project:</strong> {summary.avgEmployees}</div>
         <div>📅 <strong>Coverage:</strong> {summary.start?.toLocaleDateString() || "N/A"} – {summary.end?.toLocaleDateString() || "N/A"}</div>
       </div>
 
-      {/* Filters */}
+      {/* 🔽 Filters */}
       <div className="usage-filters">
-        <select value={selectedProject} onChange={e => setSelectedProject(e.target.value)}>
+        <select value={selectedProject} onChange={(e) => setSelectedProject(e.target.value)}>
           <option value="">All Projects</option>
-          {projectOptions.map(proj => <option key={proj} value={proj}>{proj}</option>)}
+          {projectOptions.map((proj) => (
+            <option key={proj} value={proj}>{proj}</option>
+          ))}
         </select>
 
-        <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} />
-        <input type="date" value={toDate} onChange={e => setToDate(e.target.value)} />
+        <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
+        <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} />
       </div>
 
       {loading && <p>Loading records...</p>}
 
-      {!loading && filteredProjects.map(proj => {
-        const searchText = employeeSearch[proj.file_id] || "";
-        const filteredEmployees = proj.employees.filter(emp => {
-          const text = searchText.toLowerCase();
-          return emp.employee_no.toLowerCase().includes(text) || emp.full_name.toLowerCase().includes(text);
-        });
+      {!loading &&
+        filteredProjects.map((proj) => {
+          const searchText = employeeSearch[proj.file_id] || "";
+          const filteredEmployees = proj.employees.filter((emp) => {
+            const text = searchText.toLowerCase();
+            return (
+              emp.employee_no.toLowerCase().includes(text) ||
+              emp.full_name.toLowerCase().includes(text)
+            );
+          });
 
-        const badge = getEmployeeBadge(proj.totalEmployees);
+          const badge = getEmployeeBadge(proj.totalEmployees);
 
-        return (
-          <div key={proj.file_id} className="usage-card">
-            <div className="usage-header">
-              <h3>{proj.project}</h3>
-              <span className="cutoff">
-                {proj.start_date ? new Date(proj.start_date).toLocaleDateString() : "N/A"} → {proj.end_date ? new Date(proj.end_date).toLocaleDateString() : "N/A"}
-              </span>
+          return (
+            <div key={proj.file_id} className="usage-card">
+              <div className="usage-header">
+                <h3>{proj.project}</h3>
+                <span className="cutoff">
+                  {proj.start_date ? new Date(proj.start_date).toLocaleDateString() : "N/A"} → {proj.end_date ? new Date(proj.end_date).toLocaleDateString() : "N/A"}
+                </span>
+              </div>
+
+              <p>
+                👥 <strong>Total Employees:</strong> {proj.totalEmployees}{" "}
+                {badge && (
+                  <span className="employee-badge" style={{ color: badge.color }}>
+                    {badge.text}
+                  </span>
+                )}
+              </p>
+
+              {/* 🔍 Employee Search */}
+              <input
+                type="text"
+                className="search-employee"
+                placeholder="Search employee no or name..."
+                value={employeeSearch[proj.file_id] || ""}
+                onChange={(e) =>
+                  setEmployeeSearch(prev => ({ ...prev, [proj.file_id]: e.target.value }))
+                }
+              />
+
+              <div className="usage-table-wrapper">
+                <table className="usage-table">
+                    <thead>
+                        <tr>
+                        <th>Employee No</th>
+                        <th>Full Name</th>
+                        <th>Attendance</th>
+                        <th>Total Hours</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {filteredEmployees.slice(0, 15).map((emp) => {
+                        const summary = calculateEmployeeSummary(emp, proj);
+                        return (
+                            <tr
+                            key={emp.employee_no}
+                            className="clickable-row"
+                            onClick={() => {
+                                setSelectedEmployee(emp);
+                                setModalOpen(true);
+                            }}
+                            >
+                            <td>{emp.employee_no}</td>
+                            <td>{emp.full_name}</td>
+                            <td>
+                                {summary.logged} / {summary.expected}{" "}
+                                {summary.logged < summary.expected && <span className="missing-days">⚠</span>}
+                            </td>
+                            <td>{summary.totalHours} hrs</td>
+                            </tr>
+                        );
+                        })}
+                    </tbody>
+                </table>
+              </div>
+
+              {filteredEmployees.length > 15 && (
+                <div className="table-hint">Showing first 15 results — scroll to view more</div>
+              )}
+
+              {filteredEmployees.length === 0 && (
+                <div className="table-hint">No matching employees found</div>
+              )}
             </div>
+          );
+        })}
 
-            <p>
-              👥 <strong>Total Employees:</strong> {proj.totalEmployees}{" "}
-              {badge && <span className="employee-badge" style={{ color: badge.color }}>{badge.text}</span>}
-            </p>
-
-            {/* Employee Search */}
-            <input
-              type="text"
-              className="search-employee"
-              placeholder="Search employee no or name..."
-              value={employeeSearch[proj.file_id] || ""}
-              onChange={e => setEmployeeSearch(prev => ({ ...prev, [proj.file_id]: e.target.value }))}
-            />
-
-            <div className="usage-table-wrapper">
-              <table className="usage-table">
-                <thead>
-                  <tr>
-                    <th>Employee No</th>
-                    <th>Full Name</th>
-                    <th>Attendance</th>
-                    <th>Total Hours</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredEmployees.slice(0, 15).map(emp => {
-                    const attendance = calculateAttendance(emp, proj);
-                    return (
-                      <tr
-                        key={emp.employee_no}
-                        className="clickable-row"
-                        onClick={() => {
-                          setSelectedEmployee(emp);
-                          setModalOpen(true);
-                        }}
-                      >
-                        <td>{emp.employee_no}</td>
-                        <td>{emp.full_name}</td>
-                        <td>
-                          {attendance.logged} / {attendance.expected}{" "}
-                          {attendance.logged < attendance.expected && <span className="missing-days">⚠</span>}
-                        </td>
-                        <td>{attendance.totalHours} hrs</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-
-            {filteredEmployees.length > 15 && <div className="table-hint">Showing first 15 results — scroll to view more</div>}
-            {filteredEmployees.length === 0 && <div className="table-hint">No matching employees found</div>}
-          </div>
-        );
-      })}
-
+      {/* 🆕 STEP 5: Drill-down modal */}
       {selectedEmployee && (
         <EmployeeDtrModal
           employee={selectedEmployee}

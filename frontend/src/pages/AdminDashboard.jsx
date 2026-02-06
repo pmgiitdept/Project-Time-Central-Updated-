@@ -921,13 +921,6 @@ export default function AdminDashboard() {
 
           {/* Files Section */}
           {activeSection === "files" && (
-            <motion.div
-              className="users-card"
-              initial={{ opacity: 0, y: 20 }}     
-              animate={{ opacity: 1, y: 0 }}      
-              exit={{ opacity: 0, y: -20 }}       
-              transition={{ duration: 0.5, ease: "easeInOut" }}
-            >
             <div className="tables-wrapper">
 
               {/* 🔄 Refresh Button */}
@@ -1025,7 +1018,6 @@ export default function AdminDashboard() {
                 />
               )}
             </div>
-            </motion.div>
           )}
 
           {/* ===================== */}

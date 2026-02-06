@@ -955,7 +955,7 @@ export default function EmployeeDirectory() {
                   toast.error("Failed to apply date filter");
                 }
               }}
-              className="employee-button"
+              className="employee-hide-btn"
             >
               📅 Apply
             </button>

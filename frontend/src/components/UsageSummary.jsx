@@ -31,7 +31,7 @@ export default function UsageSummary() {
     const files = res.data.results || res.data;
 
     // ✅ Only include verified files
-    const verifiedFiles = files.filter(file => file.verified === true);
+    const verifiedFiles = files.filter(file => file.status === "verified");
 
     const summaries = [];
 
@@ -49,6 +49,7 @@ export default function UsageSummary() {
             full_name: row.full_name,
             employee_no: row.employee_no,
             employee_code: row.employee_no,
+            rows: row.rows || [],
           });
         }
       });

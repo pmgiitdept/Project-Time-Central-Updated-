@@ -940,6 +940,8 @@ export default function EmployeeDirectory() {
             <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} style={{ marginRight: "0.5rem", padding: "0.3rem" }} />
             <span style={{ marginRight: "0.5rem" }}>to</span>
             <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} style={{ marginRight: "0.5rem", padding: "0.3rem" }} />
+          </div>
+          <div className="employee-button-wrapper">
             <button
               onClick={async () => {
                 try {
@@ -960,7 +962,6 @@ export default function EmployeeDirectory() {
               📅 Apply
             </button>
           </div>
-
            <div className="employee-button-wrapper">
             <button
               className="employee-hide-btn"

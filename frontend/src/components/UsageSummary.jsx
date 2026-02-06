@@ -1,11 +1,16 @@
 /* components/UsageSummary.jsx */
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import api from "../api";
 import "./styles/UsageSummary.css";
 
 export default function UsageSummary() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  // 🔽 Filters
+  const [selectedProject, setSelectedProject] = useState("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
 
   useEffect(() => {
     fetchUsageSummary();
@@ -14,21 +19,17 @@ export default function UsageSummary() {
   const fetchUsageSummary = async () => {
     setLoading(true);
     try {
-      // 1️⃣ Get all DTR files (same source as DTRTable)
       const res = await api.get("/files/dtr/files/");
       const files = res.data.results || res.data;
 
       const summaries = [];
 
-      // 2️⃣ For each file, load its content
       for (const file of files) {
         const contentRes = await api.get(
           `/files/dtr/files/${file.id}/content/`
         );
 
         const rows = contentRes.data.rows || [];
-
-        // 3️⃣ Build unique employee list
         const employeeMap = new Map();
 
         rows.forEach((row) => {
@@ -61,14 +62,56 @@ export default function UsageSummary() {
     }
   };
 
+  // 🔍 Apply filters
+  const filteredProjects = useMemo(() => {
+    return projects.filter((p) => {
+      if (selectedProject && p.project !== selectedProject) return false;
+
+      if (fromDate && new Date(p.start_date) < new Date(fromDate)) return false;
+      if (toDate && new Date(p.end_date) > new Date(toDate)) return false;
+
+      return true;
+    });
+  }, [projects, selectedProject, fromDate, toDate]);
+
+  // 🧠 Unique project list for dropdown
+  const projectOptions = [...new Set(projects.map((p) => p.project))];
+
   return (
     <div className="usage-summary">
       <h2>📊 Project Manpower Usage Summary</h2>
 
+      {/* 🔽 Filters */}
+      <div className="usage-filters">
+        <select
+          value={selectedProject}
+          onChange={(e) => setSelectedProject(e.target.value)}
+        >
+          <option value="">All Projects</option>
+          {projectOptions.map((proj) => (
+            <option key={proj} value={proj}>
+              {proj}
+            </option>
+          ))}
+        </select>
+
+        <input
+          type="date"
+          value={fromDate}
+          onChange={(e) => setFromDate(e.target.value)}
+        />
+
+        <input
+          type="date"
+          value={toDate}
+          onChange={(e) => setToDate(e.target.value)}
+        />
+      </div>
+
       {loading && <p>Loading records...</p>}
 
       {!loading &&
-        projects.map((proj) => (
+        filteredProjects.map((proj) => (
           <div key={proj.file_id} className="usage-card">
             <div className="usage-header">
               <h3>{proj.project}</h3>
@@ -84,26 +127,34 @@ export default function UsageSummary() {
             </div>
 
             <p>
-              👥 <strong>Total Employees:</strong>{" "}
-              {proj.totalEmployees}
+              👥 <strong>Total Employees:</strong> {proj.totalEmployees}
             </p>
 
-            <table className="usage-table">
-              <thead>
-                <tr>
-                  <th>Employee No</th>
-                  <th>Full Name</th>
-                </tr>
-              </thead>
-              <tbody>
-                {proj.employees.map((emp) => (
-                  <tr key={emp.employee_no}>
-                    <td>{emp.employee_no}</td>
-                    <td>{emp.full_name}</td>
+            {/* 👇 Scrollable table */}
+            <div className="usage-table-wrapper">
+              <table className="usage-table">
+                <thead>
+                  <tr>
+                    <th>Employee No</th>
+                    <th>Full Name</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {proj.employees.slice(0, 15).map((emp) => (
+                    <tr key={emp.employee_no}>
+                      <td>{emp.employee_no}</td>
+                      <td>{emp.full_name}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {proj.employees.length > 15 && (
+              <div className="table-hint">
+                Showing first 15 employees — scroll to view more
+              </div>
+            )}
           </div>
         ))}
     </div>

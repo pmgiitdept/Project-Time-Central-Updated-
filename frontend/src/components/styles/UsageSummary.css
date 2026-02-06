@@ -89,6 +89,44 @@
   color: #6b7280;
 }
 
+/* ===== Filters ===== */
+.usage-filters {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.usage-filters select,
+.usage-filters input {
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
+}
+
+/* ===== Scrollable Table ===== */
+.usage-table-wrapper {
+  max-height: 420px; /* ~15 rows */
+  overflow-y: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+}
+
+/* Sticky header for clarity */
+.usage-table thead th {
+  position: sticky;
+  top: 0;
+  background: #f8fafc;
+  z-index: 1;
+}
+
+/* ===== Hint ===== */
+.table-hint {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
   .usage-header {
@@ -103,3 +141,4 @@
     padding: 8px;
   }
 }
+

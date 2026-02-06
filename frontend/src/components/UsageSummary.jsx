@@ -41,15 +41,21 @@ export default function UsageSummary() {
         // Map employees from rows directly
         const employeeMap = new Map();
         rows.forEach((row) => {
-          if (row?.employee_no) {
-            employeeMap.set(row.employee_no, {
-              full_name: row.full_name,
-              employee_no: row.employee_no,
-              employee_code: row.employee_no,
-              rows: [row], // ✅ wrap row in array for calculateEmployeeSummary
-            });
-          }
-        });
+  if (!row?.employee_no) return;
+
+  if (!employeeMap.has(row.employee_no)) {
+    employeeMap.set(row.employee_no, {
+      full_name: row.full_name,
+      employee_no: row.employee_no,
+      employee_code: row.employee_no,
+      rows: [],
+    });
+  }
+
+  // ✅ Add all rows to the employee
+  employeeMap.get(row.employee_no).rows.push(row);
+});
+
 
         summaries.push({
           file_id: file.id,

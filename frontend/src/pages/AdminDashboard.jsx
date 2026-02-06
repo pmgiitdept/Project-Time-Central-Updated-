@@ -97,6 +97,7 @@ export default function AdminDashboard() {
   let sidebarItems = [
     { key: "dashboard", label: "Dashboard", icon: <FaTachometerAlt /> },
     { key: "files", label: "Files", icon: <FaFileAlt /> },
+    { key: "usageSummary", label: "Usage Summary", icon: <FaChartBar /> },
     { key: "audit", label: "Audit Logs", icon: <FaClipboardList /> },
     { key: "settings", label: "Settings", icon: <FaCog /> },
   ];
@@ -1020,6 +1021,18 @@ export default function AdminDashboard() {
               )}
             </div>
           )}
+
+          {/* ===================== */}
+          {/* 📊 USAGE SUMMARY */}
+          {/* ===================== */}
+          <div className="divider-hybrid">
+            <span>EMPLOYEE USAGE SUMMARY</span>
+          </div>
+
+          <UsageSummary
+            role={role}
+            currentUser={currentUser}
+          />
 
           {/* Users Section */}
           {activeSection === "users" && currentUser?.username === "itdept.pmgi" && (

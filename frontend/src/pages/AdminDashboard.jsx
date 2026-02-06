@@ -921,6 +921,13 @@ export default function AdminDashboard() {
 
           {/* Files Section */}
           {activeSection === "files" && (
+            <motion.div
+              className="users-card"
+              initial={{ opacity: 0, y: 20 }}     
+              animate={{ opacity: 1, y: 0 }}      
+              exit={{ opacity: 0, y: -20 }}       
+              transition={{ duration: 0.5, ease: "easeInOut" }}
+            >
             <div className="tables-wrapper">
 
               {/* 🔄 Refresh Button */}
@@ -942,7 +949,7 @@ export default function AdminDashboard() {
 
               {/* 🧑‍💼 Uploader Review Header */}
               <div className="divider-hybrid">
-                <span>UPLOADER REVIEW</span>
+                <span>PROJECT REVIEW</span>
               </div>
 
               {/* 🔽 Uploader Selector (placeholder for now) */}
@@ -955,7 +962,7 @@ export default function AdminDashboard() {
                 }}
               >
                 <label style={{ fontWeight: "bold" }}>
-                  Select Uploader:
+                  Select Project:
                 </label>
 
                 <select
@@ -970,7 +977,7 @@ export default function AdminDashboard() {
                     setShowUploaderModal(true);
                   }}
                 >
-                  <option value="">Select uploader</option>
+                  <option value="">Select Project</option>
 
                   {uploaders.map((uploader) => (
                     <option key={uploader.id} value={uploader.id}>
@@ -980,16 +987,13 @@ export default function AdminDashboard() {
                 </select>
 
                 <span style={{ fontSize: "0.9rem", opacity: 0.7 }}>
-                  Select an uploader to review summary forms and DTR PDFs together
+                  Select Project to View
                 </span>
               </div>
 
               {/* 🧪 TEMPORARY: Existing Sections (will be replaced by modal) */}
               {!showUploaderModal && (
                 <>
-                  <div className="divider-hybrid">
-                    <span>SUMMARY FORMS (TEMP)</span>
-                  </div>
 
                   <FileTable role={role} setSelectedFile={setSelectedFile} />
 
@@ -1021,6 +1025,7 @@ export default function AdminDashboard() {
                 />
               )}
             </div>
+            </motion.div>
           )}
 
           {/* ===================== */}

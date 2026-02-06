@@ -27,53 +27,56 @@ export default function UsageSummary() {
   const fetchUsageSummary = async () => {
     setLoading(true);
     try {
-        const res = await api.get("/files/dtr/files/");
-        const files = res.data.results || res.data;
+      const res = await api.get("/files/dtr/files/");
+      const files = res.data.results || res.data;
 
-        // ✅ Only include verified files
-        const verifiedFiles = files.filter(file => file.status === "verified");
+      // ✅ Only include verified files
+      const verifiedFiles = files.filter(file => file.status === "verified");
+      const summaries = [];
 
-        const summaries = [];
-
-        for (const file of verifiedFiles) {
-        const contentRes = await api.get(
-            `/files/dtr/files/${file.id}/content/`
-        );
-
+      for (const file of verifiedFiles) {
+        const contentRes = await api.get(`/files/dtr/files/${file.id}/content/`);
         const rows = contentRes.data.rows || [];
-        const employeeMap = new Map();
 
-        rows.forEach((row) => {
-            if (row?.employee_no) {
-            employeeMap.set(row.employee_no, {
-                full_name: row.full_name,
-                employee_no: row.employee_no,
-                employee_code: row.employee_no,
-                rows: row.rows || [],
+        // 🟢 Fetch all employee DTRs in parallel
+        const employeePromises = rows.map(async (row) => {
+          if (!row?.employee_no) return null;
+          let employeeRows = [];
+          try {
+            const dtrRes = await api.get("/files/dtr/entries/employee/", {
+              params: { employee_code: row.employee_no },
             });
-            }
+            employeeRows = dtrRes.data || [];
+          } catch (err) {
+            console.error("Failed to fetch DTR for employee:", row.employee_no, err);
+          }
+          return {
+            full_name: row.full_name,
+            employee_no: row.employee_no,
+            employee_code: row.employee_no,
+            rows: employeeRows, // ✅ now includes daily_data & total_hours
+          };
         });
+
+        const employees = (await Promise.all(employeePromises)).filter(Boolean);
 
         summaries.push({
-            file_id: file.id,
-            project:
-            file.uploaded_by?.full_name ||
-            file.uploaded_by?.username ||
-            "Unknown",
-            start_date: file.start_date,
-            end_date: file.end_date,
-            totalEmployees: employeeMap.size,
-            employees: Array.from(employeeMap.values()),
+          file_id: file.id,
+          project: file.uploaded_by?.full_name || file.uploaded_by?.username || "Unknown",
+          start_date: file.start_date,
+          end_date: file.end_date,
+          totalEmployees: employees.length,
+          employees,
         });
-        }
+      }
 
-        setProjects(summaries);
+      setProjects(summaries);
     } catch (err) {
-        console.error("Failed to load usage summary:", err);
+      console.error("Failed to load usage summary:", err);
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
-   };
+  };
 
   // 🔍 Apply filters
   const filteredProjects = useMemo(() => {
@@ -124,35 +127,34 @@ export default function UsageSummary() {
   };
 
   // Calculate logged days and total hours for an employee across all their rows
-const calculateEmployeeSummary = (emp, projStart, projEnd) => {
-  if (!emp.rows || emp.rows.length === 0 || !projStart || !projEnd) {
-    return { logged: 0, expected: 0, totalHours: 0 };
-  }
+  const calculateEmployeeSummary = (emp, projStart, projEnd) => {
+    if (!emp.rows || emp.rows.length === 0 || !projStart || !projEnd) {
+      return { logged: 0, expected: 0, totalHours: 0 };
+    }
 
-  // Expected days = project coverage days
-  const start = new Date(projStart);
-  const end = new Date(projEnd);
-  const expectedDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+    // Expected days = project coverage days
+    const start = new Date(projStart);
+    const end = new Date(projEnd);
+    const expectedDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
 
-  let loggedDays = 0;
-  let totalHours = 0;
+    let loggedDays = 0;
+    let totalHours = 0;
 
-  emp.rows.forEach((row) => {
-    if (!row.daily_data) return;
+    emp.rows.forEach((row) => {
+      if (!row.daily_data) return;
 
-    Object.keys(row.daily_data).forEach((date) => {
-      const val = row.daily_data[date];
-      if (val !== null && val !== "" && !isNaN(val)) {
-        loggedDays += 1;
-      }
+      Object.keys(row.daily_data).forEach((date) => {
+        const val = row.daily_data[date];
+        if (val !== null && val !== "" && !isNaN(val)) {
+          loggedDays += 1;
+        }
+      });
+
+      totalHours += row.total_hours || 0;
     });
 
-    totalHours += row.total_hours || 0;
-  });
-
-  return { logged: loggedDays, expected: expectedDays, totalHours };
-};
-
+    return { logged: loggedDays, expected: expectedDays, totalHours };
+  };
 
   return (
     <div className="usage-summary">
@@ -204,11 +206,7 @@ const calculateEmployeeSummary = (emp, projStart, projEnd) => {
 
               <p>
                 👥 <strong>Total Employees:</strong> {proj.totalEmployees}{" "}
-                {badge && (
-                  <span className="employee-badge" style={{ color: badge.color }}>
-                    {badge.text}
-                  </span>
-                )}
+                {badge && <span className="employee-badge" style={{ color: badge.color }}>{badge.text}</span>}
               </p>
 
               {/* 🔍 Employee Search */}
@@ -224,48 +222,42 @@ const calculateEmployeeSummary = (emp, projStart, projEnd) => {
 
               <div className="usage-table-wrapper">
                 <table className="usage-table">
-  <thead>
-    <tr>
-      <th>Employee No</th>
-      <th>Full Name</th>
-      <th>Attendance</th>
-      <th>Total Hours</th>
-    </tr>
-  </thead>
-  <tbody>
-    {filteredEmployees.slice(0, 15).map((emp) => {
-      const summary = calculateEmployeeSummary(emp, proj.start_date, proj.end_date);
-      return (
-        <tr
-          key={emp.employee_no}
-          className="clickable-row"
-          onClick={() => {
-            setSelectedEmployee(emp);
-            setModalOpen(true);
-          }}
-        >
-          <td>{emp.employee_no}</td>
-          <td>{emp.full_name}</td>
-          <td>
-            {summary.logged} / {summary.expected}{" "}
-            {summary.logged < summary.expected && <span className="missing-days">⚠</span>}
-          </td>
-          <td>{summary.totalHours} hrs</td>
-        </tr>
-      );
-    })}
-  </tbody>
-</table>
-
+                  <thead>
+                    <tr>
+                      <th>Employee No</th>
+                      <th>Full Name</th>
+                      <th>Attendance</th>
+                      <th>Total Hours</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredEmployees.slice(0, 15).map((emp) => {
+                      const summary = calculateEmployeeSummary(emp, proj.start_date, proj.end_date);
+                      return (
+                        <tr
+                          key={emp.employee_no}
+                          className="clickable-row"
+                          onClick={() => {
+                            setSelectedEmployee(emp);
+                            setModalOpen(true);
+                          }}
+                        >
+                          <td>{emp.employee_no}</td>
+                          <td>{emp.full_name}</td>
+                          <td>
+                            {summary.logged} / {summary.expected}{" "}
+                            {summary.logged < summary.expected && <span className="missing-days">⚠</span>}
+                          </td>
+                          <td>{summary.totalHours} hrs</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
 
-              {filteredEmployees.length > 15 && (
-                <div className="table-hint">Showing first 15 results — scroll to view more</div>
-              )}
-
-              {filteredEmployees.length === 0 && (
-                <div className="table-hint">No matching employees found</div>
-              )}
+              {filteredEmployees.length > 15 && <div className="table-hint">Showing first 15 results — scroll to view more</div>}
+              {filteredEmployees.length === 0 && <div className="table-hint">No matching employees found</div>}
             </div>
           );
         })}

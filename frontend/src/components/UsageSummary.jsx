@@ -20,7 +20,7 @@ export default function UsageSummary({ role, currentUser }) {
       if (startDate) params.start_date = startDate;
       if (endDate) params.end_date = endDate;
 
-      const res = await api.get("/dtr/by-employee/", {
+      const res = await api.get("/files/dtr/by-employee/", {
         headers: { Authorization: `Bearer ${token}` },
         params,
       });

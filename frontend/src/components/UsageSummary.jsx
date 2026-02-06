@@ -119,33 +119,36 @@ export default function UsageSummary() {
 
   // Calculate logged days and total hours for an employee across all their rows
   const calculateEmployeeSummary = (emp, projStart, projEnd) => {
-    if (!emp.rows || emp.rows.length === 0 || !projStart || !projEnd) {
-      return { logged: 0, expected: 0, totalHours: 0 };
-    }
+  if (!emp.rows || emp.rows.length === 0 || !projStart || !projEnd) {
+    return { logged: 0, expected: 0, totalHours: 0 };
+  }
 
-    // Expected days = project coverage days
-    const start = new Date(projStart);
-    const end = new Date(projEnd);
-    const expectedDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+  // Expected days = project coverage days (same as before)
+  const start = new Date(projStart);
+  const end = new Date(projEnd);
+  const expectedDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
 
-    let loggedDays = 0;
-    let totalHours = 0;
+  let loggedDays = 0;
+  let totalHours = 0;
 
-    emp.rows.forEach((row) => {
-      if (!row.daily_data) return;
+  emp.rows.forEach((row) => {
+    if (!row.daily_data) return;
 
-      Object.keys(row.daily_data).forEach((date) => {
-        const val = row.daily_data[date];
-        if (val !== null && val !== "" && !isNaN(val)) {
-          loggedDays += 1;
-        }
-      });
-
-      totalHours += row.total_hours || 0;
+    // ✅ Count each date entry per row (even duplicates)
+    Object.keys(row.daily_data).forEach((date) => {
+      const val = row.daily_data[date];
+      if (val !== null && val !== "" && !isNaN(val)) {
+        loggedDays += 1; // Count every row occurrence
+      }
     });
 
-    return { logged: loggedDays, expected: expectedDays, totalHours };
-  };
+    // ✅ Sum total_hours for all rows
+    totalHours += row.total_hours || 0;
+  });
+
+  return { logged: loggedDays, expected: expectedDays, totalHours };
+};
+
 
   return (
     <div className="usage-summary">

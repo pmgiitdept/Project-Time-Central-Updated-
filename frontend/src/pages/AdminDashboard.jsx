@@ -97,8 +97,8 @@ export default function AdminDashboard() {
 
   let sidebarItems = [
     { key: "dashboard", label: "Dashboard", icon: <FaTachometerAlt /> },
-    { key: "files", label: "Files", icon: <FaFileAlt /> },
     { key: "usageSummary", label: "Usage Summary", icon: <FaChartBar /> },
+    { key: "files", label: "Files", icon: <FaFileAlt /> },
     { key: "audit", label: "Audit Logs", icon: <FaClipboardList /> },
     { key: "settings", label: "Settings", icon: <FaCog /> },
   ];

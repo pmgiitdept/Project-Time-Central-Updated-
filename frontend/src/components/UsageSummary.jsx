@@ -1,6 +1,7 @@
 /* components/UsageSummary.jsx */
 import { useEffect, useMemo, useState } from "react";
 import api from "../api";
+import EmployeeDtrModal from "./EmployeeDtrModal"; // ✅ Use your modal
 import "./styles/UsageSummary.css";
 
 export default function UsageSummary() {
@@ -15,10 +16,9 @@ export default function UsageSummary() {
   // 🔍 Employee search per project
   const [employeeSearch, setEmployeeSearch] = useState({});
 
-  // 🆕 Drill-down modal
+  // 🆕 Step 5: Drill-down modal
   const [selectedEmployee, setSelectedEmployee] = useState(null);
-  const [modalData, setModalData] = useState(null);
-  const [modalLoading, setModalLoading] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
     fetchUsageSummary();
@@ -45,7 +45,7 @@ export default function UsageSummary() {
             employeeMap.set(row.employee_no, {
               full_name: row.full_name,
               employee_no: row.employee_no,
-              rows: row.rows || [], // store DTR rows per employee
+              employee_code: row.employee_no, // for EmployeeDtrModal
             });
           }
         });
@@ -91,9 +91,7 @@ export default function UsageSummary() {
     let maxDate = null;
 
     filteredProjects.forEach((proj) => {
-      proj.employees.forEach((e) =>
-        employeeSet.add(e.employee_no)
-      );
+      proj.employees.forEach((e) => employeeSet.add(e.employee_no));
 
       if (proj.start_date) {
         const sd = new Date(proj.start_date);
@@ -121,75 +119,28 @@ export default function UsageSummary() {
     return null;
   };
 
-  // 🔹 Drill-down handler
-  const handleEmployeeClick = async (emp, proj) => {
-    setSelectedEmployee(emp);
-    setModalLoading(true);
-    try {
-      // Fetch full DTR details for this employee
-      const res = await api.get(`/files/dtr/employee/${emp.employee_no}/details/`);
-      setModalData({
-        employee: emp,
-        project: proj.project,
-        dtrDetails: res.data, // expected: { dates: [], totalDays: N, files: [] }
-      });
-    } catch (err) {
-      console.error("Failed to load employee DTR details:", err);
-      setModalData({ employee: emp, project: proj.project, dtrDetails: null });
-    } finally {
-      setModalLoading(false);
-    }
-  };
-
-  const closeModal = () => {
-    setSelectedEmployee(null);
-    setModalData(null);
-  };
-
   return (
     <div className="usage-summary">
       <h2>📊 Project Manpower Usage Summary</h2>
 
       {/* 🆕 STEP 1: Summary Bar */}
       <div className="usage-summary-bar">
-        <div>
-          📦 <strong>Projects:</strong> {summary.projectCount}
-        </div>
-        <div>
-          👥 <strong>Employees:</strong> {summary.employeeCount}
-        </div>
-        <div>
-          📅 <strong>Coverage:</strong>{" "}
-          {summary.start ? summary.start.toLocaleDateString() : "N/A"} –{" "}
-          {summary.end ? summary.end.toLocaleDateString() : "N/A"}
-        </div>
+        <div>📦 <strong>Projects:</strong> {summary.projectCount}</div>
+        <div>👥 <strong>Employees:</strong> {summary.employeeCount}</div>
+        <div>📅 <strong>Coverage:</strong> {summary.start?.toLocaleDateString() || "N/A"} – {summary.end?.toLocaleDateString() || "N/A"}</div>
       </div>
 
       {/* 🔽 Filters */}
       <div className="usage-filters">
-        <select
-          value={selectedProject}
-          onChange={(e) => setSelectedProject(e.target.value)}
-        >
+        <select value={selectedProject} onChange={(e) => setSelectedProject(e.target.value)}>
           <option value="">All Projects</option>
           {projectOptions.map((proj) => (
-            <option key={proj} value={proj}>
-              {proj}
-            </option>
+            <option key={proj} value={proj}>{proj}</option>
           ))}
         </select>
 
-        <input
-          type="date"
-          value={fromDate}
-          onChange={(e) => setFromDate(e.target.value)}
-        />
-
-        <input
-          type="date"
-          value={toDate}
-          onChange={(e) => setToDate(e.target.value)}
-        />
+        <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
+        <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} />
       </div>
 
       {loading && <p>Loading records...</p>}
@@ -212,23 +163,14 @@ export default function UsageSummary() {
               <div className="usage-header">
                 <h3>{proj.project}</h3>
                 <span className="cutoff">
-                  {proj.start_date
-                    ? new Date(proj.start_date).toLocaleDateString()
-                    : "N/A"}{" "}
-                  →{" "}
-                  {proj.end_date
-                    ? new Date(proj.end_date).toLocaleDateString()
-                    : "N/A"}
+                  {proj.start_date ? new Date(proj.start_date).toLocaleDateString() : "N/A"} → {proj.end_date ? new Date(proj.end_date).toLocaleDateString() : "N/A"}
                 </span>
               </div>
 
               <p>
                 👥 <strong>Total Employees:</strong> {proj.totalEmployees}{" "}
                 {badge && (
-                  <span
-                    className="employee-badge"
-                    style={{ color: badge.color, marginLeft: "8px", fontWeight: 500 }}
-                  >
+                  <span className="employee-badge" style={{ color: badge.color }}>
                     {badge.text}
                   </span>
                 )}
@@ -241,10 +183,7 @@ export default function UsageSummary() {
                 placeholder="Search employee no or name..."
                 value={employeeSearch[proj.file_id] || ""}
                 onChange={(e) =>
-                  setEmployeeSearch((prev) => ({
-                    ...prev,
-                    [proj.file_id]: e.target.value,
-                  }))
+                  setEmployeeSearch(prev => ({ ...prev, [proj.file_id]: e.target.value }))
                 }
               />
 
@@ -261,7 +200,10 @@ export default function UsageSummary() {
                       <tr
                         key={emp.employee_no}
                         className="clickable-row"
-                        onClick={() => handleEmployeeClick(emp, proj)}
+                        onClick={() => {
+                          setSelectedEmployee(emp); // open modal
+                          setModalOpen(true);
+                        }}
                       >
                         <td>{emp.employee_no}</td>
                         <td>{emp.full_name}</td>
@@ -272,50 +214,23 @@ export default function UsageSummary() {
               </div>
 
               {filteredEmployees.length > 15 && (
-                <div className="table-hint">
-                  Showing first 15 results — scroll to view more
-                </div>
+                <div className="table-hint">Showing first 15 results — scroll to view more</div>
               )}
 
               {filteredEmployees.length === 0 && (
-                <div className="table-hint">
-                  No matching employees found
-                </div>
+                <div className="table-hint">No matching employees found</div>
               )}
             </div>
           );
         })}
 
-      {/* 🆕 Drill-down Modal */}
-      {selectedEmployee && modalData && (
-        <div className="modal-overlay" onClick={closeModal}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>
-              {modalData.employee.full_name} ({modalData.employee.employee_no})
-            </h3>
-            <p>Project: {modalData.project}</p>
-
-            {modalLoading && <p>Loading DTR details...</p>}
-
-            {!modalLoading && modalData.dtrDetails && (
-              <div className="dtr-details">
-                <p>
-                  📅 Dates Logged: {modalData.dtrDetails.dates.join(", ")}
-                </p>
-                <p>🗓 Total Days: {modalData.dtrDetails.totalDays}</p>
-                <p>📁 Source Files: {modalData.dtrDetails.files.join(", ")}</p>
-              </div>
-            )}
-
-            {!modalLoading && !modalData.dtrDetails && (
-              <p>No DTR details available</p>
-            )}
-
-            <button className="modal-close-btn" onClick={closeModal}>
-              Close
-            </button>
-          </div>
-        </div>
+      {/* 🆕 STEP 5: Drill-down modal */}
+      {selectedEmployee && (
+        <EmployeeDtrModal
+          employee={selectedEmployee}
+          isOpen={modalOpen}
+          onClose={() => setModalOpen(false)}
+        />
       )}
     </div>
   );

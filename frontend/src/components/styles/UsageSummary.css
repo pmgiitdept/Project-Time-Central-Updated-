@@ -154,23 +154,6 @@
   border: 1px solid #d1d5db;
 }
 
-/* Export button */
-.export-btn {
-  background-color: #1e88e5;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 6px 12px;
-  cursor: pointer;
-  font-size: 14px;
-  margin-bottom: 12px;
-  transition: background-color 0.2s ease;
-}
-
-.export-btn:hover {
-  background-color: #1565c0;
-}
-
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
   .usage-header {

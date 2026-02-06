@@ -1712,17 +1712,21 @@ class DTREntryViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"], url_path="employee")
     def by_employee(self, request):
-        code = request.query_params.get("employee_code")
+        raw = request.query_params.get("employee_code")
 
-        if not code:
+        if not raw:
             return Response({"detail": "employee_code is required"}, status=400)
 
-        normalized = str(code).zfill(5)
+        try:
+            numeric_code = int("".join(filter(str.isdigit, raw)))
+        except ValueError:
+            return Response({"detail": "Invalid employee_code"}, status=400)
 
         qs = (
             self.get_queryset()
+            .annotate(emp_no_int=Cast("employee_no", IntegerField()))
             .filter(
-                employee_no=normalized,
+                emp_no_int=numeric_code,
                 dtr_file__status="verified",
             )
             .select_related("dtr_file__uploaded_by")
@@ -1732,11 +1736,11 @@ class DTREntryViewSet(viewsets.ModelViewSet):
             return Response([], status=200)
 
         grouped = {}
+
         for entry in qs:
             dtr_file = entry.dtr_file
-
-            # ✅ Derive project name using same logic as sync_all_files
             uploader = getattr(dtr_file, "uploaded_by", None)
+
             project_name = (
                 f"{uploader.first_name} {uploader.last_name}".strip()
                 if uploader and (uploader.first_name or uploader.last_name)
@@ -1747,18 +1751,17 @@ class DTREntryViewSet(viewsets.ModelViewSet):
 
             if key not in grouped:
                 grouped[key] = {
-                    "project": project_name,  # ✅ include here
+                    "project": project_name,
                     "start_date": dtr_file.start_date,
                     "end_date": dtr_file.end_date,
                     "rows": [],
                 }
 
-            serialized_entry = DTREntrySerializer(entry).data
-            serialized_entry["project"] = project_name  # ✅ ensure it’s attached per row too
-            grouped[key]["rows"].append(serialized_entry)
+            row = DTREntrySerializer(entry).data
+            row["project"] = project_name
+            grouped[key]["rows"].append(row)
 
         return Response(list(grouped.values()))
-
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])

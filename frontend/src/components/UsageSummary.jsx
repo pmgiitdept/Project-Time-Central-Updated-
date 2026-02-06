@@ -66,10 +66,8 @@ export default function UsageSummary() {
   const filteredProjects = useMemo(() => {
     return projects.filter((p) => {
       if (selectedProject && p.project !== selectedProject) return false;
-
       if (fromDate && new Date(p.start_date) < new Date(fromDate)) return false;
       if (toDate && new Date(p.end_date) > new Date(toDate)) return false;
-
       return true;
     });
   }, [projects, selectedProject, fromDate, toDate]);
@@ -77,9 +75,59 @@ export default function UsageSummary() {
   // 🧠 Unique project list for dropdown
   const projectOptions = [...new Set(projects.map((p) => p.project))];
 
+  // 🆕 STEP 1: Summary Metrics
+  const summary = useMemo(() => {
+    const employeeSet = new Set();
+    let minDate = null;
+    let maxDate = null;
+
+    filteredProjects.forEach((proj) => {
+      proj.employees.forEach((e) =>
+        employeeSet.add(e.employee_no)
+      );
+
+      if (proj.start_date) {
+        const sd = new Date(proj.start_date);
+        minDate = !minDate || sd < minDate ? sd : minDate;
+      }
+
+      if (proj.end_date) {
+        const ed = new Date(proj.end_date);
+        maxDate = !maxDate || ed > maxDate ? ed : maxDate;
+      }
+    });
+
+    return {
+      projectCount: filteredProjects.length,
+      employeeCount: employeeSet.size,
+      start: minDate,
+      end: maxDate,
+    };
+  }, [filteredProjects]);
+
   return (
     <div className="usage-summary">
       <h2>📊 Project Manpower Usage Summary</h2>
+
+      {/* 🆕 STEP 1: Summary Bar */}
+      <div className="usage-summary-bar">
+        <div>
+          📦 <strong>Projects:</strong> {summary.projectCount}
+        </div>
+        <div>
+          👥 <strong>Employees:</strong> {summary.employeeCount}
+        </div>
+        <div>
+          📅 <strong>Coverage:</strong>{" "}
+          {summary.start
+            ? summary.start.toLocaleDateString()
+            : "N/A"}{" "}
+          –{" "}
+          {summary.end
+            ? summary.end.toLocaleDateString()
+            : "N/A"}
+        </div>
+      </div>
 
       {/* 🔽 Filters */}
       <div className="usage-filters">
@@ -127,10 +175,10 @@ export default function UsageSummary() {
             </div>
 
             <p>
-              👥 <strong>Total Employees:</strong> {proj.totalEmployees}
+              👥 <strong>Total Employees:</strong>{" "}
+              {proj.totalEmployees}
             </p>
 
-            {/* 👇 Scrollable table */}
             <div className="usage-table-wrapper">
               <table className="usage-table">
                 <thead>

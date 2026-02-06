@@ -127,6 +127,23 @@
   color: #6b7280;
 }
 
+/* ===== Summary Bar ===== */
+.usage-summary-bar {
+  display: flex;
+  gap: 24px;
+  margin: 16px 0 24px;
+  padding: 12px 16px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #374151;
+}
+
+.usage-summary-bar div {
+  white-space: nowrap;
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
   .usage-header {

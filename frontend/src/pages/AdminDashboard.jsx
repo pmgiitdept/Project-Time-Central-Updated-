@@ -1023,18 +1023,6 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {/* ===================== */}
-          {/* 📊 USAGE SUMMARY */}
-          {/* ===================== */}
-          <div className="divider-hybrid">
-            <span>EMPLOYEE USAGE SUMMARY</span>
-          </div>
-
-          <UsageSummary
-            role={role}
-            currentUser={currentUser}
-          />
-
           {/* Users Section */}
           {activeSection === "users" && currentUser?.username === "itdept.pmgi" && (
             <motion.div

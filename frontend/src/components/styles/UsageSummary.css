@@ -4,6 +4,7 @@
 .usage-summary {
   padding: 20px;
   background: #f7f9fc;
+  border-radius: 12px;
 }
 
 .usage-summary h2 {

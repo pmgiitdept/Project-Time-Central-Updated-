@@ -12,8 +12,13 @@ export default function UsageSummary() {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
 
-  // 🔍 Employee search per project (Step 2)
+  // 🔍 Employee search per project
   const [employeeSearch, setEmployeeSearch] = useState({});
+
+  // 🆕 Drill-down modal
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [modalData, setModalData] = useState(null);
+  const [modalLoading, setModalLoading] = useState(false);
 
   useEffect(() => {
     fetchUsageSummary();
@@ -40,6 +45,7 @@ export default function UsageSummary() {
             employeeMap.set(row.employee_no, {
               full_name: row.full_name,
               employee_no: row.employee_no,
+              rows: row.rows || [], // store DTR rows per employee
             });
           }
         });
@@ -108,6 +114,38 @@ export default function UsageSummary() {
     };
   }, [filteredProjects]);
 
+  // 🔹 Helper: employee count badge
+  const getEmployeeBadge = (count) => {
+    if (count >= 200) return { text: "⚠ High manpower usage", color: "#d32f2f" };
+    if (count >= 100) return { text: "ℹ️ Large manpower", color: "#fbc02d" };
+    return null;
+  };
+
+  // 🔹 Drill-down handler
+  const handleEmployeeClick = async (emp, proj) => {
+    setSelectedEmployee(emp);
+    setModalLoading(true);
+    try {
+      // Fetch full DTR details for this employee
+      const res = await api.get(`/files/dtr/employee/${emp.employee_no}/details/`);
+      setModalData({
+        employee: emp,
+        project: proj.project,
+        dtrDetails: res.data, // expected: { dates: [], totalDays: N, files: [] }
+      });
+    } catch (err) {
+      console.error("Failed to load employee DTR details:", err);
+      setModalData({ employee: emp, project: proj.project, dtrDetails: null });
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  const closeModal = () => {
+    setSelectedEmployee(null);
+    setModalData(null);
+  };
+
   return (
     <div className="usage-summary">
       <h2>📊 Project Manpower Usage Summary</h2>
@@ -122,13 +160,8 @@ export default function UsageSummary() {
         </div>
         <div>
           📅 <strong>Coverage:</strong>{" "}
-          {summary.start
-            ? summary.start.toLocaleDateString()
-            : "N/A"}{" "}
-          –{" "}
-          {summary.end
-            ? summary.end.toLocaleDateString()
-            : "N/A"}
+          {summary.start ? summary.start.toLocaleDateString() : "N/A"} –{" "}
+          {summary.end ? summary.end.toLocaleDateString() : "N/A"}
         </div>
       </div>
 
@@ -172,6 +205,8 @@ export default function UsageSummary() {
             );
           });
 
+          const badge = getEmployeeBadge(proj.totalEmployees);
+
           return (
             <div key={proj.file_id} className="usage-card">
               <div className="usage-header">
@@ -188,8 +223,15 @@ export default function UsageSummary() {
               </div>
 
               <p>
-                👥 <strong>Total Employees:</strong>{" "}
-                {proj.totalEmployees}
+                👥 <strong>Total Employees:</strong> {proj.totalEmployees}{" "}
+                {badge && (
+                  <span
+                    className="employee-badge"
+                    style={{ color: badge.color, marginLeft: "8px", fontWeight: 500 }}
+                  >
+                    {badge.text}
+                  </span>
+                )}
               </p>
 
               {/* 🔍 Employee Search */}
@@ -216,7 +258,11 @@ export default function UsageSummary() {
                   </thead>
                   <tbody>
                     {filteredEmployees.slice(0, 15).map((emp) => (
-                      <tr key={emp.employee_no}>
+                      <tr
+                        key={emp.employee_no}
+                        className="clickable-row"
+                        onClick={() => handleEmployeeClick(emp, proj)}
+                      >
                         <td>{emp.employee_no}</td>
                         <td>{emp.full_name}</td>
                       </tr>
@@ -239,6 +285,38 @@ export default function UsageSummary() {
             </div>
           );
         })}
+
+      {/* 🆕 Drill-down Modal */}
+      {selectedEmployee && modalData && (
+        <div className="modal-overlay" onClick={closeModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3>
+              {modalData.employee.full_name} ({modalData.employee.employee_no})
+            </h3>
+            <p>Project: {modalData.project}</p>
+
+            {modalLoading && <p>Loading DTR details...</p>}
+
+            {!modalLoading && modalData.dtrDetails && (
+              <div className="dtr-details">
+                <p>
+                  📅 Dates Logged: {modalData.dtrDetails.dates.join(", ")}
+                </p>
+                <p>🗓 Total Days: {modalData.dtrDetails.totalDays}</p>
+                <p>📁 Source Files: {modalData.dtrDetails.files.join(", ")}</p>
+              </div>
+            )}
+
+            {!modalLoading && !modalData.dtrDetails && (
+              <p>No DTR details available</p>
+            )}
+
+            <button className="modal-close-btn" onClick={closeModal}>
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

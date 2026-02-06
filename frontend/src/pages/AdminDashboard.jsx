@@ -1023,6 +1023,32 @@ export default function AdminDashboard() {
             </div>
           )}
 
+          {/* ===================== */}
+          {/* 📊 USAGE SUMMARY */}
+          {/* ===================== */}
+          {activeSection === "usageSummary" && (
+            <div className="tables-wrapper">
+              
+              {/* Divider */}
+              <div className="divider-hybrid">
+                <span>EMPLOYEE USAGE SUMMARY</span>
+              </div>
+
+              {/* 🔄 Optional: refresh button for summary */}
+              <div style={{ position: "fixed", top: "100px", right: "40px", zIndex: 500 }}>
+                <button
+                  onClick={() => setRefresh(!refresh)}
+                  className="upload-button"
+                >
+                  🔄 Refresh Summary
+                </button>
+              </div>
+
+              {/* Usage Summary Table / Cards */}
+              <UsageSummary role={role} currentUser={currentUser} />
+            </div>
+          )}
+
           {/* Users Section */}
           {activeSection === "users" && currentUser?.username === "itdept.pmgi" && (
             <motion.div

@@ -12,8 +12,8 @@ from openpyxl import load_workbook, Workbook
 import io, re, logging, csv, math, traceback, os, numbers
 from accounts.models import User
 from reportlab.pdfgen import canvas
-from django.db.models import Count, Q
-from django.db.models.functions import TruncDay, TruncWeek, TruncMonth
+from django.db.models import Count, Q, IntegerField
+from django.db.models.functions import TruncDay, TruncWeek, TruncMonth, Cast
 from .utils import log_action, get_client_ip
 from django.core.exceptions import ValidationError
 import pandas as pd

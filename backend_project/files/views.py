@@ -1717,17 +1717,15 @@ class DTREntryViewSet(viewsets.ModelViewSet):
         if not code:
             return Response({"detail": "employee_code is required"}, status=400)
 
-        normalized = code.lstrip("0").upper()
+        normalized = str(code).zfill(5)
 
         qs = (
             self.get_queryset()
             .filter(
-                Q(employee_no=code)
-                | Q(employee_no=normalized)
-                | Q(employee_no__endswith=normalized),
+                employee_no=normalized,
                 dtr_file__status="verified",
             )
-            .select_related("dtr_file__uploaded_by")  # ✅ important for performance
+            .select_related("dtr_file__uploaded_by")
         )
 
         if not qs.exists():

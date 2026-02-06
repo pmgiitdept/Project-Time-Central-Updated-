@@ -313,8 +313,7 @@ export default function DTRTable({ role , fileId}) {
       {fileContents.length > 0 && (
         <div className="dtr-file-content">
           <h3 className="content-title">
-            Summary Forms
-            <span style={{ marginLeft: "12px", fontSize: "14px", fontWeight: "normal" }}>
+            <span style={{ marginLeft: "12px", fontSize: "16px", fontWeight: "normal" }}>
               👥 Total Employees: <strong>{totalEmployees}</strong>
             </span>
           </h3>

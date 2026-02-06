@@ -38,6 +38,11 @@ const formatDailyHeader = (dateStr) => {
   return `${day} ${d}`;
 };
 
+const normalizeEmployeeNo = (val, length = 5) => {
+  if (val === null || val === undefined) return null;
+  return String(val).padStart(length, "0");
+};
+
 export default function EmployeeDtrModal({
   employee,
   isOpen,
@@ -55,7 +60,9 @@ export default function EmployeeDtrModal({
       setLoading(true);
       try {
         const res = await api.get("/files/dtr/entries/employee/", {
-          params: { employee_code: employee.employee_code },
+          params: {
+            employee_code: normalizeEmployeeNo(employee.employee_code),
+          },
         });
 
         const data = res.data || [];

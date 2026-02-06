@@ -25,51 +25,55 @@ export default function UsageSummary() {
   }, []);
 
   const fetchUsageSummary = async () => {
-    setLoading(true);
-    try {
-      const res = await api.get("/files/dtr/files/");
-      const files = res.data.results || res.data;
+  setLoading(true);
+  try {
+    const res = await api.get("/files/dtr/files/");
+    const files = res.data.results || res.data;
 
-      const summaries = [];
+    // ✅ Only include verified files
+    const verifiedFiles = files.filter(file => file.verified === true);
 
-      for (const file of files) {
-        const contentRes = await api.get(
-          `/files/dtr/files/${file.id}/content/`
-        );
+    const summaries = [];
 
-        const rows = contentRes.data.rows || [];
-        const employeeMap = new Map();
+    for (const file of verifiedFiles) {
+      const contentRes = await api.get(
+        `/files/dtr/files/${file.id}/content/`
+      );
 
-        rows.forEach((row) => {
-          if (row?.employee_no) {
-            employeeMap.set(row.employee_no, {
-              full_name: row.full_name,
-              employee_no: row.employee_no,
-              employee_code: row.employee_no, // for EmployeeDtrModal
-            });
-          }
-        });
+      const rows = contentRes.data.rows || [];
+      const employeeMap = new Map();
 
-        summaries.push({
-          file_id: file.id,
-          project:
-            file.uploaded_by?.full_name ||
-            file.uploaded_by?.username ||
-            "Unknown",
-          start_date: file.start_date,
-          end_date: file.end_date,
-          totalEmployees: employeeMap.size,
-          employees: Array.from(employeeMap.values()),
-        });
-      }
+      rows.forEach((row) => {
+        if (row?.employee_no) {
+          employeeMap.set(row.employee_no, {
+            full_name: row.full_name,
+            employee_no: row.employee_no,
+            employee_code: row.employee_no,
+          });
+        }
+      });
 
-      setProjects(summaries);
-    } catch (err) {
-      console.error("Failed to load usage summary:", err);
-    } finally {
-      setLoading(false);
+      summaries.push({
+        file_id: file.id,
+        project:
+          file.uploaded_by?.full_name ||
+          file.uploaded_by?.username ||
+          "Unknown",
+        start_date: file.start_date,
+        end_date: file.end_date,
+        totalEmployees: employeeMap.size,
+        employees: Array.from(employeeMap.values()),
+      });
     }
-  };
+
+    setProjects(summaries);
+  } catch (err) {
+    console.error("Failed to load usage summary:", err);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   // 🔍 Apply filters
   const filteredProjects = useMemo(() => {

@@ -24,13 +24,13 @@ export default function UsageSummary() {
     fetchUsageSummary();
   }, []);
 
+  // 🔹 Fetch usage summary using same structure as DTRTable
   const fetchUsageSummary = async () => {
     setLoading(true);
     try {
       const res = await api.get("/files/dtr/files/");
       const files = res.data.results || res.data;
 
-      // ✅ Only include verified files
       const verifiedFiles = files.filter(file => file.status === "verified");
       const summaries = [];
 
@@ -38,35 +38,26 @@ export default function UsageSummary() {
         const contentRes = await api.get(`/files/dtr/files/${file.id}/content/`);
         const rows = contentRes.data.rows || [];
 
-        // 🟢 Fetch all employee DTRs in parallel
-        const employeePromises = rows.map(async (row) => {
-          if (!row?.employee_no) return null;
-          let employeeRows = [];
-          try {
-            const dtrRes = await api.get("/files/dtr/entries/employee/", {
-              params: { employee_code: row.employee_no },
+        // Map employees from rows directly
+        const employeeMap = new Map();
+        rows.forEach((row) => {
+          if (row?.employee_no) {
+            employeeMap.set(row.employee_no, {
+              full_name: row.full_name,
+              employee_no: row.employee_no,
+              employee_code: row.employee_no,
+              rows: [row], // ✅ wrap row in array for calculateEmployeeSummary
             });
-            employeeRows = dtrRes.data || [];
-          } catch (err) {
-            console.error("Failed to fetch DTR for employee:", row.employee_no, err);
           }
-          return {
-            full_name: row.full_name,
-            employee_no: row.employee_no,
-            employee_code: row.employee_no,
-            rows: employeeRows, // ✅ now includes daily_data & total_hours
-          };
         });
-
-        const employees = (await Promise.all(employeePromises)).filter(Boolean);
 
         summaries.push({
           file_id: file.id,
           project: file.uploaded_by?.full_name || file.uploaded_by?.username || "Unknown",
           start_date: file.start_date,
           end_date: file.end_date,
-          totalEmployees: employees.length,
-          employees,
+          totalEmployees: employeeMap.size,
+          employees: Array.from(employeeMap.values()),
         });
       }
 

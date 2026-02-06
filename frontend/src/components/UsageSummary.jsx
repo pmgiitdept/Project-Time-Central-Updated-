@@ -1,170 +1,111 @@
-// components/UsageSummary.jsx
+/* components/UsageSummary.jsx */
 import { useEffect, useState } from "react";
-import { toast } from "react-toastify";
 import api from "../api";
-import { saveAs } from "file-saver";
-import * as XLSX from "xlsx";
-import "./styles/FileTable.css"; // reuse table styles
+import "./styles/UsageSummary.css";
 
-export default function UsageSummary({ role, currentUser }) {
-  const [data, setData] = useState([]);
+export default function UsageSummary() {
+  const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
 
-  const fetchData = async () => {
+  useEffect(() => {
+    fetchUsageSummary();
+  }, []);
+
+  const fetchUsageSummary = async () => {
     setLoading(true);
     try {
-        const token = localStorage.getItem("access_token");
-        if (!token) {
-        toast.error("No authentication token found. Please login again.");
-        return;
-        }
+      // 1️⃣ Get all DTR files (same source as DTRTable)
+      const res = await api.get("/files/dtr/files/");
+      const files = res.data.results || res.data;
 
-        const params = {};
-        if (startDate) params.start_date = startDate;
-        if (endDate) params.end_date = endDate;
+      const summaries = [];
 
-        // ✅ CORRECT endpoint
-        const res = await api.get("/files/dtr/files/by-employee/", {
-        headers: { Authorization: `Bearer ${token}` },
-        params,
+      // 2️⃣ For each file, load its content
+      for (const file of files) {
+        const contentRes = await api.get(
+          `/files/dtr/files/${file.id}/content/`
+        );
+
+        const rows = contentRes.data.rows || [];
+
+        // 3️⃣ Build unique employee list
+        const employeeMap = new Map();
+
+        rows.forEach((row) => {
+          if (row?.employee_no) {
+            employeeMap.set(row.employee_no, {
+              full_name: row.full_name,
+              employee_no: row.employee_no,
+            });
+          }
         });
 
-        if (!Array.isArray(res.data)) {
-        toast.error("Invalid response format from server.");
-        return;
-        }
-
-        // 🔁 Group by employee → project (uploader)
-        const grouped = {};
-        res.data.forEach((entry) => {
-        const employee =
-            entry.employee_name || entry.employee_no || "Unknown";
-        const project = entry.uploader_name || entry.project || "Unknown";
-
-        if (!grouped[employee]) grouped[employee] = {};
-        if (!grouped[employee][project]) grouped[employee][project] = 0;
-
-        grouped[employee][project] += entry.total_hours || 0;
+        summaries.push({
+          file_id: file.id,
+          project:
+            file.uploaded_by?.full_name ||
+            file.uploaded_by?.username ||
+            "Unknown",
+          start_date: file.start_date,
+          end_date: file.end_date,
+          totalEmployees: employeeMap.size,
+          employees: Array.from(employeeMap.values()),
         });
+      }
 
-        const tableData = Object.keys(grouped).map((employee) => ({
-        employee,
-        ...grouped[employee],
-        }));
-
-        setData(tableData);
+      setProjects(summaries);
     } catch (err) {
-        console.error(err);
-        if (err.response?.status === 401) {
-        toast.error("Unauthorized. Please login again.");
-        } else if (err.response?.status === 404) {
-        toast.error("Usage summary endpoint not found.");
-        } else {
-        toast.error("Failed to fetch usage summary.");
-        }
+      console.error("Failed to load usage summary:", err);
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
-    };
-
-  // Excel export
-  const handleExport = () => {
-    if (!data.length) return toast.warning("No data to export");
-
-    const ws = XLSX.utils.json_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "UsageSummary");
-
-    const buf = XLSX.write(wb, { type: "array", bookType: "xlsx" });
-    saveAs(new Blob([buf], { type: "application/octet-stream" }), "UsageSummary.xlsx");
   };
 
-  // Re-fetch when date range changes
-  useEffect(() => {
-    fetchData();
-  }, [startDate, endDate]);
-
-  // Dynamically collect all project keys for table headers
-  const allProjects = Array.from(
-    new Set(data.flatMap((row) => Object.keys(row).filter((k) => k !== "employee")))
-  );
-
-  // Optional: filter by permissions
-  const canView = role === "admin" || role === "payroll";
-
-  if (!canView) return <p>You do not have permission to view this summary.</p>;
-
   return (
-    <div className="usage-summary-wrapper">
-      {/* 🔹 Filters */}
-      <div className="filters" style={{ marginBottom: "1rem" }}>
-        <div className="filter-item date-range">
-          <label>Date Range:</label>
-          <div className="date-inputs">
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-            />
-            <span className="date-separator">to</span>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-            />
-          </div>
-        </div>
+    <div className="usage-summary">
+      <h2>📊 Project Manpower Usage Summary</h2>
 
-        <button
-          className="upload-button"
-          style={{ marginLeft: "1rem" }}
-          onClick={handleExport}
-          disabled={loading || !data.length}
-        >
-          Export to Excel
-        </button>
-      </div>
+      {loading && <p>Loading records...</p>}
 
-      {/* 🔹 Table */}
-      {loading ? (
-        <div className="loading-container">
-          <div className="spinner"></div>
-          <p>Loading usage summary...</p>
-        </div>
-      ) : (
-        <div className="table-scroll-container">
-          <table className="file-table">
-            <thead>
-              <tr>
-                <th>Employee</th>
-                {allProjects.map((project) => (
-                  <th key={project}>{project}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {data.length ? (
-                data.map((row, idx) => (
-                  <tr key={idx}>
-                    <td>{row.employee}</td>
-                    {allProjects.map((project) => (
-                      <td key={project}>{row[project] || 0}</td>
-                    ))}
-                  </tr>
-                ))
-              ) : (
+      {!loading &&
+        projects.map((proj) => (
+          <div key={proj.file_id} className="usage-card">
+            <div className="usage-header">
+              <h3>{proj.project}</h3>
+              <span className="cutoff">
+                {proj.start_date
+                  ? new Date(proj.start_date).toLocaleDateString()
+                  : "N/A"}{" "}
+                →{" "}
+                {proj.end_date
+                  ? new Date(proj.end_date).toLocaleDateString()
+                  : "N/A"}
+              </span>
+            </div>
+
+            <p>
+              👥 <strong>Total Employees:</strong>{" "}
+              {proj.totalEmployees}
+            </p>
+
+            <table className="usage-table">
+              <thead>
                 <tr>
-                  <td colSpan={allProjects.length + 1} style={{ textAlign: "center" }}>
-                    No data found for selected date range.
-                  </td>
+                  <th>Employee No</th>
+                  <th>Full Name</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
+              </thead>
+              <tbody>
+                {proj.employees.map((emp) => (
+                  <tr key={emp.employee_no}>
+                    <td>{emp.employee_no}</td>
+                    <td>{emp.full_name}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ))}
     </div>
   );
 }

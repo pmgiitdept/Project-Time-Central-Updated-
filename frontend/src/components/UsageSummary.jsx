@@ -123,26 +123,36 @@ export default function UsageSummary() {
     return null;
   };
 
-  // 🔹 Helper: calculate attendance summary for display
-    const calculateEmployeeSummary = (emp, proj) => {
-    if (!emp.rows || !proj.start_date || !proj.end_date) return { logged: 0, expected: 0, totalHours: 0 };
+  // Calculate logged days and total hours for an employee across all their rows
+const calculateEmployeeSummary = (emp, projStart, projEnd) => {
+  if (!emp.rows || emp.rows.length === 0 || !projStart || !projEnd) {
+    return { logged: 0, expected: 0, totalHours: 0 };
+  }
 
-    const start = new Date(proj.start_date);
-    const end = new Date(proj.end_date);
-    const expectedDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+  // Expected days = project coverage days
+  const start = new Date(projStart);
+  const end = new Date(projEnd);
+  const expectedDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
 
-    let loggedDays = 0;
-    let totalHours = 0;
+  let loggedDays = 0;
+  let totalHours = 0;
 
-    emp.rows.forEach((row) => {
-        if (row?.daily_data) {
-        loggedDays += Object.values(row.daily_data).filter(val => val !== null && val !== "").length;
-        totalHours += row.total_hours || 0;
-        }
+  emp.rows.forEach((row) => {
+    if (!row.daily_data) return;
+
+    Object.keys(row.daily_data).forEach((date) => {
+      const val = row.daily_data[date];
+      if (val !== null && val !== "" && !isNaN(val)) {
+        loggedDays += 1;
+      }
     });
 
-    return { logged: loggedDays, expected: expectedDays, totalHours };
-    };
+    totalHours += row.total_hours || 0;
+  });
+
+  return { logged: loggedDays, expected: expectedDays, totalHours };
+};
+
 
   return (
     <div className="usage-summary">
@@ -214,38 +224,39 @@ export default function UsageSummary() {
 
               <div className="usage-table-wrapper">
                 <table className="usage-table">
-                    <thead>
-                        <tr>
-                        <th>Employee No</th>
-                        <th>Full Name</th>
-                        <th>Attendance</th>
-                        <th>Total Hours</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredEmployees.slice(0, 15).map((emp) => {
-                        const summary = calculateEmployeeSummary(emp, proj);
-                        return (
-                            <tr
-                            key={emp.employee_no}
-                            className="clickable-row"
-                            onClick={() => {
-                                setSelectedEmployee(emp);
-                                setModalOpen(true);
-                            }}
-                            >
-                            <td>{emp.employee_no}</td>
-                            <td>{emp.full_name}</td>
-                            <td>
-                                {summary.logged} / {summary.expected}{" "}
-                                {summary.logged < summary.expected && <span className="missing-days">⚠</span>}
-                            </td>
-                            <td>{summary.totalHours} hrs</td>
-                            </tr>
-                        );
-                        })}
-                    </tbody>
-                </table>
+  <thead>
+    <tr>
+      <th>Employee No</th>
+      <th>Full Name</th>
+      <th>Attendance</th>
+      <th>Total Hours</th>
+    </tr>
+  </thead>
+  <tbody>
+    {filteredEmployees.slice(0, 15).map((emp) => {
+      const summary = calculateEmployeeSummary(emp, proj.start_date, proj.end_date);
+      return (
+        <tr
+          key={emp.employee_no}
+          className="clickable-row"
+          onClick={() => {
+            setSelectedEmployee(emp);
+            setModalOpen(true);
+          }}
+        >
+          <td>{emp.employee_no}</td>
+          <td>{emp.full_name}</td>
+          <td>
+            {summary.logged} / {summary.expected}{" "}
+            {summary.logged < summary.expected && <span className="missing-days">⚠</span>}
+          </td>
+          <td>{summary.totalHours} hrs</td>
+        </tr>
+      );
+    })}
+  </tbody>
+</table>
+
               </div>
 
               {filteredEmployees.length > 15 && (

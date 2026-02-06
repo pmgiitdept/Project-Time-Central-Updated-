@@ -1,0 +1,105 @@
+/* UsageSummary.css */
+
+/* ===== Root Container ===== */
+.usage-summary {
+  padding: 20px;
+  background: #f7f9fc;
+}
+
+.usage-summary h2 {
+  margin-bottom: 20px;
+  font-size: 22px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+/* ===== Project Card ===== */
+.usage-card {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 18px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+  border-left: 6px solid #2563eb; /* same blue accent feel */
+}
+
+/* ===== Header ===== */
+.usage-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.usage-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.cutoff {
+  font-size: 13px;
+  color: #6b7280;
+  background: #f1f5f9;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+/* ===== Meta Info ===== */
+.usage-card p {
+  margin: 8px 0 14px;
+  font-size: 14px;
+  color: #374151;
+}
+
+/* ===== Table ===== */
+.usage-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.usage-table thead {
+  background: #f8fafc;
+}
+
+.usage-table th {
+  text-align: left;
+  padding: 10px 12px;
+  font-weight: 600;
+  color: #1f2937;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.usage-table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid #e5e7eb;
+  color: #374151;
+}
+
+/* Hover same as DTR table */
+.usage-table tbody tr:hover {
+  background-color: #f1f5ff;
+}
+
+/* ===== Empty / Loading ===== */
+.usage-summary p {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .usage-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .usage-table th,
+  .usage-table td {
+    font-size: 13px;
+    padding: 8px;
+  }
+}

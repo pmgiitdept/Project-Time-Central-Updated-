@@ -1,7 +1,7 @@
 /* components/UsageSummary.jsx */
 import { useEffect, useState } from "react";
 import api from "../api";
-import "./styles/DTRTable.css";
+import "./styles/UsageSummary.css";
 
 export default function UsageSummary() {
   const [projects, setProjects] = useState([]);

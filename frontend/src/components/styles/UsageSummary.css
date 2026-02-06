@@ -144,6 +144,16 @@
   white-space: nowrap;
 }
 
+/* ===== Employee Search ===== */
+.employee-search {
+  width: 100%;
+  margin: 10px 0 8px;
+  padding: 8px 10px;
+  font-size: 14px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
   .usage-header {

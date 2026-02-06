@@ -12,6 +12,9 @@ export default function UsageSummary() {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
 
+  // 🔍 Employee search per project (Step 2)
+  const [employeeSearch, setEmployeeSearch] = useState({});
+
   useEffect(() => {
     fetchUsageSummary();
   }, []);
@@ -159,52 +162,83 @@ export default function UsageSummary() {
       {loading && <p>Loading records...</p>}
 
       {!loading &&
-        filteredProjects.map((proj) => (
-          <div key={proj.file_id} className="usage-card">
-            <div className="usage-header">
-              <h3>{proj.project}</h3>
-              <span className="cutoff">
-                {proj.start_date
-                  ? new Date(proj.start_date).toLocaleDateString()
-                  : "N/A"}{" "}
-                →{" "}
-                {proj.end_date
-                  ? new Date(proj.end_date).toLocaleDateString()
-                  : "N/A"}
-              </span>
-            </div>
+        filteredProjects.map((proj) => {
+          const searchText = employeeSearch[proj.file_id] || "";
+          const filteredEmployees = proj.employees.filter((emp) => {
+            const text = searchText.toLowerCase();
+            return (
+              emp.employee_no.toLowerCase().includes(text) ||
+              emp.full_name.toLowerCase().includes(text)
+            );
+          });
 
-            <p>
-              👥 <strong>Total Employees:</strong>{" "}
-              {proj.totalEmployees}
-            </p>
-
-            <div className="usage-table-wrapper">
-              <table className="usage-table">
-                <thead>
-                  <tr>
-                    <th>Employee No</th>
-                    <th>Full Name</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {proj.employees.slice(0, 15).map((emp) => (
-                    <tr key={emp.employee_no}>
-                      <td>{emp.employee_no}</td>
-                      <td>{emp.full_name}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {proj.employees.length > 15 && (
-              <div className="table-hint">
-                Showing first 15 employees — scroll to view more
+          return (
+            <div key={proj.file_id} className="usage-card">
+              <div className="usage-header">
+                <h3>{proj.project}</h3>
+                <span className="cutoff">
+                  {proj.start_date
+                    ? new Date(proj.start_date).toLocaleDateString()
+                    : "N/A"}{" "}
+                  →{" "}
+                  {proj.end_date
+                    ? new Date(proj.end_date).toLocaleDateString()
+                    : "N/A"}
+                </span>
               </div>
-            )}
-          </div>
-        ))}
+
+              <p>
+                👥 <strong>Total Employees:</strong>{" "}
+                {proj.totalEmployees}
+              </p>
+
+              {/* 🔍 Employee Search */}
+              <input
+                type="text"
+                className="employee-search"
+                placeholder="Search employee no or name..."
+                value={employeeSearch[proj.file_id] || ""}
+                onChange={(e) =>
+                  setEmployeeSearch((prev) => ({
+                    ...prev,
+                    [proj.file_id]: e.target.value,
+                  }))
+                }
+              />
+
+              <div className="usage-table-wrapper">
+                <table className="usage-table">
+                  <thead>
+                    <tr>
+                      <th>Employee No</th>
+                      <th>Full Name</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredEmployees.slice(0, 15).map((emp) => (
+                      <tr key={emp.employee_no}>
+                        <td>{emp.employee_no}</td>
+                        <td>{emp.full_name}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {filteredEmployees.length > 15 && (
+                <div className="table-hint">
+                  Showing first 15 results — scroll to view more
+                </div>
+              )}
+
+              {filteredEmployees.length === 0 && (
+                <div className="table-hint">
+                  No matching employees found
+                </div>
+              )}
+            </div>
+          );
+        })}
     </div>
   );
 }

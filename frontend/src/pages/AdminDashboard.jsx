@@ -98,6 +98,7 @@ export default function AdminDashboard() {
   let sidebarItems = [
     { key: "dashboard", label: "Dashboard", icon: <FaTachometerAlt /> },
     { key: "files", label: "Files", icon: <FaFileAlt /> },
+    { key: "usageSummary", label: "Usage Summary", icon: <FaChartBar /> },
     { key: "audit", label: "Audit Logs", icon: <FaClipboardList /> },
     { key: "settings", label: "Settings", icon: <FaCog /> },
   ];
@@ -107,7 +108,6 @@ export default function AdminDashboard() {
     // IT Dept can access both Users and Employee Directory
     sidebarItems.splice(2, 0, { key: "employeeDirectory", label: "Record Holdings", icon: <FaUsers /> });
     sidebarItems.splice(3, 0, { key: "users", label: "Users", icon: <FaUsers /> });
-    sidebarItems.splice(4, 0, { key: "usageSummary", label: "Usage Summary", icon: <FaChartBar /> });
   } 
   else if (currentUser?.username === "payroll.pmgi") {
     // Payroll can only access Employee Directory

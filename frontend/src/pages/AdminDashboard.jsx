@@ -25,6 +25,7 @@ import AboutModal from "../components/AboutModal";
 import EmployeeDirectory from '../components/EmployeeDirectory';
 import "../components/styles/AdminDashboard.css";
 import UploaderReviewModal from "../components/UploaderReviewModal";
+import UsageSummary from "../components/UsageSummary";
 import api from "../api";
 import jsPDF from "jspdf";
 import "jspdf-autotable";

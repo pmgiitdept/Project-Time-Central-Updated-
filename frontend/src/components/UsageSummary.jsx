@@ -252,6 +252,10 @@ export default function UsageSummary() {
     });
   };
 
+  const getNonRelieverCount = (employees) => {
+    return employees.filter(emp => !isReliever(emp)).length;
+  };
+
   return (
     <motion.div
         className="employee-top-bar"
@@ -277,7 +281,7 @@ export default function UsageSummary() {
           📌 Generated on: {generatedAt.toLocaleString()}
         </div>
       </div>
-      
+
       {/* 🔽 Filters */}
       <div className="usage-filters">
         <select value={selectedProject} onChange={(e) => setSelectedProject(e.target.value)}>
@@ -342,7 +346,21 @@ export default function UsageSummary() {
                   }}
                   style={{ overflow: "hidden" }}
                 >
-              <p>👥 <strong>Total Employees:</strong> {proj.totalEmployees} {badge && <span className="employee-badge" style={{ color: badge.color }}>{badge.text}</span>}</p>
+              {(() => {
+                const nonRelieverCount = getNonRelieverCount(proj.employees);
+                const badge = getEmployeeBadge(nonRelieverCount);
+
+                return (
+                  <p>
+                    👥 <strong>Total Employees:</strong> {nonRelieverCount}
+                    {badge && (
+                      <span className="employee-badge" style={{ color: badge.color }}>
+                        {badge.text}
+                      </span>
+                    )}
+                  </p>
+                );
+              })()}
 
               <input
                 type="text"

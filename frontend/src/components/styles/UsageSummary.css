@@ -59,6 +59,7 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.04);
 }
 
 .usage-table thead {

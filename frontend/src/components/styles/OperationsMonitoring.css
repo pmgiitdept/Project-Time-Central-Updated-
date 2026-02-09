@@ -83,6 +83,7 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 0.75rem;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.04);
 }
 
 /* Sticky headers still work with scrollable wrapper */
@@ -273,6 +274,7 @@ tr[data-risk="high"] {
   width: 100%;
   font-size: 0.7rem;
   min-width: 600px;        /* ensures horizontal scroll if table is wide */
+  box-shadow: 0 4px 10px rgba(0,0,0,0.04);
 }
 
 /* Table cells */

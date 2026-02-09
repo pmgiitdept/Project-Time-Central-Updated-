@@ -170,3 +170,12 @@
     padding: 8px;
   }
 }
+
+/* 🟡 Reliever highlight */
+.reliever-row {
+  background-color: #fff7cc; /* soft yellow */
+}
+
+.reliever-row:hover {
+  background-color: #ffef99; /* slightly stronger on hover */
+}

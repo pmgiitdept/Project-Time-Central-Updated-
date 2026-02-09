@@ -68,18 +68,33 @@
    Ops Risk Table
    ============================ */
 
+/* Wraps tables to allow horizontal scrolling */
 .ops-table-wrapper {
-  max-height: 220px;
-  overflow-y: auto;
+  max-height: 220px;       /* vertical scroll limit */
+  overflow-y: auto;        /* vertical scrolling */
+  overflow-x: auto;        /* horizontal scrolling */
   border-radius: 10px;
   border: 1px solid #e5e7eb;
   background: #ffffff;
+  padding: 0.3rem;         /* optional padding to separate table from border */
 }
 
+/* Ensure table uses full width but scrolls if needed */
 .ops-table {
+  min-width: 600px;        /* ensures scroll appears if table wider than container */
   width: 100%;
   border-collapse: collapse;
   font-size: 0.75rem;
+}
+
+/* Sticky headers still work with scrollable wrapper */
+.ops-table thead th {
+  position: sticky;
+  top: 0;
+  background: #f1f3f5;
+  font-weight: 700;
+  color: #374151;
+  z-index: 2;
 }
 
 .ops-table th,
@@ -90,17 +105,23 @@
   white-space: nowrap;
 }
 
-.ops-table thead th {
-  position: sticky;
-  top: 0;
-  background: #f8fafc;
-  font-weight: 600;
-  z-index: 2;
-}
-
 /* Subtle hover for scan */
 .ops-table tbody tr:hover {
   background: #f1f5f9;
+}
+
+/* Optional: horizontal scroll indicator for small screens */
+.ops-table-wrapper::-webkit-scrollbar {
+  height: 6px;
+}
+
+.ops-table-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.2);
+  border-radius: 3px;
+}
+
+.ops-table-wrapper::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.05);
 }
 
 /* Risk badges */

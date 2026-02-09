@@ -179,3 +179,17 @@
 .reliever-row:hover {
   background-color: #ffef99; /* slightly stronger on hover */
 }
+
+.usage-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.collapse-toggle {
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0;
+}

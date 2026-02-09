@@ -18,11 +18,15 @@ export default function UsageSummary() {
   // 🔍 Employee search per project
   const [employeeSearch, setEmployeeSearch] = useState({});
 
-  // 🆕 Step 5: Drill-down modal
-  const [selectedEmployee, setSelectedEmployee] = useState(null);
-  const [modalOpen, setModalOpen] = useState(false);
-
   const generatedAt = useMemo(() => new Date(), []);
+
+  const [collapsedProjects, setCollapsedProjects] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("usageSummaryCollapsed")) || {};
+    } catch {
+      return {};
+    }
+  });
 
   useEffect(() => {
     fetchUsageSummary();
@@ -51,6 +55,7 @@ export default function UsageSummary() {
                 employeeMap.set(row.employee_no, {
                 full_name: row.full_name,
                 employee_no: row.employee_no,
+                employee_code: row.employee_no,
                 rows: [],
                 });
             }
@@ -236,6 +241,17 @@ export default function UsageSummary() {
     link.click();
   };
 
+  const toggleProjectCollapse = (fileId) => {
+    setCollapsedProjects((prev) => {
+      const updated = {
+        ...prev,
+        [fileId]: !prev[fileId],
+      };
+      localStorage.setItem("usageSummaryCollapsed", JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   return (
     <motion.div
         className="employee-top-bar"
@@ -295,12 +311,23 @@ export default function UsageSummary() {
           return (
             <div key={proj.file_id} className="usage-card">
               <div className="usage-header">
-                <h3>{proj.project}</h3>
+                <div className="usage-header-left">
+                  <button
+                    className="collapse-toggle"
+                    onClick={() => toggleProjectCollapse(proj.file_id)}
+                  >
+                    {collapsedProjects[proj.file_id] ? "▶" : "▼"}
+                  </button>
+                  <h3>{proj.project}</h3>
+                </div>
+
                 <span className="cutoff">
-                  {proj.start_date ? new Date(proj.start_date).toLocaleDateString() : "N/A"} → {proj.end_date ? new Date(proj.end_date).toLocaleDateString() : "N/A"}
+                  {proj.start_date ? new Date(proj.start_date).toLocaleDateString() : "N/A"} →
+                  {proj.end_date ? new Date(proj.end_date).toLocaleDateString() : "N/A"}
                 </span>
               </div>
-
+              {!collapsedProjects[proj.file_id] && (
+              <>
               <p>👥 <strong>Total Employees:</strong> {proj.totalEmployees} {badge && <span className="employee-badge" style={{ color: badge.color }}>{badge.text}</span>}</p>
 
               <input
@@ -328,7 +355,7 @@ export default function UsageSummary() {
                       const summary = calculateEmployeeSummary(emp, proj.start_date, proj.end_date);
                       const presence = employeePresenceMap[emp.employee_no];
                       return (
-                        <tr key={emp.employee_no} className="clickable-row" onClick={() => { setSelectedEmployee(emp); setModalOpen(true); }}>
+                        <tr key={emp.employee_no}>
                           <td>{emp.employee_no}</td>
                           <td>{emp.full_name}</td>
                           <td>{summary.logged} / {summary.expected} {summary.logged < summary.expected && <span className="missing-days">⚠</span>}</td>
@@ -344,18 +371,11 @@ export default function UsageSummary() {
 
               {filteredEmployees.length > 15 && <div className="table-hint">Scroll to view more</div>}
               {filteredEmployees.length === 0 && <div className="table-hint">No matching employees found</div>}
-            </div>
+              </>
+               )} {/* End of collapse check */}
+             </div>
           );
         })}
-
-      {/* 🆕 STEP 5: Drill-down modal */}
-      {selectedEmployee && (
-        <EmployeeDtrModal
-          employee={selectedEmployee}
-          isOpen={modalOpen}
-          onClose={() => setModalOpen(false)}
-        />
-      )}
     </div>
     </motion.div>
   );

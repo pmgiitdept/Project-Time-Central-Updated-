@@ -250,7 +250,16 @@ export default function UsageSummary() {
       </div>
 
       {/* 🧭 Operations Monitoring */}
-      <OperationsMonitoring projects={filteredProjects} />
+      <OperationsMonitoring 
+      projects={filteredProjects.map(proj => ({
+        ...proj,
+        employees: proj.employees.filter(emp => {
+          const pos = emp.position?.toLowerCase() || "";
+          return pos !== "reliever" && pos !== "day off reliever" && pos !== "";
+        })
+      }))} 
+    />
+
 
       {/* 🔽 Filters */}
       <div className="usage-filters">
@@ -275,92 +284,101 @@ export default function UsageSummary() {
       {loading && <p>Loading records...</p>}
 
       {!loading &&
-        filteredProjects.map((proj) => {
-          const searchText = employeeSearch[proj.file_id] || "";
-          const filteredEmployees = proj.employees.filter((emp) => {
-            const text = searchText.toLowerCase();
-            return (
-              emp.employee_no.toLowerCase().includes(text) ||
-              emp.full_name.toLowerCase().includes(text)
-            );
-          });
+  filteredProjects.map((proj) => {
+    const searchText = employeeSearch[proj.file_id] || "";
 
-          const badge = getEmployeeBadge(proj.totalEmployees);
+    // 🔹 Only include contract employees (exclude relievers or empty position)
+    const contractEmployees = proj.employees.filter(emp => {
+      const pos = emp.position?.toLowerCase() || "";
+      return pos !== "reliever" && pos !== "day off reliever" && pos !== "";
+    });
 
-          return (
-            <div key={proj.file_id} className="usage-card">
-              <div className="usage-header">
-                <h3>{proj.project}</h3>
-                <span className="cutoff">
-                  {proj.start_date ? new Date(proj.start_date).toLocaleDateString() : "N/A"} → {proj.end_date ? new Date(proj.end_date).toLocaleDateString() : "N/A"}
-                </span>
-              </div>
+    // 🔹 Filter employees for search
+    const filteredEmployees = contractEmployees.filter((emp) => {
+      const text = searchText.toLowerCase();
+      return (
+        emp.employee_no.toLowerCase().includes(text) ||
+        emp.full_name.toLowerCase().includes(text)
+      );
+    });
 
-              <p>
-                👥 <strong>Total Employees:</strong> {proj.totalEmployees}{" "}
-                {badge && <span className="employee-badge" style={{ color: badge.color }}>{badge.text}</span>}
-              </p>
+    // 🔹 Badge based on contract employees
+    const badge = getEmployeeBadge(contractEmployees.length);
 
-              {/* 🔍 Employee Search */}
-              <input
-                type="text"
-                className="search-employee"
-                placeholder="Search employee no or name..."
-                value={employeeSearch[proj.file_id] || ""}
-                onChange={(e) =>
-                  setEmployeeSearch(prev => ({ ...prev, [proj.file_id]: e.target.value }))
-                }
-              />
+    return (
+      <div key={proj.file_id} className="usage-card">
+        <div className="usage-header">
+          <h3>{proj.project}</h3>
+          <span className="cutoff">
+            {proj.start_date ? new Date(proj.start_date).toLocaleDateString() : "N/A"} → {proj.end_date ? new Date(proj.end_date).toLocaleDateString() : "N/A"}
+          </span>
+        </div>
 
-              <div className="usage-table-wrapper">
-                <table className="usage-table">
-                  <thead>
-                    <tr>
-                      <th>Employee No</th>
-                      <th>Full Name</th>
-                      <th>Attendance</th>
-                      <th>Total Hours</th>
-                      <th>Presence</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredEmployees.slice(0, 15).map((emp) => {
-                      const summary = calculateEmployeeSummary(emp, proj.start_date, proj.end_date);
-                      const presence = employeePresenceMap[emp.employee_no];
-                      return (
-                        <tr
-                          key={emp.employee_no}
-                          className="clickable-row"
-                          onClick={() => {
-                            setSelectedEmployee(emp);
-                            setModalOpen(true);
-                          }}
-                        >
-                          <td>{emp.employee_no}</td>
-                          <td>{emp.full_name}</td>
-                          <td>
-                            {summary.logged} / {summary.expected}{" "}
-                            {summary.logged < summary.expected && <span className="missing-days">⚠</span>}
-                          </td>
-                          <td>{summary.totalHours.toFixed(2).replace(/\.00$/, "")} hrs</td>
-                          <td>
-                            {presence
-                              ? `${presence.projects.size} project(s) / ${presence.files.size} file(s)`
-                              : "—"}
-                          </td>
+        <p>
+          👥 <strong>Total Employees:</strong> {contractEmployees.length}{" "}
+          {badge && <span className="employee-badge" style={{ color: badge.color }}>{badge.text}</span>}
+        </p>
 
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+        {/* 🔍 Employee Search */}
+        <input
+          type="text"
+          className="search-employee"
+          placeholder="Search employee no or name..."
+          value={employeeSearch[proj.file_id] || ""}
+          onChange={(e) =>
+            setEmployeeSearch(prev => ({ ...prev, [proj.file_id]: e.target.value }))
+          }
+        />
 
-              {filteredEmployees.length > 15 && <div className="table-hint">Showing first 15 results — scroll to view more</div>}
-              {filteredEmployees.length === 0 && <div className="table-hint">No matching employees found</div>}
-            </div>
-          );
-        })}
+        <div className="usage-table-wrapper">
+          <table className="usage-table">
+            <thead>
+              <tr>
+                <th>Employee No</th>
+                <th>Full Name</th>
+                <th>Attendance</th>
+                <th>Total Hours</th>
+                <th>Presence</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredEmployees.slice(0, 15).map((emp) => {
+                const summary = calculateEmployeeSummary(emp, proj.start_date, proj.end_date);
+                const presence = employeePresenceMap[emp.employee_no];
+                return (
+                  <tr
+                    key={emp.employee_no}
+                    className="clickable-row"
+                    onClick={() => {
+                      setSelectedEmployee(emp);
+                      setModalOpen(true);
+                    }}
+                  >
+                    <td>{emp.employee_no}</td>
+                    <td>{emp.full_name}</td>
+                    <td>
+                      {summary.logged} / {summary.expected}{" "}
+                      {summary.logged < summary.expected && <span className="missing-days">⚠</span>}
+                    </td>
+                    <td>{summary.totalHours.toFixed(2).replace(/\.00$/, "")} hrs</td>
+                    <td>
+                      {presence
+                        ? `${presence.projects.size} project(s) / ${presence.files.size} file(s)`
+                        : "—"}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {filteredEmployees.length > 15 && <div className="table-hint">Showing first 15 results — scroll to view more</div>}
+        {filteredEmployees.length === 0 && <div className="table-hint">No matching employees found</div>}
+      </div>
+    );
+  })}
+
 
       {/* 🆕 STEP 5: Drill-down modal */}
       {selectedEmployee && (

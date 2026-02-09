@@ -84,89 +84,93 @@ export default function OperationsMonitoring({ projects }) {
         </div>
       </div>
 
-      {/* Trend Charts */}
-      <div className="ops-section">
-        <h3>📈 Utilization Trend</h3>
-        <ResponsiveContainer width="100%" height={200}>
-          <LineChart data={utilizationTrend} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="project" />
-            <YAxis />
-            <Tooltip />
-            <Line type="monotone" dataKey="utilization" stroke="#4f46e5" activeDot={{ r: 8 }} />
-          </LineChart>
-        </ResponsiveContainer>
+      {/* Trend Charts Side by Side */}
+      <div className="ops-section charts-container">
+        <div className="chart-card">
+          <h4>📈 Utilization Trend</h4>
+          <ResponsiveContainer width="100%" height={150}>
+            <LineChart data={utilizationTrend} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="project" />
+              <YAxis />
+              <Tooltip />
+              <Line type="monotone" dataKey="utilization" stroke="#4f46e5" activeDot={{ r: 6 }} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="chart-card">
+          <h4>📊 Overlaps by Employee</h4>
+          <ResponsiveContainer width="100%" height={150}>
+            <BarChart data={overlapsTrend} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="employee" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="overlaps" fill="#f59e0b" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="chart-card">
+          <h4>📊 Exception Breakdown</h4>
+          <ResponsiveContainer width="100%" height={150}>
+            <BarChart data={exceptionData} layout="vertical" margin={{ top: 10, right: 10, left: 50, bottom: 10 }}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis type="number" />
+              <YAxis type="category" dataKey="type" />
+              <Tooltip />
+              <Bar dataKey="value" fill="#ef4444" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </div>
 
-      <div className="ops-section">
-        <h3>📊 Overlaps by Employee</h3>
-        <ResponsiveContainer width="100%" height={200}>
-          <BarChart data={overlapsTrend} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="employee" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="overlaps" fill="#f59e0b" />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-
-      <div className="ops-section">
-        <h3>📊 Exception Breakdown</h3>
-        <ResponsiveContainer width="100%" height={200}>
-          <BarChart data={exceptionData} layout="vertical" margin={{ top: 10, right: 30, left: 50, bottom: 10 }}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis type="number" />
-            <YAxis type="category" dataKey="type" />
-            <Tooltip />
-            <Bar dataKey="value" fill="#ef4444" />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-
+      {/* Employee Conflict Heatmap */}
       <div className="ops-section">
         <h3>🔥 Employee Conflict Heatmap</h3>
+        <p className="heatmap-note">
+          Shows number of overlapping days each employee has across projects. Colors indicate severity: green = low/no conflicts, yellow = medium, red = high.
+        </p>
         {Object.keys(employeeProjectConflicts).length === 0 ? (
-            <p className="ops-empty">No conflicts detected 🎉</p>
+          <p className="ops-empty">No conflicts detected 🎉</p>
         ) : (
-            <div className="heatmap-wrapper">
+          <div className="heatmap-wrapper scrollable">
             <table className="heatmap-table">
-                <thead>
+              <thead>
                 <tr>
-                    <th>Employee</th>
-                    {utilizationByProject.map((p) => (
-                    <th key={p.project}>{p.project}</th>
-                    ))}
+                  <th>Employee</th>
+                  {utilizationByProject.map(p => <th key={p.project}>{p.project}</th>)}
                 </tr>
-                </thead>
-                <tbody>
+              </thead>
+              <tbody>
                 {Object.entries(employeeProjectConflicts).map(([empNo, projects]) => (
-                    <tr key={empNo}>
+                  <tr key={empNo}>
                     <td>{empNo}</td>
-                    {utilizationByProject.map((p) => {
-                        const val = projects[p.project] || 0;
-                        let color = "#d1fae5"; // green = no conflict
-                        if (val >= 3) color = "#fca5a5"; // red = high
-                        else if (val === 2) color = "#fde68a"; // yellow = medium
+                    {utilizationByProject.map(p => {
+                      const val = projects[p.project] || 0;
+                      let color = "#d1fae5"; // green
+                      if (val >= 3) color = "#fca5a5"; // red
+                      else if (val === 2) color = "#fde68a"; // yellow
 
-                        return (
+                      return (
                         <td
-                            key={p.project}
-                            style={{ backgroundColor: color, textAlign: "center" }}
-                            title={`${val} overlapping days`}
+                          key={p.project}
+                          style={{ backgroundColor: color, textAlign: "center" }}
+                          title={`${val} overlapping days`}
                         >
-                            {val > 0 ? val : ""}
+                          {val > 0 ? val : ""}
                         </td>
-                        );
+                      );
                     })}
-                    </tr>
+                  </tr>
                 ))}
-                </tbody>
+              </tbody>
             </table>
-            </div>
+          </div>
         )}
-        </div>
+      </div>
 
       {/* Employee Risk Table */}
       <div className="ops-section">

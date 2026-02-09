@@ -42,15 +42,15 @@ export default function OperationsMonitoring({ projects }) {
       {/* Snapshot Cards */}
       <div className="ops-cards">
         <div className="ops-card">
-          <h4>⚙ Utilization</h4>
+          <h3>⚙ Utilization</h3>
           <p>{utilizationByProject.length} projects analyzed</p>
         </div>
         <div className="ops-card">
-          <h4>⚠ Overlap Risks</h4>
+          <h3>⚠ Overlap Risks</h3>
           <p>{overlapRisks.length} employees flagged</p>
         </div>
         <div className="ops-card">
-          <h4>🚨 Exceptions</h4>
+          <h3>🚨 Exceptions</h3>
           <p>{exceptionSummary.total} total issues</p>
         </div>
       </div>

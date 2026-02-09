@@ -161,6 +161,11 @@ export default function UsageSummary() {
     return { logged: loggedDays, expected: expectedDays, totalHours };
   };
   
+  // 🆕 Check if employee is a reliever
+  const isReliever = (emp) => {
+    return emp.rows.some(row => row.is_reliever === true || row.reliever === true);
+  };
+  
   const employeePresenceMap = useMemo(() => {
     const map = {};
 
@@ -193,6 +198,7 @@ export default function UsageSummary() {
       "Total Hours",
       "Projects Involved",
       "Files Involved",
+      "Reliever",
     ]);
 
     projects.forEach((proj) => {
@@ -214,6 +220,7 @@ export default function UsageSummary() {
           summary.totalHours,
           presence?.projects.size || 0,
           presence?.files.size || 0,
+          isReliever(emp) ? "Yes" : "No", // ✅ reliever info
         ]);
       });
     });
@@ -272,17 +279,13 @@ export default function UsageSummary() {
         </button>
       </div>
 
-      {loading && <p>Loading records...</p>}
+       {loading && <p>Loading records...</p>}
 
-      {!loading &&
-        filteredProjects.map((proj) => {
+        {!loading && filteredProjects.map((proj) => {
           const searchText = employeeSearch[proj.file_id] || "";
           const filteredEmployees = proj.employees.filter((emp) => {
             const text = searchText.toLowerCase();
-            return (
-              emp.employee_no.toLowerCase().includes(text) ||
-              emp.full_name.toLowerCase().includes(text)
-            );
+            return emp.employee_no.toLowerCase().includes(text) || emp.full_name.toLowerCase().includes(text);
           });
 
           const badge = getEmployeeBadge(proj.totalEmployees);
@@ -296,20 +299,14 @@ export default function UsageSummary() {
                 </span>
               </div>
 
-              <p>
-                👥 <strong>Total Employees:</strong> {proj.totalEmployees}{" "}
-                {badge && <span className="employee-badge" style={{ color: badge.color }}>{badge.text}</span>}
-              </p>
+              <p>👥 <strong>Total Employees:</strong> {proj.totalEmployees} {badge && <span className="employee-badge" style={{ color: badge.color }}>{badge.text}</span>}</p>
 
-              {/* 🔍 Employee Search */}
               <input
                 type="text"
                 className="search-employee"
                 placeholder="Search employee no or name..."
                 value={employeeSearch[proj.file_id] || ""}
-                onChange={(e) =>
-                  setEmployeeSearch(prev => ({ ...prev, [proj.file_id]: e.target.value }))
-                }
+                onChange={(e) => setEmployeeSearch(prev => ({ ...prev, [proj.file_id]: e.target.value }))}
               />
 
               <div className="usage-table-wrapper">
@@ -321,6 +318,7 @@ export default function UsageSummary() {
                       <th>Attendance</th>
                       <th>Total Hours</th>
                       <th>Presence</th>
+                      <th>Reliever</th> {/* ✅ New column */}
                     </tr>
                   </thead>
                   <tbody>
@@ -328,27 +326,13 @@ export default function UsageSummary() {
                       const summary = calculateEmployeeSummary(emp, proj.start_date, proj.end_date);
                       const presence = employeePresenceMap[emp.employee_no];
                       return (
-                        <tr
-                          key={emp.employee_no}
-                          className="clickable-row"
-                          onClick={() => {
-                            setSelectedEmployee(emp);
-                            setModalOpen(true);
-                          }}
-                        >
+                        <tr key={emp.employee_no} className="clickable-row" onClick={() => { setSelectedEmployee(emp); setModalOpen(true); }}>
                           <td>{emp.employee_no}</td>
                           <td>{emp.full_name}</td>
-                          <td>
-                            {summary.logged} / {summary.expected}{" "}
-                            {summary.logged < summary.expected && <span className="missing-days">⚠</span>}
-                          </td>
+                          <td>{summary.logged} / {summary.expected} {summary.logged < summary.expected && <span className="missing-days">⚠</span>}</td>
                           <td>{summary.totalHours.toFixed(2).replace(/\.00$/, "")} hrs</td>
-                          <td>
-                            {presence
-                              ? `${presence.projects.size} project(s) / ${presence.files.size} file(s)`
-                              : "—"}
-                          </td>
-
+                          <td>{presence ? `${presence.projects.size} project(s) / ${presence.files.size} file(s)` : "—"}</td>
+                          <td>{isReliever(emp) ? "Yes" : "No"}</td> {/* ✅ Display reliever */}
                         </tr>
                       );
                     })}

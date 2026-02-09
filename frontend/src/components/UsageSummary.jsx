@@ -256,7 +256,7 @@ export default function UsageSummary() {
           className="export-button"
           onClick={() => exportToCSV(filteredProjects)}
         >
-          ⬇ Export CSV
+          Export CSV
         </button>
       </div>
 

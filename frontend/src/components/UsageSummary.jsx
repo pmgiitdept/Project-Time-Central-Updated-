@@ -226,6 +226,13 @@ export default function UsageSummary() {
   };
 
   return (
+    <motion.div
+        className="employee-top-bar"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        transition={{ duration: 0.5, ease: "easeInOut" }}
+    >
     <div className="usage-summary">
       <h2>📊 Project Manpower Usage Summary</h2>
 
@@ -359,5 +366,6 @@ export default function UsageSummary() {
         />
       )}
     </div>
+    </motion.div>
   );
 }

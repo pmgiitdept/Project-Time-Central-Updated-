@@ -20,6 +20,8 @@ export default function UsageSummary() {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
 
+  const generatedAt = useMemo(() => new Date(), []);
+
   useEffect(() => {
     fetchUsageSummary();
   }, []);
@@ -124,39 +126,104 @@ export default function UsageSummary() {
 
   // Calculate logged days and total hours for an employee across all their rows
   const calculateEmployeeSummary = (emp, projStart, projEnd) => {
-  if (!emp.rows || emp.rows.length === 0 || !projStart || !projEnd) {
-    return { logged: 0, expected: 0, totalHours: 0 };
-  }
+    if (!emp.rows || emp.rows.length === 0 || !projStart || !projEnd) {
+      return { logged: 0, expected: 0, totalHours: 0 };
+    }
 
-  // Expected days = project coverage days
-  const start = new Date(projStart);
-  const end = new Date(projEnd);
-  const expectedDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+    // Expected days = project coverage days
+    const start = new Date(projStart);
+    const end = new Date(projEnd);
+    const expectedDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
 
-  let loggedDays = 0;
-  let totalHours = 0;
+    let loggedDays = 0;
+    let totalHours = 0;
 
-  emp.rows.forEach((row) => {
-    if (!row.daily_data) return;
+    emp.rows.forEach((row) => {
+      if (!row.daily_data) return;
 
-    // Count each date entry per row (even duplicates)
-    Object.keys(row.daily_data).forEach((date) => {
-      const val = row.daily_data[date];
-      if (val !== null && val !== "" && !isNaN(val)) {
-        loggedDays += 1; // Count every row occurrence
-      }
+      // Count each date entry per row (even duplicates)
+      Object.keys(row.daily_data).forEach((date) => {
+        const val = row.daily_data[date];
+        if (val !== null && val !== "" && !isNaN(val)) {
+          loggedDays += 1; // Count every row occurrence
+        }
+      });
+
+      // ✅ Sum total_hours for all rows safely
+      totalHours += Number(row.total_hours) || 0;
     });
 
-    // ✅ Sum total_hours for all rows safely
-    totalHours += Number(row.total_hours) || 0;
-  });
+    // Avoid showing 0 before actual calculation
+    totalHours = totalHours ? totalHours : 0;
 
-  // Avoid showing 0 before actual calculation
-  totalHours = totalHours ? totalHours : 0;
+    return { logged: loggedDays, expected: expectedDays, totalHours };
+  };
+  
+  const employeePresenceMap = useMemo(() => {
+    const map = {};
 
-  return { logged: loggedDays, expected: expectedDays, totalHours };
-};
+    projects.forEach((proj) => {
+      proj.employees.forEach((emp) => {
+        if (!map[emp.employee_no]) {
+          map[emp.employee_no] = {
+            projects: new Set(),
+            files: new Set(),
+          };
+        }
 
+        map[emp.employee_no].projects.add(proj.project);
+        map[emp.employee_no].files.add(proj.file_id);
+      });
+    });
+
+    return map;
+  }, [projects]);
+
+  const exportToCSV = (projects) => {
+    const rows = [];
+
+    rows.push([
+      "Project",
+      "Employee No",
+      "Full Name",
+      "Logged Days",
+      "Expected Days",
+      "Total Hours",
+      "Projects Involved",
+      "Files Involved",
+    ]);
+
+    projects.forEach((proj) => {
+      proj.employees.forEach((emp) => {
+        const summary = calculateEmployeeSummary(
+          emp,
+          proj.start_date,
+          proj.end_date
+        );
+
+        const presence = employeePresenceMap[emp.employee_no];
+
+        rows.push([
+          proj.project,
+          emp.employee_no,
+          emp.full_name,
+          summary.logged,
+          summary.expected,
+          summary.totalHours,
+          presence?.projects.size || 0,
+          presence?.files.size || 0,
+        ]);
+      });
+    });
+
+    const csvContent = rows.map((r) => r.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `Manpower_Usage_${new Date().toISOString().slice(0,10)}.csv`;
+    link.click();
+  };
 
   return (
     <div className="usage-summary">
@@ -167,6 +234,10 @@ export default function UsageSummary() {
         <div>📦 <strong>Projects:</strong> {summary.projectCount}</div>
         <div>👥 <strong>Employees:</strong> {summary.employeeCount}</div>
         <div>📅 <strong>Coverage:</strong> {summary.start?.toLocaleDateString() || "N/A"} – {summary.end?.toLocaleDateString() || "N/A"}</div>
+
+        <div className="snapshot-meta">
+          📌 Generated on: {generatedAt.toLocaleString()}
+        </div>
       </div>
 
       {/* 🔽 Filters */}
@@ -180,6 +251,13 @@ export default function UsageSummary() {
 
         <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
         <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} />
+
+        <button
+          className="export-btn"
+          onClick={() => exportToCSV(filteredProjects)}
+        >
+          ⬇ Export CSV
+        </button>
       </div>
 
       {loading && <p>Loading records...</p>}
@@ -230,11 +308,13 @@ export default function UsageSummary() {
                       <th>Full Name</th>
                       <th>Attendance</th>
                       <th>Total Hours</th>
+                      <th>Presence</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredEmployees.slice(0, 15).map((emp) => {
                       const summary = calculateEmployeeSummary(emp, proj.start_date, proj.end_date);
+                      const presence = employeePresenceMap[emp.employee_no];
                       return (
                         <tr
                           key={emp.employee_no}
@@ -251,6 +331,12 @@ export default function UsageSummary() {
                             {summary.logged < summary.expected && <span className="missing-days">⚠</span>}
                           </td>
                           <td>{summary.totalHours.toFixed(2).replace(/\.00$/, "")} hrs</td>
+                          <td>
+                            {presence
+                              ? `${presence.projects.size} proj / ${presence.files.size} files`
+                              : "—"}
+                          </td>
+
                         </tr>
                       );
                     })}

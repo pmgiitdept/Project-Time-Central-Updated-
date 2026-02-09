@@ -942,7 +942,7 @@ export default function AdminDashboard() {
 
               {/* 🧑‍💼 Uploader Review Header */}
               <div className="divider-hybrid">
-                <span>PROJECT REVIEW</span>
+                <span>PROJECT OVERVIEW</span>
               </div>
 
               {/* 🔽 Uploader Selector (placeholder for now) */}
@@ -998,7 +998,7 @@ export default function AdminDashboard() {
                   )}
 
                   <div className="divider-hybrid">
-                    <span>DTR REPORTS (TEMP)</span>
+                    <span>DTR REPORTS</span>
                   </div>
 
                   <UploadedPDFs

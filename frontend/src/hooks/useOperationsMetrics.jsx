@@ -13,24 +13,24 @@ export default function useOperationsMetrics(projects = []) {
     // Track employee conflicts per project for heatmap
     const employeeProjectConflicts = {};
 
-    const employeeNames = {};
-
     projects.forEach((proj) => {
       let totalExpectedHours = 0;
       let totalLoggedHours = 0;
 
       proj.employees.forEach((emp) => {
         // Initialize employee utilization
-        employeeNames[emp.employee_no] = emp.full_name || "N/A";
-
         if (!utilizationByEmployee[emp.employee_no]) {
           utilizationByEmployee[emp.employee_no] = 0;
         }
 
         // Initialize employeeProjectConflicts
         if (!employeeProjectConflicts[emp.employee_no]) {
-          employeeProjectConflicts[emp.employee_no] = {};
+          employeeProjectConflicts[emp.employee_no] = {
+            full_name: emp.full_name || "N/A", // 🔹 Store full name directly
+          };
         }
+
+        // Initialize project conflict counter for this project
         employeeProjectConflicts[emp.employee_no][proj.project] = 0;
 
         emp.rows.forEach((row) => {
@@ -98,7 +98,7 @@ export default function useOperationsMetrics(projects = []) {
       if (totalOverlaps > 0) {
         overlapRisks.push({
           employee_no,
-          full_name: employeeNames[employee_no],
+          full_name: employeeProjectConflicts[employee_no].full_name, // 🔹 use stored full_name
           overlaps: totalOverlaps,
           conflictingProjects: Array.from(conflictingProjectsSet),
         });
@@ -112,7 +112,7 @@ export default function useOperationsMetrics(projects = []) {
       overlapRisks,
       exceptionSummary: { total: totalExceptions },
       projectHealth,
-      employeeProjectConflicts, // 🔹 new heatmap data
+      employeeProjectConflicts, // 🔹 now contains full_name directly
     };
   }, [projects]);
 }

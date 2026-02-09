@@ -14,9 +14,7 @@ export default function UsageSummary() {
   const [selectedProject, setSelectedProject] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
-
-  const [selectedFilePerProject, setSelectedFilePerProject] = useState({});
-
+  
   // 🔍 Employee search per project
   const [employeeSearch, setEmployeeSearch] = useState({});
 
@@ -307,16 +305,11 @@ export default function UsageSummary() {
        {loading && <p>Loading records...</p>}
 
         {!loading && filteredProjects.map((proj) => {
-          // 1️⃣ Determine which file is currently selected for this project
-          const selectedFileId = selectedFilePerProject[proj.project] || proj.file_id;
-          const selectedProj = projects.find(p => p.file_id === selectedFileId);
-
-          // 2️⃣ Filter employees based on the selected file
-          const searchText = employeeSearch[selectedFileId] || "";
-          const filteredEmployees = (selectedProj?.employees || []).filter((emp) => {
+          const searchText = employeeSearch[proj.file_id] || "";
+          const filteredEmployees = proj.employees.filter((emp) => {
             const text = searchText.toLowerCase();
             return emp.employee_no.toLowerCase().includes(text) || emp.full_name.toLowerCase().includes(text);
-        });
+          });
 
           const badge = getEmployeeBadge(proj.totalEmployees);
 
@@ -335,41 +328,10 @@ export default function UsageSummary() {
                   <h3>{proj.project}</h3>
                 </div>
 
-                {(() => {
-                // Collect all files with the same project name
-                const projectFiles = projects.filter(p => p.project === proj.project);
-
-                if (projectFiles.length > 1) {
-                  return (
-                    <select
-                      className="file-range-selector"
-                      value={selectedFilePerProject[proj.project] || proj.file_id}
-                      onChange={(e) => 
-                        setSelectedFilePerProject(prev => ({
-                          ...prev,
-                          [proj.project]: e.target.value
-                        }))
-                      }
-                    >
-                      {projectFiles.map(f => (
-                        <option key={f.file_id} value={f.file_id}>
-                          {f.start_date ? new Date(f.start_date).toLocaleDateString() : "N/A"} →
-                          {f.end_date ? new Date(f.end_date).toLocaleDateString() : "N/A"}
-                        </option>
-                      ))}
-                    </select>
-                  )
-                } else {
-                  // Single file, just show dates
-                  return (
-                    <span className="cutoff">
-                      {proj.start_date ? new Date(proj.start_date).toLocaleDateString() : "N/A"} →
-                      {proj.end_date ? new Date(proj.end_date).toLocaleDateString() : "N/A"}
-                    </span>
-                  )
-                }
-              })()}
-
+                <span className="cutoff">
+                  {proj.start_date ? new Date(proj.start_date).toLocaleDateString() : "N/A"} →
+                  {proj.end_date ? new Date(proj.end_date).toLocaleDateString() : "N/A"}
+                </span>
               </div>
               <AnimatePresence initial={false}>
               {!collapsedProjects[proj.file_id] && (

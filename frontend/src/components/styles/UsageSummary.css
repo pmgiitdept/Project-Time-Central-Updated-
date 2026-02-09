@@ -193,3 +193,11 @@
   cursor: pointer;
   padding: 0;
 }
+
+.collapse-toggle:focus {
+  outline: none;
+}
+
+.collapse-toggle:focus-visible {
+  outline: none;
+}

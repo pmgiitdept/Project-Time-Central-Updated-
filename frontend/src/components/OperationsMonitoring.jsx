@@ -41,30 +41,32 @@ export default function OperationsMonitoring({ projects }) {
       {/* 2️⃣ Project Health Table */}
       <div className="ops-section">
         <h3>📊 Project Health</h3>
-        <table className="ops-table">
-          <thead>
-            <tr>
-              <th>Project</th>
-              <th>Utilization</th>
-              <th>Manpower</th>
-              <th>Overlaps</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {projectHealth.map((proj) => (
-              <tr key={proj.project}>
-                <td>{proj.project}</td>
-                <td>{proj.utilization}%</td>
-                <td>{proj.manpower}</td>
-                <td>{proj.overlaps}</td>
-                <td className={`status ${proj.status.toLowerCase()}`}>
-                  {proj.status}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="ops-table-wrapper">
+            <table className="ops-table">
+            <thead>
+                <tr>
+                <th>Project</th>
+                <th>Utilization</th>
+                <th>Manpower</th>
+                <th>Overlaps</th>
+                <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {projectHealth.map((proj) => (
+                <tr key={proj.project}>
+                    <td>{proj.project}</td>
+                    <td>{proj.utilization}%</td>
+                    <td>{proj.manpower}</td>
+                    <td>{proj.overlaps}</td>
+                    <td className={`status ${proj.status.toLowerCase()}`}>
+                    {proj.status}
+                    </td>
+                </tr>
+                ))}
+            </tbody>
+            </table>
+        </div>
       </div>
 
       <div className="ops-section">

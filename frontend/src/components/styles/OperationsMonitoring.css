@@ -76,7 +76,6 @@
   border-radius: 10px;
   border: 1px solid #e5e7eb;
   background: #ffffff;
-  padding: 0.3rem;         /* optional padding to separate table from border */
 }
 
 /* Ensure table uses full width but scrolls if needed */

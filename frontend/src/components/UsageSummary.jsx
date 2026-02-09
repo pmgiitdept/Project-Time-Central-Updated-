@@ -51,7 +51,6 @@ export default function UsageSummary() {
                 employeeMap.set(row.employee_no, {
                 full_name: row.full_name,
                 employee_no: row.employee_no,
-                employee_code: row.employee_no,
                 rows: [],
                 });
             }

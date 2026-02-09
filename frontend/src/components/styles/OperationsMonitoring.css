@@ -64,6 +64,73 @@
   color: #1f2937;
 }
 
+/* ============================
+   Ops Risk Table
+   ============================ */
+
+.ops-table-wrapper {
+  max-height: 220px;
+  overflow-y: auto;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+}
+
+.ops-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.75rem;
+}
+
+.ops-table th,
+.ops-table td {
+  padding: 0.45rem 0.6rem;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.ops-table thead th {
+  position: sticky;
+  top: 0;
+  background: #f8fafc;
+  font-weight: 600;
+  z-index: 2;
+}
+
+/* Subtle hover for scan */
+.ops-table tbody tr:hover {
+  background: #f1f5f9;
+}
+
+/* Risk badges */
+.risk-badge {
+  padding: 0.15rem 0.45rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.65rem;
+}
+
+.risk-badge.low {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.risk-badge.medium {
+  background: #fff8e1;
+  color: #f9a825;
+}
+
+.risk-badge.high {
+  background: #ffebee;
+  color: #c62828;
+}
+
+/* Optional row hint */
+tr[data-risk="high"] {
+  background: #fff5f5;
+}
+
 /* ================================
    Tables
    ================================ */

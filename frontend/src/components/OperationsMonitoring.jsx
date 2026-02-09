@@ -67,21 +67,47 @@ export default function OperationsMonitoring({ projects }) {
         </table>
       </div>
 
-      {/* 3️⃣ Employee Risk List */}
       <div className="ops-section">
         <h3>👤 Employee Risks</h3>
+
         {overlapRisks.length === 0 ? (
-          <p>No overlap risks detected 🎉</p>
+            <p className="ops-empty">No overlap risks detected 🎉</p>
         ) : (
-          <ul className="risk-list">
-            {overlapRisks.map((emp) => (
-              <li key={emp.employee_no}>
-                {emp.employee_no} – {emp.full_name} ({emp.overlaps} overlaps)
-              </li>
-            ))}
-          </ul>
+            <div className="ops-table-wrapper">
+            <table className="ops-table">
+                <thead>
+                <tr>
+                    <th>Employee No</th>
+                    <th>Name</th>
+                    <th>Overlaps</th>
+                    <th>Risk Level</th>
+                </tr>
+                </thead>
+                <tbody>
+                {overlapRisks.map((emp) => {
+                    const riskLevel =
+                    emp.overlaps >= 3 ? "high" :
+                    emp.overlaps === 2 ? "medium" :
+                    "low";
+
+                    return (
+                    <tr key={emp.employee_no} data-risk={riskLevel}>
+                        <td>{emp.employee_no}</td>
+                        <td>{emp.full_name}</td>
+                        <td>{emp.overlaps}</td>
+                        <td>
+                        <span className={`risk-badge ${riskLevel}`}>
+                            {riskLevel.toUpperCase()}
+                        </span>
+                        </td>
+                    </tr>
+                    );
+                })}
+                </tbody>
+            </table>
+            </div>
         )}
-      </div>
+        </div>
     </motion.div>
   );
 }

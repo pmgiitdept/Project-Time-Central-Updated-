@@ -9,6 +9,7 @@ export default function OperationsMonitoring({ projects }) {
     utilizationByEmployee,
     overlapRisks,
     exceptionSummary,
+    employeeProjectConflicts,
     projectHealth,
   } = useOperationsMetrics(projects);
 

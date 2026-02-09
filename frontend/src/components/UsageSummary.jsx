@@ -333,7 +333,7 @@ export default function UsageSummary() {
                           <td>{summary.totalHours.toFixed(2).replace(/\.00$/, "")} hrs</td>
                           <td>
                             {presence
-                              ? `${presence.projects.size} proj / ${presence.files.size} files`
+                              ? `${presence.projects.size} project(s) / ${presence.files.size} file(s)`
                               : "—"}
                           </td>
 

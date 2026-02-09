@@ -156,28 +156,33 @@ export default function DTRTable({ role , fileId}) {
 
   // New: save only this row
   const saveRow = async (rIdx) => {
-    try {
-      setSaving(true);
-      const rowToSave = fileContents[rIdx];
+  const rowToSave = fileContents[rIdx];
+  try {
+    setSaving(true);
+    await api.post(`/files/dtr/files/${selectedFile}/update-rows/`, { rows: [rowToSave] });
+    toast.success("Row updated successfully!");
 
-      await api.post(`/files/dtr/files/${selectedFile}/update-rows/`, { rows: [rowToSave] });
-      toast.success("Row updated successfully!");
-      await handleViewFile(selectedFile);
+    // Optimistically update UI
+    setFileContents((prev) => {
+      const updated = [...prev];
+      updated[rIdx] = rowToSave;
+      return updated;
+    });
 
-      // 🔹 Audit log for single row
-      await api.post(`/files/dtr/files/${selectedFile}/log-update/`, {
-        message: `Updated DTR row id=${rowToSave.id} (${rowToSave.full_name})`,
-      });
+    await api.post(`/files/dtr/files/${selectedFile}/log-update/`, {
+      message: `Updated DTR row id=${rowToSave.id} (${rowToSave.full_name})`,
+    });
 
-      originalRowRef.current = null;
-      setEditableRow(null);
-    } catch (err) {
-      console.error("Failed to save row:", err);
-      toast.error("Failed to save row.");
-    } finally {
-      setSaving(false);
-    }
-  };
+    originalRowRef.current = null;
+    setEditableRow(null);
+  } catch (err) {
+    console.error("Failed to save row:", err);
+    toast.error("Failed to save row.");
+  } finally {
+    setSaving(false);
+  }
+};
+
 
   const formatDate = (dateStr) => {
     if (!dateStr) return "";

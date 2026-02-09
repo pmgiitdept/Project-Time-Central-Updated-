@@ -1025,11 +1025,6 @@ export default function AdminDashboard() {
           {/* ===================== */}
           {activeSection === "usageSummary" && (
             <div className="tables-wrapper">
-              
-              {/* Divider */}
-              <div className="divider-hybrid">
-                <span>EMPLOYEE USAGE SUMMARY</span>
-              </div>
 
               {/* Usage Summary Table / Cards */}
               <UsageSummary role={role} currentUser={currentUser} />

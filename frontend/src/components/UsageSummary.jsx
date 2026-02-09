@@ -324,7 +324,7 @@ export default function UsageSummary() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredEmployees.slice(0, 15).map((emp) => {
+                    {filteredEmployees.map((emp) => {
                       const summary = calculateEmployeeSummary(emp, proj.start_date, proj.end_date);
                       const presence = employeePresenceMap[emp.employee_no];
                       return (
@@ -356,7 +356,7 @@ export default function UsageSummary() {
                 </table>
               </div>
 
-              {filteredEmployees.length > 15 && <div className="table-hint">Showing first 15 results — scroll to view more</div>}
+              {filteredEmployees.length > 15 && <div className="table-hint">Scroll to view more</div>}
               {filteredEmployees.length === 0 && <div className="table-hint">No matching employees found</div>}
             </div>
           );

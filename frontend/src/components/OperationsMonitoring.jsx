@@ -58,6 +58,9 @@ export default function OperationsMonitoring({ projects }) {
       {/* Project Health Table */}
       <div className="ops-section">
         <h3>📊 Project Health</h3>
+        <p className="section-note">
+            Displays the overall utilization, manpower, and overlap count per project. The status indicates whether a project is underutilized, normal, or over capacity.
+        </p>
         <div className="ops-table-wrapper">
           <table className="ops-table">
             <thead>
@@ -86,6 +89,9 @@ export default function OperationsMonitoring({ projects }) {
 
       {/* Trend Charts Side by Side */}
       <div className="ops-section charts-container">
+         <p className="section-note">
+            These charts provide quick insights into utilization trends, employee overlap risk, and exception breakdowns. Use them to identify potential capacity issues and monitor employee workload across projects.
+        </p>
         <div className="chart-card">
           <h4>📈 Utilization Trend</h4>
           <ResponsiveContainer width="100%" height={150}>

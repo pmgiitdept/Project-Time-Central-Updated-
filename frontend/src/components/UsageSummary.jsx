@@ -329,14 +329,7 @@ export default function UsageSummary() {
                       const summary = calculateEmployeeSummary(emp, proj.start_date, proj.end_date);
                       const presence = employeePresenceMap[emp.employee_no];
                       return (
-                        <tr
-                          key={emp.employee_no}
-                          className={`clickable-row ${isReliever(emp) ? "reliever-row" : ""}`}
-                          onClick={() => {
-                            setSelectedEmployee(emp);
-                            setModalOpen(true);
-                          }}
-                        >
+                        <tr key={emp.employee_no} className="clickable-row" onClick={() => { setSelectedEmployee(emp); setModalOpen(true); }}>
                           <td>{emp.employee_no}</td>
                           <td>{emp.full_name}</td>
                           <td>{summary.logged} / {summary.expected} {summary.logged < summary.expected && <span className="missing-days">⚠</span>}</td>

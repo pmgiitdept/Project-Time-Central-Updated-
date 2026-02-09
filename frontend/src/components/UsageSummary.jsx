@@ -161,11 +161,14 @@ export default function UsageSummary() {
     return { logged: loggedDays, expected: expectedDays, totalHours };
   };
   
-  // 🆕 Check if employee is a reliever
+  // 🆕 Check if employee is a reliever based on their position in any row
   const isReliever = (emp) => {
-    return emp.rows.some(row => row.is_reliever === true || row.reliever === true);
+    return emp.rows.some(row => {
+      const pos = row.position || "";
+      return /reliever/i.test(pos); // matches "RELIEVER", "reliever", "DayOff Reliever", etc.
+    });
   };
-  
+
   const employeePresenceMap = useMemo(() => {
     const map = {};
 

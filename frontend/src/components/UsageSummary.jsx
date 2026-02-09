@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../api";
 import EmployeeDtrModal from "./EmployeeDtrModal"; // ✅ Use your modal
+import OperationsMonitoring from "./OperationsMonitoring";
 import { motion } from "framer-motion";
 import "./styles/UsageSummary.css";
 
@@ -247,6 +248,9 @@ export default function UsageSummary() {
           📌 Generated on: {generatedAt.toLocaleString()}
         </div>
       </div>
+
+      {/* 🧭 Operations Monitoring */}
+      <OperationsMonitoring projects={filteredProjects} />
 
       {/* 🔽 Filters */}
       <div className="usage-filters">

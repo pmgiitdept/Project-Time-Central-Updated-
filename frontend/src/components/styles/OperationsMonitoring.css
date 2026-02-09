@@ -271,7 +271,7 @@ tr[data-risk="high"] {
 /* Heatmap table */
 .heatmap-table {
   border-collapse: collapse;
-  width: max-content;
+  width: 100%;
   font-size: 0.7rem;
   min-width: 600px;        /* ensures horizontal scroll if table is wide */
 }
@@ -284,6 +284,12 @@ tr[data-risk="high"] {
   white-space: nowrap;
 }
 
+.heatmap-table td:first-child,
+.heatmap-table th:first-child {
+  min-width: 140px; /* small but enough for empNo + name */
+  text-align: left;
+}
+
 /* Sticky header */
 .heatmap-table th {
   position: sticky;
@@ -292,12 +298,6 @@ tr[data-risk="high"] {
   z-index: 2;              /* ensures it stays above table cells */
   font-weight: 600;
   text-align: center;
-}
-
-.heatmap-table td:first-child,
-.heatmap-table th:first-child {
-  min-width: 140px; /* small but enough for empNo + name */
-  text-align: left;
 }
 
 /* Table body cells */

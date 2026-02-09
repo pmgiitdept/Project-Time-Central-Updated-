@@ -13,12 +13,16 @@ export default function useOperationsMetrics(projects = []) {
     // Track employee conflicts per project for heatmap
     const employeeProjectConflicts = {};
 
+    const employeeNames = {};
+
     projects.forEach((proj) => {
       let totalExpectedHours = 0;
       let totalLoggedHours = 0;
 
       proj.employees.forEach((emp) => {
         // Initialize employee utilization
+        employeeNames[emp.employee_no] = emp.full_name || "N/A";
+
         if (!utilizationByEmployee[emp.employee_no]) {
           utilizationByEmployee[emp.employee_no] = 0;
         }
@@ -94,6 +98,7 @@ export default function useOperationsMetrics(projects = []) {
       if (totalOverlaps > 0) {
         overlapRisks.push({
           employee_no,
+          full_name: employeeNames[employee_no],
           overlaps: totalOverlaps,
           conflictingProjects: Array.from(conflictingProjectsSet),
         });

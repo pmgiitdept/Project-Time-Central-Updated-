@@ -140,7 +140,7 @@ export default function OperationsMonitoring({ projects }) {
             <table className="heatmap-table">
               <thead>
                 <tr>
-                  <th>Employee</th>
+                  <th>Employee Number</th>
                   {utilizationByProject.map(p => <th key={p.project}>{p.project}</th>)}
                 </tr>
               </thead>

@@ -267,7 +267,6 @@ tr[data-risk="high"] {
   border: 1px solid #e5e7eb;
   border-radius: 10px;
   background: #ffffff;
-  padding: 0.3rem;         /* optional padding */
 }
 
 /* Heatmap table */

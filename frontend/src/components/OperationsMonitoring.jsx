@@ -81,6 +81,7 @@ export default function OperationsMonitoring({ projects }) {
                     <th>Name</th>
                     <th>Overlaps</th>
                     <th>Risk Level</th>
+                    <th>Conflicting Projects</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -93,13 +94,14 @@ export default function OperationsMonitoring({ projects }) {
                     return (
                     <tr key={emp.employee_no} data-risk={riskLevel}>
                         <td>{emp.employee_no}</td>
-                        <td>{emp.full_name}</td>
+                        <td>{emp.full_name || "N/A"}</td>
                         <td>{emp.overlaps}</td>
                         <td>
                         <span className={`risk-badge ${riskLevel}`}>
                             {riskLevel.toUpperCase()}
                         </span>
                         </td>
+                        <td>{emp.conflictingProjects.join(", ")}</td>
                     </tr>
                     );
                 })}

@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../api";
 import EmployeeDtrModal from "./EmployeeDtrModal"; // ✅ Use your modal
+import { motion } from "framer-motion";
 import "./styles/UsageSummary.css";
 
 export default function UsageSummary() {

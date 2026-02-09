@@ -37,7 +37,7 @@ export default function OperationsMonitoring({ projects }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
     >
-      <h2>🧭 Operations Monitoring Dashboard</h2>
+      <h2>🧭 Project Performance Analytics</h2>
 
       {/* Snapshot Cards */}
       <div className="ops-cards">

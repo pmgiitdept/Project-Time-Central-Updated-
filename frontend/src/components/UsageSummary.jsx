@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import api from "../api";
 import EmployeeDtrModal from "./EmployeeDtrModal"; // ✅ Use your modal
 import OperationsMonitoring from "./OperationsMonitoring";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import "./styles/UsageSummary.css";
 
 export default function UsageSummary() {
@@ -312,12 +312,14 @@ export default function UsageSummary() {
             <div key={proj.file_id} className="usage-card">
               <div className="usage-header">
                 <div className="usage-header-left">
-                  <button
+                  <motion.button
                     className="collapse-toggle"
                     onClick={() => toggleProjectCollapse(proj.file_id)}
+                    animate={{ rotate: collapsedProjects[proj.file_id] ? 0 : 90 }}
+                    transition={{ duration: 0.2 }}
                   >
-                    {collapsedProjects[proj.file_id] ? "▶" : "▼"}
-                  </button>
+                    ▶
+                  </motion.button>
                   <h3>{proj.project}</h3>
                 </div>
 
@@ -326,8 +328,19 @@ export default function UsageSummary() {
                   {proj.end_date ? new Date(proj.end_date).toLocaleDateString() : "N/A"}
                 </span>
               </div>
+              <AnimatePresence initial={false}>
               {!collapsedProjects[proj.file_id] && (
-              <>
+                <motion.div
+                  key="collapsible-content"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{
+                    duration: 0.25,
+                    ease: "easeInOut",
+                  }}
+                  style={{ overflow: "hidden" }}
+                >
               <p>👥 <strong>Total Employees:</strong> {proj.totalEmployees} {badge && <span className="employee-badge" style={{ color: badge.color }}>{badge.text}</span>}</p>
 
               <input
@@ -371,8 +384,9 @@ export default function UsageSummary() {
 
               {filteredEmployees.length > 15 && <div className="table-hint">Scroll to view more</div>}
               {filteredEmployees.length === 0 && <div className="table-hint">No matching employees found</div>}
-              </>
-               )} {/* End of collapse check */}
+              </motion.div>
+                )}
+              </AnimatePresence>
              </div>
           );
         })}

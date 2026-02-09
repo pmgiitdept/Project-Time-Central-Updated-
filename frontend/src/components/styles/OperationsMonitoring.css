@@ -3,7 +3,6 @@
    ================================ */
 
 .operations-monitoring {
-  margin-top: 2rem;
   padding: 1.5rem;
   background: #f5f6f8; /* neutral ops gray */
   border-radius: 14px;
@@ -12,7 +11,7 @@
 
 .operations-monitoring h2 {
   margin-bottom: 1.2rem;
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: #1f2937;
 }

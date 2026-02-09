@@ -201,3 +201,19 @@
 .collapse-toggle:focus-visible {
   outline: none;
 }
+
+.total-employees {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem; /* spacing between count and note */
+  font-size: 16px;
+}
+
+.muted-note {
+  font-size: 0.85rem;
+  color: #757575; /* subtle gray */
+  font-style: italic;
+  background: #f5f5f5;
+  padding: 2px 6px;
+  border-radius: 4px;
+}

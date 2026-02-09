@@ -351,20 +351,17 @@ export default function UsageSummary() {
                 const badge = getEmployeeBadge(nonRelieverCount);
 
                 return (
-                  <>
-                    <p>
-                      👥 <strong>Total Employees:</strong> {nonRelieverCount}
-                      {badge && (
-                        <span className="employee-badge" style={{ color: badge.color }}>
-                          {badge.text}
-                        </span>
-                      )}
-                    </p>
-
+                  <p className="total-employees">
+                    👥 <strong>Total Employees:</strong> {nonRelieverCount}
+                    {badge && (
+                      <span className="employee-badge" style={{ color: badge.color }}>
+                        {badge.text}
+                      </span>
+                    )}
                     <small className="muted-note">
-                      Relievers excluded from total count
+                      (relievers excluded)
                     </small>
-                  </>
+                  </p>
                 );
               })()}
 

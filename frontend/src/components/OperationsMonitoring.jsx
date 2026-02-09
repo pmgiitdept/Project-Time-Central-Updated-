@@ -87,49 +87,54 @@ export default function OperationsMonitoring({ projects }) {
         </div>
       </div>
 
-      {/* Trend Charts Side by Side */}
-      <div className="ops-section charts-container">
-         <p className="section-note">
+      {/* Trend Charts Section */}
+      <div className="ops-section">
+        <h3>📊 Key Metrics Overview</h3>
+        <p className="section-note">
             These charts provide quick insights into utilization trends, employee overlap risk, and exception breakdowns. Use them to identify potential capacity issues and monitor employee workload across projects.
         </p>
-        <div className="chart-card">
-          <h4>📈 Utilization Trend</h4>
-          <ResponsiveContainer width="100%" height={150}>
-            <LineChart data={utilizationTrend} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="project" />
-              <YAxis />
-              <Tooltip />
-              <Line type="monotone" dataKey="utilization" stroke="#4f46e5" activeDot={{ r: 6 }} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
 
-        <div className="chart-card">
-          <h4>📊 Overlaps by Employee</h4>
-          <ResponsiveContainer width="100%" height={150}>
-            <BarChart data={overlapsTrend} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="employee" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="overlaps" fill="#f59e0b" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+        {/* Charts container */}
+        <div className="charts-container">
+            <div className="chart-card">
+            <h4>📈 Utilization Trend</h4>
+            <ResponsiveContainer width="100%" height={150}>
+                <LineChart data={utilizationTrend} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="project" />
+                <YAxis />
+                <Tooltip />
+                <Line type="monotone" dataKey="utilization" stroke="#4f46e5" activeDot={{ r: 6 }} />
+                </LineChart>
+            </ResponsiveContainer>
+            </div>
 
-        <div className="chart-card">
-          <h4>📊 Exception Breakdown</h4>
-          <ResponsiveContainer width="100%" height={150}>
-            <BarChart data={exceptionData} layout="vertical" margin={{ top: 10, right: 10, left: 50, bottom: 10 }}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis type="number" />
-              <YAxis type="category" dataKey="type" />
-              <Tooltip />
-              <Bar dataKey="value" fill="#ef4444" />
-            </BarChart>
-          </ResponsiveContainer>
+            <div className="chart-card">
+            <h4>📊 Overlaps by Employee</h4>
+            <ResponsiveContainer width="100%" height={150}>
+                <BarChart data={overlapsTrend} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="employee" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="overlaps" fill="#f59e0b" />
+                </BarChart>
+            </ResponsiveContainer>
+            </div>
+
+            <div className="chart-card">
+            <h4>📊 Exception Breakdown</h4>
+            <ResponsiveContainer width="100%" height={150}>
+                <BarChart data={exceptionData} layout="vertical" margin={{ top: 10, right: 10, left: 50, bottom: 10 }}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis type="number" />
+                <YAxis type="category" dataKey="type" />
+                <Tooltip />
+                <Bar dataKey="value" fill="#ef4444" />
+                </BarChart>
+            </ResponsiveContainer>
+            </div>
         </div>
       </div>
 

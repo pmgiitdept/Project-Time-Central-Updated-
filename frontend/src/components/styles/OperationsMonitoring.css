@@ -246,30 +246,6 @@ tr[data-risk="high"] {
   margin-top: 0.8rem;
 }
 
-.heatmap-table {
-  border-collapse: collapse;
-  width: 100%;
-  font-size: 0.7rem;
-}
-
-.heatmap-table th,
-.heatmap-table td {
-  padding: 0.4rem 0.6rem;
-  border: 1px solid #e5e7eb;
-  white-space: nowrap;
-}
-
-.heatmap-table th {
-  background: #f1f3f5;
-  font-weight: 600;
-  text-align: center;
-}
-
-.heatmap-table td {
-  font-weight: 500;
-  color: #111827;
-}
-
 /* Charts side by side */
 .charts-container {
   display: grid;
@@ -284,14 +260,46 @@ tr[data-risk="high"] {
   font-weight: 600;
 }
 
-/* Heatmap scrollable */
+/* Heatmap scrollable wrapper */
 .heatmap-wrapper.scrollable {
-  max-height: 250px;
-  overflow: auto;
+  max-height: 250px;       /* vertical scroll limit */
+  overflow: auto;          /* enable both vertical and horizontal scroll */
   border: 1px solid #e5e7eb;
   border-radius: 10px;
-  padding: 0.3rem;
   background: #ffffff;
+  padding: 0.3rem;         /* optional padding */
+}
+
+/* Heatmap table */
+.heatmap-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.7rem;
+  min-width: 600px;        /* ensures horizontal scroll if table is wide */
+}
+
+/* Table cells */
+.heatmap-table th,
+.heatmap-table td {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #e5e7eb;
+  white-space: nowrap;
+}
+
+/* Sticky header */
+.heatmap-table th {
+  position: sticky;
+  top: 0;
+  background: #f1f3f5;     /* same as table header background */
+  z-index: 2;              /* ensures it stays above table cells */
+  font-weight: 600;
+  text-align: center;
+}
+
+/* Table body cells */
+.heatmap-table td {
+  font-weight: 500;
+  color: #111827;
 }
 
 .heatmap-note {

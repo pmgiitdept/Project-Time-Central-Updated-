@@ -170,3 +170,13 @@
   }
 }
 
+.export-button {
+    padding: .5rem 1rem;
+    border: none;
+    background: green;
+    border-radius: .5rem;
+    color: #fff;
+    font-weight: 700;
+    margin-bottom: .75rem;
+    cursor: pointer;
+}

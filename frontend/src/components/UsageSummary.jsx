@@ -253,7 +253,7 @@ export default function UsageSummary() {
         <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} />
 
         <button
-          className="export-btn"
+          className="export-button"
           onClick={() => exportToCSV(filteredProjects)}
         >
           ⬇ Export CSV

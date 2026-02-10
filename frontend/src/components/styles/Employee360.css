@@ -132,18 +132,17 @@
 /* ===== Close Button ===== */
 .employee360-modal .close-btn {
   position: absolute;
-  background: #e63946;
+  background: #ff0013;
   top: 14px;
   right: 14px;
   border: none;
-  background: transparent;
   font-size: 18px;
   cursor: pointer;
-  opacity: 0.6;
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 .employee360-modal .close-btn:hover {
   opacity: 1;
   transform: scale(1.1);
+  color: black;
 }

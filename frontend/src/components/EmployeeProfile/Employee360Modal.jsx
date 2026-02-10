@@ -21,40 +21,64 @@ export default function Employee360Modal({ employee, projects, onClose }) {
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
         >
+          {/* Close */}
           <button className="close-btn" onClick={onClose}>✖</button>
 
+          {/* Header */}
           <h2>👤 Employee 360° Profile</h2>
-          <h3>{employee.full_name} ({employee.employee_no})</h3>
+          <h3>
+            {employee.full_name}{" "}
+            <span style={{ opacity: 0.6 }}>
+              ({employee.employee_no})
+            </span>
+          </h3>
 
+          {/* Summary */}
           {data && (
             <div className="employee360-summary">
-              <p><strong>Total Hours:</strong> {data.totalHours.toFixed(2)}</p>
-              <p><strong>Logged Days:</strong> {data.uniqueDays}</p>
-              <p><strong>Projects Involved:</strong> {data.projectCount}</p>
-              <p><strong>Reliever:</strong> {data.isReliever ? "Yes" : "No"}</p>
+              <p>
+                <strong>Total Hours</strong>
+                <span>{data.totalHours.toFixed(2)}</span>
+              </p>
+              <p>
+                <strong>Logged Days</strong>
+                <span>{data.uniqueDays}</span>
+              </p>
+              <p>
+                <strong>Projects Involved</strong>
+                <span>{data.projectCount}</span>
+              </p>
+              <p>
+                <strong>Reliever</strong>
+                <span>{data.isReliever ? "Yes" : "No"}</span>
+              </p>
             </div>
           )}
 
+          {/* Conflicts */}
           {data?.conflictCount > 0 && (
-            <div className={`employee360-conflicts ${data.conflictLevel.toLowerCase()}`}>
-                <h4>
+            <div
+              className={`employee360-conflicts ${data.conflictLevel.toLowerCase()}`}
+            >
+              <h4>
                 ⚠ Conflict Days: {data.conflictCount}
                 <span className="conflict-badge">
-                    {data.conflictLevel}
+                  {data.conflictLevel}
                 </span>
-                </h4>
+              </h4>
 
-                <ul className="conflict-list">
+              <ul className="conflict-list">
                 {data.conflictDays.map((c) => (
-                    <li key={c.date}>
-                    <strong>{new Date(c.date).toLocaleDateString()}:</strong>{" "}
+                  <li key={c.date}>
+                    <strong>
+                      {new Date(c.date).toLocaleDateString()}:
+                    </strong>{" "}
                     {c.projects.join(", ")}
-                    </li>
+                  </li>
                 ))}
-                </ul>
+              </ul>
             </div>
-            )}
-
+          )}
         </motion.div>
       </motion.div>
     </AnimatePresence>

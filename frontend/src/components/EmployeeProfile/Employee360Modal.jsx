@@ -1,5 +1,6 @@
 // components/EmployeeProfile/Employee360Modal.jsx
 import { motion, AnimatePresence } from "framer-motion";
+import { useEffect } from "react";
 import useEmployee360 from "../../hooks/useEmployee360";
 import "../styles/Employee360.css";
 
@@ -14,6 +15,20 @@ function getWeekNumber(d) {
 export default function Employee360Modal({ employee, projects, onClose }) {
   const data = useEmployee360(employee?.employee_no, projects);
 
+  // --- ESC key handler ---
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === "Escape") {
+        onClose(); // close modal on ESC
+      }
+    };
+
+    window.addEventListener("keydown", handleEsc);
+
+    // Cleanup listener on unmount
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [onClose]);
+  
   if (!employee) return null;
 
   return (

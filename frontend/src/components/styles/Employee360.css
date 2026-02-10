@@ -1,36 +1,86 @@
+/* ===== Overlay ===== */
 .employee360-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.45);
+  background: rgba(0, 0, 0, 0.55);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 9999;
+  backdrop-filter: blur(2px);
 }
 
+/* ===== Modal ===== */
 .employee360-modal {
-  background: #fff;
-  width: 700px;
-  max-width: 90%;
-  padding: 24px;
-  border-radius: 12px;
+  background: #ffffff;
+  width: 720px;
+  max-width: 92%;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 24px 28px;
+  border-radius: 14px;
   position: relative;
+  box-shadow:
+    0 10px 25px rgba(0, 0, 0, 0.15),
+    0 4px 8px rgba(0, 0, 0, 0.08);
 }
 
+/* Smooth scroll for long profiles */
+.employee360-modal::-webkit-scrollbar {
+  width: 6px;
+}
+.employee360-modal::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+}
+
+/* ===== Header ===== */
+.employee360-modal h2 {
+  margin-bottom: 4px;
+}
+
+.employee360-modal h3 {
+  margin-top: 0;
+  color: #555;
+  font-weight: 500;
+}
+
+/* ===== Summary Grid ===== */
 .employee360-summary {
-  margin-top: 16px;
+  margin-top: 20px;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+  gap: 14px;
 }
 
-.employee360-conflicts {
-  margin-top: 16px;
-  padding: 12px;
+.employee360-summary p {
+  background: #f9fafb;
+  padding: 10px 12px;
   border-radius: 8px;
-  background: #fff7ed;
+  font-size: 14px;
+  display: flex;
+  justify-content: space-between;
 }
 
+.employee360-summary strong {
+  color: #111;
+}
+
+/* ===== Conflict Section ===== */
+.employee360-conflicts {
+  margin-top: 20px;
+  padding: 14px;
+  border-radius: 10px;
+  background: #fff7ed;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.employee360-conflicts:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+/* Severity indicators */
 .employee360-conflicts.low {
   border-left: 4px solid #10b981;
 }
@@ -41,17 +91,58 @@
 
 .employee360-conflicts.high {
   border-left: 4px solid #ef4444;
+  background: #fff1f2;
 }
 
+/* ===== Conflict Header ===== */
+.employee360-conflicts h4 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ===== Badge ===== */
 .conflict-badge {
-  margin-left: 8px;
-  font-size: 12px;
-  padding: 2px 6px;
-  border-radius: 4px;
-  background: #eee;
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-weight: 600;
+  background: #e5e7eb;
+  color: #333;
+  text-transform: uppercase;
 }
 
+/* ===== Conflict List ===== */
 .conflict-list {
-  margin-top: 8px;
-  padding-left: 16px;
+  margin-top: 10px;
+  padding-left: 18px;
+}
+
+.conflict-list li {
+  font-size: 13px;
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+
+.conflict-list strong {
+  color: #b45309;
+}
+
+/* ===== Close Button ===== */
+.employee360-modal .close-btn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.employee360-modal .close-btn:hover {
+  opacity: 1;
+  transform: scale(1.1);
 }

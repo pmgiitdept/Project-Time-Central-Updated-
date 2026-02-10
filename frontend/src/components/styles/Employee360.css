@@ -198,71 +198,21 @@
   font-weight: bold;
 }
 
-.timeline-calendar {
-  margin-top: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+.timeline-table {
+  max-height: 300px;
+  overflow-y: auto;
 }
 
-.timeline-week {
-  display: flex;
-  flex-direction: column;
+.timeline-table table {
+  width: 100%;
+  border-collapse: collapse;
 }
 
-.week-label {
-  font-weight: bold;
-  margin-bottom: 4px;
-  font-size: 14px;
+.timeline-table th, .timeline-table td {
+  padding: 4px 8px;
+  border: 1px solid #ccc;
 }
 
-.week-days {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
-.week-day {
-  border: 1px solid #ddd;
-  padding: 6px 8px;
-  border-radius: 6px;
-  width: 80px;
-  min-height: 50px;
-  display: flex;
-  flex-direction: column;
-  font-size: 12px;
-  position: relative;
-  background-color: #f9fafb;
-}
-
-.week-day.conflict {
-  background-color: #fff7ed;
-  border-color: #f87171;
-}
-
-.day-date {
-  font-weight: bold;
-  margin-bottom: 4px;
-}
-
-.day-projects {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2px;
-}
-
-.day-project {
-  background-color: #eef2ff;
-  color: #1e40af;
-  font-size: 11px;
-  padding: 2px 4px;
-  border-radius: 3px;
-}
-
-.day-conflict {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  color: #d32f2f;
-  font-size: 14px;
+.conflict {
+  background-color: #ffe6e6;
 }

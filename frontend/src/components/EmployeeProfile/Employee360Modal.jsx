@@ -1,3 +1,4 @@
+// components/EmployeeProfile/Employee360Modal.jsx
 import { motion, AnimatePresence } from "framer-motion";
 import useEmployee360 from "../../hooks/useEmployee360";
 import "../styles/Employee360.css";
@@ -80,36 +81,38 @@ export default function Employee360Modal({ employee, projects, onClose }) {
             </div>
           )}
 
-          {/* Timeline */}
+          {/* Timeline Table */}
             {data?.timeline?.length > 0 && (
             <div className="employee360-timeline">
                 <h4>🗓 Work Timeline</h4>
-
-                <ul className="timeline-list">
-                {data.timeline.map((day) => (
-                    <li
-                    key={day.date}
-                    className={`timeline-item ${
-                        day.isConflict ? "conflict" : ""
-                    }`}
-                    >
-                    <div className="timeline-date">
-                        {new Date(day.date).toLocaleDateString()}
-                        {day.isConflict && (
-                        <span className="timeline-conflict-badge">Conflict</span>
-                        )}
-                    </div>
-
-                    <div className="timeline-projects">
-                        {day.projects.map((p) => (
-                        <span key={p} className="timeline-project">
-                            {p}
-                        </span>
-                        ))}
-                    </div>
-                    </li>
-                ))}
-                </ul>
+                <div className="timeline-table-wrapper">
+                <table className="timeline-table">
+                    <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Projects</th>
+                        <th>Total Hours</th>
+                        <th>Conflict</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {data.timeline.map((day) => (
+                        <tr key={day.date} className={day.isConflict ? "conflict-row" : ""}>
+                        <td>{new Date(day.date).toLocaleDateString()}</td>
+                        <td>
+                            {day.projects.map((p) => (
+                            <div key={p} className="timeline-project">
+                                {p}
+                            </div>
+                            ))}
+                        </td>
+                        <td>{day.hours.toFixed(2)}</td>
+                        <td>{day.isConflict ? "⚠" : "-"}</td>
+                        </tr>
+                    ))}
+                    </tbody>
+                </table>
+                </div>
             </div>
             )}
         </motion.div>

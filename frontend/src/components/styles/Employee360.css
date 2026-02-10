@@ -146,3 +146,60 @@
   transform: scale(1.1);
   color: black;
 }
+
+/* --- Timeline --- */
+.employee360-timeline {
+  margin-top: 24px;
+}
+
+.employee360-timeline h4 {
+  margin-bottom: 12px;
+}
+
+.timeline-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.timeline-item {
+  padding: 12px;
+  border-radius: 8px;
+  background: #f9fafb;
+  margin-bottom: 10px;
+  border-left: 4px solid #e5e7eb;
+}
+
+.timeline-item.conflict {
+  background: #fff7ed;
+  border-left-color: #ef4444;
+}
+
+.timeline-date {
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.timeline-conflict-badge {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #ef4444;
+  color: #fff;
+}
+
+.timeline-projects {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.timeline-project {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #e5e7eb;
+}

@@ -1,3 +1,4 @@
+import { time } from "framer-motion";
 import { useMemo } from "react";
 
 export default function useEmployee360(employeeNo, projects = []) {
@@ -36,6 +37,14 @@ export default function useEmployee360(employeeNo, projects = []) {
         });
       });
     });
+    
+    const timeline = Object.values(daysMap)
+        .map(day => ({
+            date: day.date,
+            projects: Array.from(new Set(day.projects)),
+            isConflict: day.projects.length > 1
+        }))
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
 
     // 🔥 Conflict detection
     const conflictDays = Object.entries(dateTracker)
@@ -61,6 +70,7 @@ export default function useEmployee360(employeeNo, projects = []) {
       conflictCount,
       conflictLevel,
       conflictDays,
+      timeline
     };
   }, [employeeNo, projects]);
 }

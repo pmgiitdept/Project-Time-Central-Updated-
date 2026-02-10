@@ -79,6 +79,39 @@ export default function Employee360Modal({ employee, projects, onClose }) {
               </ul>
             </div>
           )}
+
+          {/* Timeline */}
+            {data?.timeline?.length > 0 && (
+            <div className="employee360-timeline">
+                <h4>🗓 Work Timeline</h4>
+
+                <ul className="timeline-list">
+                {data.timeline.map((day) => (
+                    <li
+                    key={day.date}
+                    className={`timeline-item ${
+                        day.isConflict ? "conflict" : ""
+                    }`}
+                    >
+                    <div className="timeline-date">
+                        {new Date(day.date).toLocaleDateString()}
+                        {day.isConflict && (
+                        <span className="timeline-conflict-badge">Conflict</span>
+                        )}
+                    </div>
+
+                    <div className="timeline-projects">
+                        {day.projects.map((p) => (
+                        <span key={p} className="timeline-project">
+                            {p}
+                        </span>
+                        ))}
+                    </div>
+                    </li>
+                ))}
+                </ul>
+            </div>
+            )}
         </motion.div>
       </motion.div>
     </AnimatePresence>

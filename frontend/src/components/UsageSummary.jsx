@@ -21,6 +21,8 @@ export default function UsageSummary() {
 
   const generatedAt = useMemo(() => new Date(), []);
 
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+
   const [collapsedProjects, setCollapsedProjects] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem("usageSummaryCollapsed")) || {};

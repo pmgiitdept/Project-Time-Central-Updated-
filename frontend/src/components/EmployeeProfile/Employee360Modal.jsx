@@ -25,7 +25,7 @@ export default function Employee360Modal({ employee, projects, onClose }) {
           <button className="close-btn" onClick={onClose}>✖</button>
 
           {/* Header */}
-          <h2>👤 Employee 360° Profile</h2>
+          <h2>👤 Manpower Profile</h2>
           <h3>
             {employee.full_name}{" "}
             <span style={{ opacity: 0.6 }}>

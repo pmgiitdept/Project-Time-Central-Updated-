@@ -3,6 +3,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import useEmployee360 from "../../hooks/useEmployee360";
 import "../styles/Employee360.css";
 
+function getWeekNumber(d) {
+    const date = new Date(d.getTime());
+    date.setHours(0, 0, 0, 0);
+    date.setDate(date.getDate() + 3 - ((date.getDay() + 6) % 7));
+    const week1 = new Date(date.getFullYear(), 0, 4);
+    return 1 + Math.round(((date.getTime() - week1.getTime()) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7);
+}
+
 export default function Employee360Modal({ employee, projects, onClose }) {
   const data = useEmployee360(employee?.employee_no, projects);
 
@@ -81,40 +89,53 @@ export default function Employee360Modal({ employee, projects, onClose }) {
             </div>
           )}
 
-          {/* Timeline Table */}
+          {/* Weekly Calendar Timeline */}
             {data?.timeline?.length > 0 && (
             <div className="employee360-timeline">
-                <h4>🗓 Work Timeline</h4>
-                <div className="timeline-table-wrapper">
-                <table className="timeline-table">
-                    <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Projects</th>
-                        <th>Total Hours</th>
-                        <th>Conflict</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {data.timeline.map((day) => (
-                        <tr key={day.date} className={day.isConflict ? "conflict-row" : ""}>
-                        <td>{new Date(day.date).toLocaleDateString()}</td>
-                        <td>
-                            {day.projects.map((p) => (
-                            <div key={p} className="timeline-project">
-                                {p}
+                <h4>🗓 Work Timeline (Weekly View)</h4>
+
+                <div className="timeline-calendar">
+                {/* Build a week-by-week structure */}
+                {(() => {
+                    // Sort days chronologically
+                    const days = [...data.timeline].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+                    // Group by week (ISO week number)
+                    const weeksMap = {};
+                    days.forEach((day) => {
+                    const dt = new Date(day.date);
+                    const weekKey = `${dt.getFullYear()}-W${getWeekNumber(dt)}`;
+                    if (!weeksMap[weekKey]) weeksMap[weekKey] = [];
+                    weeksMap[weekKey].push(day);
+                    });
+
+                    return Object.entries(weeksMap).map(([week, daysInWeek]) => (
+                    <div key={week} className="timeline-week">
+                        <div className="week-label">{week}</div>
+                        <div className="week-days">
+                        {daysInWeek.map((day) => (
+                            <div
+                            key={day.date}
+                            className={`week-day ${day.isConflict ? "conflict" : ""}`}
+                            title={`Projects: ${day.projects.join(", ")}\nHours: ${day.hours.toFixed(2)}`}
+                            >
+                            <div className="day-date">{new Date(day.date).getDate()}</div>
+                            <div className="day-projects">
+                                {day.projects.map((p) => (
+                                <span key={p} className="day-project">{p}</span>
+                                ))}
                             </div>
-                            ))}
-                        </td>
-                        <td>{day.hours.toFixed(2)}</td>
-                        <td>{day.isConflict ? "⚠" : "-"}</td>
-                        </tr>
-                    ))}
-                    </tbody>
-                </table>
+                            {day.isConflict && <span className="day-conflict">⚠</span>}
+                            </div>
+                        ))}
+                        </div>
+                    </div>
+                    ));
+                })()}
                 </div>
             </div>
             )}
+            
         </motion.div>
       </motion.div>
     </AnimatePresence>

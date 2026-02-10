@@ -1,0 +1,25 @@
+.employee360-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.employee360-modal {
+  background: #fff;
+  width: 700px;
+  max-width: 90%;
+  padding: 24px;
+  border-radius: 12px;
+  position: relative;
+}
+
+.employee360-summary {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}

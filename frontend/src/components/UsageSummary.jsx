@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import api from "../api";
 import EmployeeDtrModal from "./EmployeeDtrModal"; // ✅ Use your modal
 import OperationsMonitoring from "./OperationsMonitoring";
+import Employee360Modal from "./EmployeeProfile/Employee360Modal"; // ✅ New import
 import { motion, AnimatePresence } from "framer-motion";
 import "./styles/UsageSummary.css";
 
@@ -391,7 +392,14 @@ export default function UsageSummary() {
                       const presence = employeePresenceMap[emp.employee_no];
                       return (
                         <tr key={emp.employee_no}>
-                          <td>{emp.employee_no}</td>
+                          <td>
+                            <button
+                              className="employee-link"
+                              onClick={() => setSelectedEmployee(emp)}
+                            >
+                              {emp.employee_no}
+                            </button>
+                          </td>
                           <td>{emp.full_name}</td>
                           <td>{summary.logged} / {summary.expected} {summary.logged < summary.expected && <span className="missing-days">⚠</span>}</td>
                           <td>{summary.totalHours.toFixed(2).replace(/\.00$/, "")} hrs</td>
@@ -413,6 +421,13 @@ export default function UsageSummary() {
           );
         })}
     </div>
+
+    <Employee360Modal
+      employee={selectedEmployee}
+      projects={projects}
+      onClose={() => setSelectedEmployee(null)}
+    />
+
     </motion.div>
   );
 }

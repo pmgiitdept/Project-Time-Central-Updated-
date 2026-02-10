@@ -8,6 +8,7 @@ export default function useEmployee360(employeeNo, projects = []) {
     let totalHours = 0;
     const dateTracker = {}; // { date: Set(projects) }
     const projectSet = new Set();
+    const daysMap = {};
     let isReliever = false;
 
     projects.forEach((proj) => {

@@ -129,47 +129,48 @@ export default function Employee360Modal({ employee, projects, onClose }) {
           )}
 
           {/* ✅ Weekly Timeline */}
-          {filteredTimeline.length > 0 && (
-            <div className="employee360-timeline">
-              <h4>🗓 Work Timeline (Weekly View)</h4>
-              <div className="timeline-calendar">
-                {Object.entries(
-                  filteredTimeline
-                    .sort((a, b) => new Date(a.date) - new Date(b.date))
-                    .reduce((acc, day) => {
-                      const dt = new Date(day.date);
-                      const weekKey = `${dt.getFullYear()}-W${getWeekNumber(dt)}`;
-                      if (!acc[weekKey]) acc[weekKey] = [];
-                      acc[weekKey].push(day);
-                      return acc;
-                    }, {})
-                ).map(([week, daysInWeek]) => (
-                  <div className="timeline-week" key={week}>
-                    <div className="week-label">{week}</div>
-                    <div className="week-days">
-                      {daysInWeek.map(day => {
-                        const dt = new Date(day.date);
-                        const formattedDate = dt.toLocaleDateString();
-                        return (
-                          <div
-                            key={day.date}
-                            className={`week-day ${day.isConflict ? "conflict" : ""}`}
-                            title={`Date: ${formattedDate}\nProjects: ${day.projects.join(", ")}\nHours: ${day.hours.toFixed(2)}`}
-                          >
-                            <div className="day-date">{formattedDate}</div>
-                            <div className="day-projects">
-                              {day.projects.map(p => <span key={p} className="day-project">{p}</span>)}
-                            </div>
-                            {day.isConflict && <span className="day-conflict">⚠</span>}
-                          </div>
-                        );
-                      })}
-                    </div>
+          {filteredTimeline?.length > 0 && (
+  <div className="employee360-timeline">
+    <h4>🗓 Work Timeline (Weekly View)</h4>
+    <div className="timeline-calendar">
+      {Object.entries(
+        (filteredTimeline || [])
+          .sort((a, b) => new Date(a.date) - new Date(b.date))
+          .reduce((acc, day) => {
+            const dt = new Date(day.date);
+            const weekKey = `${dt.getFullYear()}-W${getWeekNumber(dt)}`;
+            if (!acc[weekKey]) acc[weekKey] = [];
+            acc[weekKey].push(day);
+            return acc;
+          }, {})
+      ).map(([week, daysInWeek]) => (
+        <div className="timeline-week" key={week}>
+          <div className="week-label">{week}</div>
+          <div className="week-days">
+            {daysInWeek.map(day => {
+              const dt = new Date(day.date);
+              const formattedDate = dt.toLocaleDateString();
+              return (
+                <div
+                  key={day.date}
+                  className={`week-day ${day.isConflict ? "conflict" : ""}`}
+                  title={`Date: ${formattedDate}\nProjects: ${day.projects.join(", ")}\nHours: ${day.hours.toFixed(2)}`}
+                >
+                  <div className="day-date">{formattedDate}</div>
+                  <div className="day-projects">
+                    {day.projects.map(p => <span key={p} className="day-project">{p}</span>)}
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
+                  {day.isConflict && <span className="day-conflict">⚠</span>}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+
         </motion.div>
       </motion.div>
     </AnimatePresence>

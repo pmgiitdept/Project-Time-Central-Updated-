@@ -34,6 +34,27 @@ export default function Employee360Modal({ employee, projects, onClose }) {
               <p><strong>Reliever:</strong> {data.isReliever ? "Yes" : "No"}</p>
             </div>
           )}
+
+          {data?.conflictCount > 0 && (
+            <div className={`employee360-conflicts ${data.conflictLevel.toLowerCase()}`}>
+                <h4>
+                ⚠ Conflict Days: {data.conflictCount}
+                <span className="conflict-badge">
+                    {data.conflictLevel}
+                </span>
+                </h4>
+
+                <ul className="conflict-list">
+                {data.conflictDays.map((c) => (
+                    <li key={c.date}>
+                    <strong>{new Date(c.date).toLocaleDateString()}:</strong>{" "}
+                    {c.projects.join(", ")}
+                    </li>
+                ))}
+                </ul>
+            </div>
+            )}
+
         </motion.div>
       </motion.div>
     </AnimatePresence>

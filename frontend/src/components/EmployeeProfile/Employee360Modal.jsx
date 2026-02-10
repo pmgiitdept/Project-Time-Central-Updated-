@@ -110,32 +110,40 @@ export default function Employee360Modal({ employee, projects, onClose }) {
                     });
 
                     return Object.entries(weeksMap).map(([week, daysInWeek]) => (
-                    <div key={week} className="timeline-week">
+                    <div className="timeline-week" key={week}>
                         <div className="week-label">{week}</div>
                         <div className="week-days">
-                        {daysInWeek.map((day) => (
-                            <div
-                            key={day.date}
-                            className={`week-day ${day.isConflict ? "conflict" : ""}`}
-                            title={`Projects: ${day.projects.join(", ")}\nHours: ${day.hours.toFixed(2)}`}
-                            >
-                            <div className="day-date">{new Date(day.date).getDate()}</div>
-                            <div className="day-projects">
-                                {day.projects.map((p) => (
-                                <span key={p} className="day-project">{p}</span>
-                                ))}
-                            </div>
-                            {day.isConflict && <span className="day-conflict">⚠</span>}
-                            </div>
-                        ))}
+                            {daysInWeek.map((day) => {
+                            const dt = new Date(day.date);
+                            const formattedDate = dt.toLocaleDateString(); // MM/DD/YYYY by default
+
+                            return (
+                                <div
+                                key={day.date}
+                                className={`week-day ${day.isConflict ? "conflict" : ""}`}
+                                title={`Date: ${formattedDate}\nProjects: ${day.projects.join(", ")}\nHours: ${day.hours.toFixed(2)}`}
+                                >
+                                {/* Display full date */}
+                                <div className="day-date">{formattedDate}</div>
+
+                                {/* Projects */}
+                                <div className="day-projects">
+                                    {day.projects.map((p) => (
+                                    <span key={p} className="day-project">{p}</span>
+                                    ))}
+                                </div>
+
+                                {day.isConflict && <span className="day-conflict">⚠</span>}
+                                </div>
+                            );
+                            })}
                         </div>
-                    </div>
+                        </div>
                     ));
                 })()}
                 </div>
             </div>
             )}
-            
         </motion.div>
       </motion.div>
     </AnimatePresence>

@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
-import useEmployee360 from "../hooks/useEmployee360";
-import "./styles/Employee360.css";
+import useEmployee360 from "../../hooks/useEmployee360";
+import "../styles/Employee360.css";
 
 export default function Employee360Modal({ employee, projects, onClose }) {
   const data = useEmployee360(employee?.employee_no, projects);

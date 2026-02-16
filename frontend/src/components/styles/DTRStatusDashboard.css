@@ -1,7 +1,61 @@
+/* ========================= */
+/* 📊 DASHBOARD CONTAINER */
+/* ========================= */
 .status-dashboard {
-  padding: 20px;
+  padding: 24px;
+  background: #f4f6f9;
+  min-height: 100%;
 }
 
+.status-dashboard h2 {
+  margin-bottom: 20px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+/* ========================= */
+/* 🔍 FILTER BAR */
+/* ========================= */
+.filter-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 15px;
+  margin-bottom: 25px;
+  background: #ffffff;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.filter-group label {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: #555;
+}
+
+.filter-group input {
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+.filter-group input:focus {
+  outline: none;
+  border-color: #4b7bec;
+  box-shadow: 0 0 0 2px rgba(75, 123, 236, 0.1);
+}
+
+/* ========================= */
+/* 📂 THREE COLUMNS */
+/* ========================= */
 .status-columns {
   display: flex;
   gap: 20px;
@@ -10,19 +64,103 @@
 
 .status-table {
   flex: 1;
-  background: #fff;
-  border-radius: 8px;
-  padding: 10px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-  min-height: 400px;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+  min-height: 450px;
+  display: flex;
+  flex-direction: column;
 }
 
+/* ========================= */
+/* 🏷 STATUS HEADER COLORS */
+/* ========================= */
+.status-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.status-header h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.status-verified h3 {
+  color: #27ae60;
+}
+
+.status-pending h3 {
+  color: #f39c12;
+}
+
+.status-rejected h3 {
+  color: #e74c3c;
+}
+
+/* ========================= */
+/* 📋 TABLE STYLE */
+/* ========================= */
 .table-wrapper {
   overflow-x: auto;
 }
 
-.filter-bar {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
+.status-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.status-table th {
+  background: #f8f9fb;
+  padding: 8px;
+  font-weight: 600;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.status-table td {
+  padding: 8px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.status-table tr:hover {
+  background: #f5f8ff;
+}
+
+/* ========================= */
+/* 🎯 STATUS BADGE */
+/* ========================= */
+.status-badge {
+  padding: 3px 8px;
+  font-size: 11px;
+  border-radius: 20px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.badge-verified {
+  background: #eafaf1;
+  color: #27ae60;
+}
+
+.badge-pending {
+  background: #fff4e5;
+  color: #f39c12;
+}
+
+.badge-rejected {
+  background: #fdecea;
+  color: #e74c3c;
+}
+
+/* ========================= */
+/* 📱 RESPONSIVE */
+/* ========================= */
+@media (max-width: 1100px) {
+  .status-columns {
+    flex-direction: column;
+  }
 }

@@ -1,7 +1,8 @@
+// components/DTRStatusDashboard.jsx
 import { useEffect, useState, useMemo } from "react";
 import api from "../api";
 import DTRStatusTable from "./DTRStatusTable";
-import "./styles/DTRTable.css";
+import "./styles/DTRStatusDashboard.css";
 
 export default function DTRStatusDashboard() {
   const [files, setFiles] = useState([]);
@@ -71,30 +72,44 @@ export default function DTRStatusDashboard() {
 
       {/* FILTER SECTION */}
       <div className="filter-bar">
-        <input
-          type="text"
-          placeholder="Filter by uploader..."
-          value={uploaderFilter}
-          onChange={(e) => setUploaderFilter(e.target.value)}
-        />
 
-        <input
-          type="date"
-          value={startDateFilter}
-          onChange={(e) => setStartDateFilter(e.target.value)}
-        />
+        <div className="filter-group">
+            <label>Uploader</label>
+            <input
+            type="text"
+            placeholder="Search uploader..."
+            value={uploaderFilter}
+            onChange={(e) => setUploaderFilter(e.target.value)}
+            />
+        </div>
 
-        <input
-          type="date"
-          value={endDateFilter}
-          onChange={(e) => setEndDateFilter(e.target.value)}
-        />
+        <div className="filter-group">
+            <label>Start Date From</label>
+            <input
+            type="date"
+            value={startDateFilter}
+            onChange={(e) => setStartDateFilter(e.target.value)}
+            />
+        </div>
 
-        <input
-          type="date"
-          value={uploadedDateFilter}
-          onChange={(e) => setUploadedDateFilter(e.target.value)}
-        />
+        <div className="filter-group">
+            <label>End Date Until</label>
+            <input
+            type="date"
+            value={endDateFilter}
+            onChange={(e) => setEndDateFilter(e.target.value)}
+            />
+        </div>
+
+        <div className="filter-group">
+            <label>Date Uploaded</label>
+            <input
+            type="date"
+            value={uploadedDateFilter}
+            onChange={(e) => setUploadedDateFilter(e.target.value)}
+            />
+        </div>
+
       </div>
 
       {/* THREE COLUMNS */}

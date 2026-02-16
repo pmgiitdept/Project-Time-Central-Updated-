@@ -5,6 +5,7 @@
   box-shadow: 0 6px 25px rgba(0,0,0,0.08);
   font-family: 'Inter', sans-serif;
   color: #333;
+  margin-top: 1rem;
 }
 
 .registry-title {
@@ -45,16 +46,30 @@
 }
 
 .registry-table-container {
-  max-height: 65vh;
+  max-height: 65vh;       /* vertical scroll */
   overflow-y: auto;
+  overflow-x: auto;       /* horizontal scroll */
   border: 1px solid #e5e7eb;
   border-radius: 8px;
+  box-shadow: inset 0 0 5px rgba(0,0,0,0.02);
 }
 
+/* Table */
 .registry-table {
   width: 100%;
+  min-width: 800px;       /* ensures horizontal scroll if screen smaller */
   border-collapse: collapse;
-  min-width: 700px;
+}
+
+/* Sticky header */
+.registry-table th {
+  position: sticky;
+  top: 0;
+  background: #f9fafc;
+  z-index: 10;             /* higher than row hover */
+  border-bottom: 1px solid #e5e7eb;
+  font-weight: 600;
+  color: #111827;
 }
 
 .registry-table th,
@@ -64,22 +79,28 @@
   font-size: 0.95rem;
 }
 
-.registry-table th {
-  position: sticky;
-  top: 0;
-  background: #f9fafc;
-  z-index: 2;
-  border-bottom: 1px solid #e5e7eb;
-  font-weight: 600;
-  color: #111827;
-}
-
+/* Rows */
 .registry-table tbody tr:hover {
   background: #f3f4f6;
 }
 
 .registry-table tbody tr:nth-child(even) {
   background: #f9fafc;
+}
+
+/* Scrollbar styling (optional, modern look) */
+.registry-table-container::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+
+.registry-table-container::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.1);
+  border-radius: 4px;
+}
+
+.registry-table-container::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .status-badge {

@@ -15,6 +15,15 @@ export default function DTRStatusTable({ title, files }) {
     return "";
   };
 
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "-";
+    return new Date(dateStr).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+    });
+  };
+
   return (
     <div className={`status-table ${getStatusClass()}`}>
       
@@ -30,6 +39,7 @@ export default function DTRStatusTable({ title, files }) {
               <th>Uploader</th>
               <th>Start</th>
               <th>End</th>
+              <th>Date Uploaded</th> {/* NEW COLUMN */}
               <th>Status</th>
             </tr>
           </thead>
@@ -39,8 +49,9 @@ export default function DTRStatusTable({ title, files }) {
               <tr key={file.id}>
                 <td>{file.filename}</td>
                 <td>{file.uploaded_by?.username}</td>
-                <td>{new Date(file.start_date).toLocaleDateString()}</td>
-                <td>{new Date(file.end_date).toLocaleDateString()}</td>
+                <td>{formatDate(file.start_date)}</td>
+                <td>{formatDate(file.end_date)}</td>
+                <td>{formatDate(file.uploaded_at)}</td> {/* NEW COLUMN */}
                 <td>
                   <span className={`status-badge ${getBadgeClass(file.status)}`}>
                     {file.status}

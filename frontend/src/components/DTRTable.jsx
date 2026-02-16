@@ -19,11 +19,12 @@ export default function DTRTable({ role , fileId}) {
 
   const [searchTerm, setSearchTerm] = useState("");
 
-  // New: editing states
-  const [editableRow, setEditableRow] = useState(null); // index of row being edited
+  const [editableRow, setEditableRow] = useState(null); 
   const originalRowRef = useRef(null);
 
-  // Get currentUser from localStorage (or pass it as prop if you prefer)
+  const oneMonthAgo = new Date();
+  oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+
   const currentUser = (() => {
     try {
       return JSON.parse(localStorage.getItem("user") || "null");
@@ -115,7 +116,6 @@ export default function DTRTable({ role , fileId}) {
     });
   };
 
-  // Save all rows (existing behavior)
   const handleSave = async () => {
     setSaving(true);
     try {
@@ -123,7 +123,6 @@ export default function DTRTable({ role , fileId}) {
       toast.success("DTR updated successfully!");
       await handleViewFile();
 
-      // 🔹 Audit log
       await api.post(`/files/dtr/files/${selectedFile}/log-update/`, {
         message: `Updated entire DTR file (${fileContents.length} rows)`,
       });
@@ -135,13 +134,11 @@ export default function DTRTable({ role , fileId}) {
     }
   };
 
-  // New: start editing a single row
   const startEdit = (rIdx) => {
     originalRowRef.current = JSON.parse(JSON.stringify(fileContents[rIdx] || {}));
     setEditableRow(rIdx);
   };
 
-  // New: cancel editing, restore original
   const cancelEdit = (rIdx) => {
     if (originalRowRef.current) {
       setFileContents((prev) => {
@@ -154,7 +151,6 @@ export default function DTRTable({ role , fileId}) {
     setEditableRow(null);
   };
 
-  // New: save only this row
   const saveRow = async (rIdx) => {
     try {
       setSaving(true);
@@ -164,7 +160,6 @@ export default function DTRTable({ role , fileId}) {
       toast.success("Row updated successfully!");
       await handleViewFile(selectedFile);
 
-      // 🔹 Audit log for single row
       await api.post(`/files/dtr/files/${selectedFile}/log-update/`, {
         message: `Updated DTR row id=${rowToSave.id} (${rowToSave.full_name})`,
       });
@@ -195,6 +190,18 @@ export default function DTRTable({ role , fileId}) {
     );
   };
 
+  const visibleFiles = dtrFiles.filter(file => {
+    if (!file) return false;
+
+    const uploadedDate = new Date(file.uploaded_at || file.start_date);
+
+    if (file.status === "verified" && uploadedDate < oneMonthAgo) {
+      return false;
+    }
+
+    return true; 
+  });
+
   const staticColumns = [
     { key: "full_name", label: "Full Name" },
     { key: "employee_no", label: "Employee #" },
@@ -214,17 +221,14 @@ export default function DTRTable({ role , fileId}) {
     { key: "undertime_minutes", label: "Undertime" },
   ];
 
-  // Only show Edit column for this username
   const canEditRow = currentUser?.username === "operations.pmgi" || currentUser?.username === "operations.hk" || currentUser?.username === "operations.gl";
-    // Add this new state near your other modals:
+
   const [isFullTableOpen, setIsFullTableOpen] = useState(false);
 
-  // 🔍 Filter fileContents by searchTerm
   const filteredContents = fileContents.filter((row) => {
     if (!searchTerm.trim()) return true;
     const term = searchTerm.toLowerCase();
 
-    // Convert row fields to searchable strings
     const fieldsToCheck = [
       row.full_name,
       row.employee_no,
@@ -234,18 +238,15 @@ export default function DTRTable({ role , fileId}) {
       row.regular_ot,
     ];
 
-    // Include all daily_data values
     if (row.daily_data) {
       fieldsToCheck.push(...Object.values(row.daily_data));
     }
 
-    // Match if any field contains the term
     return fieldsToCheck.some(
       (val) => val && val.toString().toLowerCase().includes(term)
     );
   });
   
-  // ✅ Total unique employees (by employee_no)
   const totalEmployees = (() => {
     const uniqueEmployees = new Set();
 

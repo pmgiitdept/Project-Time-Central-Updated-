@@ -5,6 +5,7 @@
   padding: 24px;
   background: #f4f6f9;
   min-height: 100%;
+  border-radius: 12px;
 }
 
 .status-dashboard h2 {

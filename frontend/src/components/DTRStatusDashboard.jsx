@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import api from "../api";
 import DTRStatusTable from "./DTRStatusTable";
-import "./styles/DTRStatusDashboard.css";
+import "./styles/DTRTable.css";
 
 export default function DTRStatusDashboard() {
   const [files, setFiles] = useState([]);

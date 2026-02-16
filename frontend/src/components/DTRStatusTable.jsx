@@ -27,7 +27,7 @@ export default function DTRStatusTable({ title, files }) {
           <thead>
             <tr>
               <th>Filename</th>
-              <th>Uploader</th>
+              <th>Project</th>
               <th>Start</th>
               <th>End</th>
               <th>Status</th>

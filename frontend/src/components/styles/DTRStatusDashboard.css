@@ -1,0 +1,28 @@
+.status-dashboard {
+  padding: 20px;
+}
+
+.status-columns {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.status-table {
+  flex: 1;
+  background: #fff;
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  min-height: 400px;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.filter-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}

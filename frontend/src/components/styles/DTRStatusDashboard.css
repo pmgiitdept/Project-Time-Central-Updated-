@@ -59,7 +59,7 @@
 .status-columns {
   display: flex;
   gap: 20px;
-  align-items: flex-start;
+  align-items: stretch;   /* ⬅ makes them equal height */
 }
 
 .status-table {
@@ -68,7 +68,8 @@
   border-radius: 12px;
   padding: 15px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
-  min-height: 450px;
+  min-height: 500px;
+
   display: flex;
   flex-direction: column;
 }
@@ -104,13 +105,23 @@
 /* 📋 TABLE STYLE */
 /* ========================= */
 .table-wrapper {
+  overflow-y: auto;
   overflow-x: auto;
+  flex: 1;              /* ⬅ takes remaining space */
+  max-height: 500px;    /* ⬅ optional fixed height */
 }
 
 .status-table table {
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
+}
+
+.status-table thead th {
+  position: sticky;
+  top: 0;
+  background: #f8f9fb;
+  z-index: 2;
 }
 
 .status-table th {

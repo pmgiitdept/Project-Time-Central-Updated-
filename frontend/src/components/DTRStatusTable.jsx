@@ -9,7 +9,7 @@ export default function DTRStatusTable({ title, files }) {
         {title} ({files.length})
       </h3>
 
-      <div className="table-wrapper">
+      <div className="dtr-table">
         <table>
           <thead>
             <tr>

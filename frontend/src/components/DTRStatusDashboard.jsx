@@ -2,6 +2,7 @@
 import { useEffect, useState, useMemo } from "react";
 import api from "../api";
 import DTRStatusTable from "./DTRStatusTable";
+import CleanFileRegistry from "./CleanFileRegistry";
 import "./styles/DTRStatusDashboard.css";
 
 export default function DTRStatusDashboard() {
@@ -118,6 +119,11 @@ export default function DTRStatusDashboard() {
         <DTRStatusTable title="Pending" files={pendingFiles} />
         <DTRStatusTable title="Rejected" files={rejectedFiles} />
       </div>
+
+      {/* CLEAN REGISTRY SECTION */}
+        <div className="registry-section">
+            <CleanFileRegistry files={files} />
+        </div>
     </div>
   );
 }

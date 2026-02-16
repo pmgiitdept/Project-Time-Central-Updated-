@@ -14,6 +14,12 @@
   color: #2c3e50;
 }
 
+.status-dashboard p {
+  margin-bottom: 30px;
+  color: #7f8c8d;
+  font-size: 14px;
+}
+
 /* ========================= */
 /* 🔍 FILTER BAR */
 /* ========================= */

@@ -69,6 +69,7 @@ export default function DTRStatusDashboard() {
   return (
     <div className="status-dashboard">
       <h2>DTR File Status Dashboard</h2>
+      <p> Overall records of files uploaded, categorized by their verification status. Use the filters to narrow down results. </p>
 
       {/* FILTER SECTION */}
       <div className="filter-bar">

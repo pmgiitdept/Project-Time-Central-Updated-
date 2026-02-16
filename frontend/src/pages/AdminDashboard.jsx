@@ -6,7 +6,8 @@ import { FaTachometerAlt, FaFileAlt, FaUsers, FaClipboardList, FaChartBar, FaCog
   FaUserShield, 
   FaDownload, 
   FaCommentAlt,
-  FaBan
+  FaBan,
+  FaTable,
 } from "react-icons/fa";
 import {LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   PieChart,
@@ -24,6 +25,7 @@ import DTRTable from "../components/DTRTable";
 import AboutModal from "../components/AboutModal";
 import EmployeeDirectory from '../components/EmployeeDirectory';
 import "../components/styles/AdminDashboard.css";
+import DTRStatusDashboard from "../components/DTRStatusDashboard";
 import UploaderReviewModal from "../components/UploaderReviewModal";
 import UsageSummary from "../components/UsageSummary";
 import api from "../api";
@@ -98,6 +100,8 @@ export default function AdminDashboard() {
   let sidebarItems = [
     { key: "dashboard", label: "Dashboard", icon: <FaTachometerAlt /> },
     { key: "files", label: "Files", icon: <FaFileAlt /> },
+    // ✅ NEW COMPONENT
+    { key: "dtrStatus", label: "DTR Status", icon: <FaTable /> },
     { key: "usageSummary", label: "Usage Summary", icon: <FaChartBar /> },
     { key: "audit", label: "Audit Logs", icon: <FaClipboardList /> },
     { key: "settings", label: "Settings", icon: <FaCog /> },
@@ -1017,6 +1021,15 @@ export default function AdminDashboard() {
                   }}
                 />
               )}
+            </div>
+          )}
+
+          {/* ===================== */}
+          {/* 📂 DTR STATUS DASHBOARD */}
+          {/* ===================== */}
+          {activeSection === "dtrStatus" && (
+            <div className="tables-wrapper">
+              <DTRStatusDashboard />
             </div>
           )}
 

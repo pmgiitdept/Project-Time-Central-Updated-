@@ -109,16 +109,68 @@ export default function AdminDashboard() {
 
   // ✅ Dynamically adjust based on username
   if (currentUser?.username === "itdept.pmgi") {
-    // IT Dept can access both Users and Employee Directory
-    sidebarItems.splice(2, 0, { key: "employeeDirectory", label: "Record Holdings", icon: <FaUsers /> });
-    sidebarItems.splice(3, 0, { key: "users", label: "Users", icon: <FaUsers /> });
+
+    sidebarItems.splice(2, 0, {
+      key: "employeeDirectory",
+      label: "Record Holdings",
+      icon: <FaUsers />
+    });
+
+    sidebarItems.splice(3, 0, {
+      key: "users",
+      label: "Users",
+      icon: <FaUsers />
+    });
+
+    // ✅ Add Usage Summary
+    sidebarItems.splice(4, 0, {
+      key: "usageSummary",
+      label: "Usage Summary",
+      icon: <FaChartBar />
+    });
+
   } 
   else if (currentUser?.username === "payroll.pmgi") {
-    // Payroll can only access Employee Directory
-    sidebarItems.splice(2, 0, { key: "employeeDirectory", label: "Record Holdings", icon: <FaUsers /> });
-  } else if (currentUser?.username === "eas_finance.pmgi") {
-    // Payroll can only access Employee Directory
-    sidebarItems.splice(2, 0, { key: "employeeDirectory", label: "Record Holdings", icon: <FaUsers /> });
+
+    sidebarItems.splice(2, 0, {
+      key: "employeeDirectory",
+      label: "Record Holdings",
+      icon: <FaUsers />
+    });
+
+    // ✅ Add Usage Summary
+    sidebarItems.splice(3, 0, {
+      key: "usageSummary",
+      label: "Usage Summary",
+      icon: <FaChartBar />
+    });
+
+  } 
+  else if (currentUser?.username === "eas_finance.pmgi") {
+
+    sidebarItems.splice(2, 0, {
+      key: "employeeDirectory",
+      label: "Record Holdings",
+      icon: <FaUsers />
+    });
+
+    // ✅ Add Usage Summary
+    sidebarItems.splice(3, 0, {
+      key: "usageSummary",
+      label: "Usage Summary",
+      icon: <FaChartBar />
+    });
+
+  }
+  else if (currentUser?.username === "operations_manager.pmgi") {
+
+    // Only Usage Summary
+    sidebarItems.splice(2, 0, {
+      key: "usageSummary",
+      label: "Usage Summary",
+      icon: <FaChartBar />
+    });
+
   }
 
   useEffect(() => {

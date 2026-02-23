@@ -116,6 +116,9 @@ export default function AdminDashboard() {
   else if (currentUser?.username === "payroll.pmgi") {
     // Payroll can only access Employee Directory
     sidebarItems.splice(2, 0, { key: "employeeDirectory", label: "Record Holdings", icon: <FaUsers /> });
+  } else if (currentUser?.username === "eas_finance.pmgi") {
+    // Payroll can only access Employee Directory
+    sidebarItems.splice(2, 0, { key: "employeeDirectory", label: "Record Holdings", icon: <FaUsers /> });
   }
 
   useEffect(() => {

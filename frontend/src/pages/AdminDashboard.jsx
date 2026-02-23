@@ -102,7 +102,6 @@ export default function AdminDashboard() {
     { key: "files", label: " DTR Files", icon: <FaFileAlt /> },
     // ✅ NEW COMPONENT
     { key: "dtrStatus", label: "DTR Status Archives ", icon: <FaTable /> },
-    { key: "usageSummary", label: "Usage Summary", icon: <FaChartBar /> },
     { key: "audit", label: "Audit Logs", icon: <FaClipboardList /> },
     { key: "settings", label: "Settings", icon: <FaCog /> },
   ];

@@ -1365,7 +1365,6 @@ export default function AdminDashboard() {
                       <th onClick={() => handleSort("role")}>Role</th>
                       <th onClick={() => handleSort("action")}>Action</th>
                       <th onClick={() => handleSort("status")}>Status</th>
-                      <th onClick={() => handleSort("ip_address")}>IP</th>
                       <th onClick={() => handleSort("timestamp")}>Timestamp</th>
                     </tr>
                   </thead>
@@ -1406,9 +1405,6 @@ export default function AdminDashboard() {
                             >
                               {log.status || "success"}
                             </span>
-                          </td>
-                          <td>
-                            <span className="ip-badge">{log.ip_address || "N/A"}</span>
                           </td>
                           <td>{new Date(log.timestamp).toLocaleString()}</td>
                         </tr>

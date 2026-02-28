@@ -140,6 +140,21 @@ export default function AdminDashboard() {
       icon: <FaChartBar />
     });
 
+  }
+  else if (currentUser?.username === "hr_staff.pmgi") {
+
+    sidebarItems.splice(2, 0, {
+      key: "employeeDirectory",
+      label: "Record Holdings",
+      icon: <FaUsers />
+    });
+
+    sidebarItems.splice(3, 0, {
+      key: "usageSummary",
+      label: "Usage Summary",
+      icon: <FaChartBar />
+    });
+
   } 
   else if (currentUser?.username === "eas_finance.pmgi") {
 
@@ -972,8 +987,6 @@ export default function AdminDashboard() {
           {/* Files Section */}
           {activeSection === "files" && (
             <div className="tables-wrapper">
-
-              {/* 🔄 Refresh Button */}
               <div
                 style={{
                   position: "fixed",
@@ -990,12 +1003,10 @@ export default function AdminDashboard() {
                 </button>
               </div>
 
-              {/* 🧑‍💼 Uploader Review Header */}
               <div className="divider-hybrid">
                 <span>PROJECT OVERVIEW</span>
               </div>
 
-              {/* 🔽 Uploader Selector (placeholder for now) */}
               <div
                 style={{
                   display: "flex",
@@ -1034,10 +1045,8 @@ export default function AdminDashboard() {
                 </span>
               </div>
 
-              {/* 🧪 TEMPORARY: Existing Sections (will be replaced by modal) */}
               {!showUploaderModal && (
                 <>
-
                   <FileTable role={role} setSelectedFile={setSelectedFile} />
 
                   {selectedFile && (
@@ -1086,6 +1095,7 @@ export default function AdminDashboard() {
             (
               currentUser?.username === "itdept.pmgi" ||
               currentUser?.username === "payroll.pmgi" ||
+              currentUser?.username === "hr_staff.pmgi" ||
               currentUser?.username === "eas_finance.pmgi" ||
               currentUser?.username === "operations_manager.pmgi"
             ) && (

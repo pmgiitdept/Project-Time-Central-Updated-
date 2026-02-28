@@ -100,13 +100,11 @@ export default function AdminDashboard() {
   let sidebarItems = [
     { key: "dashboard", label: "Dashboard", icon: <FaTachometerAlt /> },
     { key: "files", label: " DTR Files", icon: <FaFileAlt /> },
-    // ✅ NEW COMPONENT
     { key: "dtrStatus", label: "DTR Status Archives ", icon: <FaTable /> },
     { key: "audit", label: "Audit Logs", icon: <FaClipboardList /> },
     { key: "settings", label: "Settings", icon: <FaCog /> },
   ];
 
-  // ✅ Dynamically adjust based on username
   if (currentUser?.username === "itdept.pmgi") {
 
     sidebarItems.splice(2, 0, {
@@ -121,7 +119,6 @@ export default function AdminDashboard() {
       icon: <FaUsers />
     });
 
-    // ✅ Add Usage Summary
     sidebarItems.splice(4, 0, {
       key: "usageSummary",
       label: "Usage Summary",
@@ -137,7 +134,6 @@ export default function AdminDashboard() {
       icon: <FaUsers />
     });
 
-    // ✅ Add Usage Summary
     sidebarItems.splice(3, 0, {
       key: "usageSummary",
       label: "Usage Summary",
@@ -153,7 +149,6 @@ export default function AdminDashboard() {
       icon: <FaUsers />
     });
 
-    // ✅ Add Usage Summary
     sidebarItems.splice(3, 0, {
       key: "usageSummary",
       label: "Usage Summary",
@@ -163,7 +158,6 @@ export default function AdminDashboard() {
   }
   else if (currentUser?.username === "operations_manager.pmgi") {
 
-    // Only Usage Summary
     sidebarItems.splice(2, 0, {
       key: "usageSummary",
       label: "Usage Summary",
@@ -199,14 +193,12 @@ export default function AdminDashboard() {
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
-        // 1️⃣ First, check if user info is stored locally
         const storedUser = localStorage.getItem("user");
         if (storedUser) {
           setCurrentUser(JSON.parse(storedUser));
           return;
         }
 
-        // 2️⃣ Otherwise, fetch from backend
         const response = await api.get("/auth/me/");
         setCurrentUser(response.data);
         localStorage.setItem("user", JSON.stringify(response.data));

@@ -1,9 +1,9 @@
 /* components/UsageSummary.jsx */
 import { useEffect, useMemo, useState } from "react";
 import api from "../api";
-import EmployeeDtrModal from "./EmployeeDtrModal"; // ✅ Use your modal
+import EmployeeDtrModal from "./EmployeeDtrModal"; 
 import OperationsMonitoring from "./OperationsMonitoring";
-import Employee360Modal from "./EmployeeProfile/Employee360Modal"; // ✅ New import
+import Employee360Modal from "./EmployeeProfile/Employee360Modal";
 import { motion, AnimatePresence } from "framer-motion";
 import "./styles/UsageSummary.css";
 
@@ -11,12 +11,10 @@ export default function UsageSummary() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // 🔽 Filters
   const [selectedProject, setSelectedProject] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   
-  // 🔍 Employee search per project
   const [employeeSearch, setEmployeeSearch] = useState({});
 
   const generatedAt = useMemo(() => new Date(), []);
@@ -35,7 +33,6 @@ export default function UsageSummary() {
     fetchUsageSummary();
   }, []);
 
-  // 🔹 Fetch usage summary using same structure as DTRTable
   const fetchUsageSummary = async () => {
     setLoading(true);
     try {
@@ -49,7 +46,6 @@ export default function UsageSummary() {
         const contentRes = await api.get(`/files/dtr/files/${file.id}/content/`);
         const rows = contentRes.data.rows || [];
 
-        // Map employees from rows directly
         const employeeMap = new Map();
         rows.forEach((row) => {
             if (!row?.employee_no) return;
@@ -63,7 +59,6 @@ export default function UsageSummary() {
                 });
             }
 
-            // ✅ Add all rows to the employee
             employeeMap.get(row.employee_no).rows.push(row);
             });
 
@@ -85,7 +80,6 @@ export default function UsageSummary() {
     }
   };
 
-  // 🔍 Apply filters
   const filteredProjects = useMemo(() => {
     return projects.filter((p) => {
       if (selectedProject && p.project !== selectedProject) return false;
@@ -95,10 +89,8 @@ export default function UsageSummary() {
     });
   }, [projects, selectedProject, fromDate, toDate]);
 
-  // 🧠 Unique project list for dropdown
   const projectOptions = [...new Set(projects.map((p) => p.project))];
 
-  // 🆕 STEP 1: Summary Metrics
   const summary = useMemo(() => {
     const employeeSet = new Set();
     let minDate = null;
@@ -126,20 +118,17 @@ export default function UsageSummary() {
     };
   }, [filteredProjects]);
 
-  // 🔹 Helper: employee count badge
   const getEmployeeBadge = (count) => {
     if (count >= 200) return { text: "⚠ High manpower usage", color: "#d32f2f" };
     if (count >= 100) return { text: "ℹ️ Large manpower", color: "#fbc02d" };
     return null;
   };
 
-  // Calculate logged days and total hours for an employee across all their rows
   const calculateEmployeeSummary = (emp, projStart, projEnd) => {
     if (!emp.rows || emp.rows.length === 0 || !projStart || !projEnd) {
       return { logged: 0, expected: 0, totalHours: 0 };
     }
 
-    // Expected days = project coverage days
     const start = new Date(projStart);
     const end = new Date(projEnd);
     const expectedDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
@@ -150,25 +139,21 @@ export default function UsageSummary() {
     emp.rows.forEach((row) => {
       if (!row.daily_data) return;
 
-      // Count each date entry per row (even duplicates)
       Object.keys(row.daily_data).forEach((date) => {
         const val = row.daily_data[date];
         if (val !== null && val !== "" && !isNaN(val)) {
-          loggedDays += 1; // Count every row occurrence
+          loggedDays += 1; 
         }
       });
 
-      // ✅ Sum total_hours for all rows safely
       totalHours += Number(row.total_hours) || 0;
     });
 
-    // Avoid showing 0 before actual calculation
     totalHours = totalHours ? totalHours : 0;
 
     return { logged: loggedDays, expected: expectedDays, totalHours };
   };
   
-  // 🆕 Check if employee is a reliever based on their position in any row
   const isReliever = (emp) => {
     return emp.rows.some(row => {
       const position = row.position || "";
@@ -235,7 +220,7 @@ export default function UsageSummary() {
           summary.totalHours,
           presence?.projects.size || 0,
           presence?.files.size || 0,
-          isReliever(emp) ? "Yes" : "No", // ✅ reliever info
+          isReliever(emp) ? "Yes" : "No", 
         ]);
       });
     });
@@ -260,8 +245,30 @@ export default function UsageSummary() {
     });
   };
 
+  const hasNonRelieverEntry = (emp) => {
+    return emp.rows.some(row => {
+      const position = row.position || "";
+      const shift = row.shift || "";
+      const time = row.time || "";
+
+      const combined = `${position} ${shift} ${time}`.toLowerCase();
+
+      return !combined.includes("reliever");
+    });
+  };
+
   const getNonRelieverCount = (employees) => {
-    return employees.filter(emp => !isReliever(emp)).length;
+    const uniqueEmployees = new Map();
+
+    employees.forEach(emp => {
+      if (!uniqueEmployees.has(emp.employee_no)) {
+        uniqueEmployees.set(emp.employee_no, emp);
+      }
+    });
+
+    return Array.from(uniqueEmployees.values()).filter(emp =>
+      hasNonRelieverEntry(emp)
+    ).length;
   };
 
   return (
@@ -390,7 +397,7 @@ export default function UsageSummary() {
                       <th>Attendance</th>
                       <th>Total Hours</th>
                       <th>Presence</th>
-                      <th>Reliever</th> {/* ✅ New column */}
+                      <th>Reliever</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -411,7 +418,7 @@ export default function UsageSummary() {
                           <td>{summary.logged} / {summary.expected} {summary.logged < summary.expected && <span className="missing-days">⚠</span>}</td>
                           <td>{summary.totalHours.toFixed(2).replace(/\.00$/, "")} hrs</td>
                           <td>{presence ? `${presence.projects.size} project(s) / ${presence.files.size} file(s)` : "—"}</td>
-                          <td>{isReliever(emp) ? "Yes" : "No"}</td> {/* ✅ Display reliever */}
+                          <td>{isReliever(emp) ? "Yes" : "No"}</td>
                         </tr>
                       );
                     })}

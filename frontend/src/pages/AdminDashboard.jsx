@@ -217,7 +217,7 @@ export default function AdminDashboard() {
       icon: <FaChartBar />
     });
   }
-  else if (currentUser?.username === "operations_gl.pmgi") {
+  else if (currentUser?.username === "operations.gl") {
 
     sidebarItems.splice(1, 0, {
       key: "files",
@@ -231,7 +231,7 @@ export default function AdminDashboard() {
       icon: <FaChartBar />
     });
   }
-  else if (currentUser?.username === "operations_hk.pmgi") {
+  else if (currentUser?.username === "operations.hk") {
 
     sidebarItems.splice(1, 0, {
       key: "files",

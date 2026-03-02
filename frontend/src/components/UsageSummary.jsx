@@ -171,8 +171,13 @@ export default function UsageSummary() {
   // 🆕 Check if employee is a reliever based on their position in any row
   const isReliever = (emp) => {
     return emp.rows.some(row => {
-      const pos = row.position || "";
-      return /reliever/i.test(pos); // matches "RELIEVER", "reliever", "DayOff Reliever", etc.
+      const position = row.position || "";
+      const shift = row.shift || "";
+      const time = row.time || "";
+
+      const combined = `${position} ${shift} ${time}`.toLowerCase();
+
+      return combined.includes("reliever");
     });
   };
 

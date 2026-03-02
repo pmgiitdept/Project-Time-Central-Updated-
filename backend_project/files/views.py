@@ -49,7 +49,6 @@ class FileViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
 
-        # 🔓 Allow full access for status updates
         if self.action == "update_status" and user.role in ["admin", "viewer"]:
             return File.objects.all().order_by("-uploaded_at")
 
@@ -73,27 +72,22 @@ class FileViewSet(viewsets.ModelViewSet):
 
         file_obj = serializer.validated_data["file"]
 
-        # 1️⃣ Check file size
         max_size = settings.max_file_size * 1024 * 1024
         if file_obj.size > max_size:
             raise ValidationError(f"File exceeds max size of {settings.max_file_size} MB")
 
-        # 2️⃣ Check allowed types
         ext = file_obj.name.split(".")[-1].lower()
         if ext not in settings.allowed_types:
             raise ValidationError(
                 f"File type {ext} not allowed. Allowed: {settings.allowed_types}"
             )
 
-        # 3️⃣ Client overwrite logic
         if user.role == "client":
             existing_file = File.objects.filter(owner=user, file=file_obj.name).first()
 
             if existing_file:
-                # Replace physical file
                 existing_file.file.delete(save=False)
 
-                # Save using serializer (update existing instance)
                 updated_file = serializer.save(
                     instance=existing_file,
                     owner=user
@@ -106,7 +100,6 @@ class FileViewSet(viewsets.ModelViewSet):
                 )
                 return
 
-        # 4️⃣ Normal upload
         new_file = serializer.save(owner=user)
 
         log_action(
@@ -261,7 +254,6 @@ class FileViewSet(viewsets.ModelViewSet):
 
                 return Response({"pages": pages_data})
 
-            # --- Images ---
             elif file_name.endswith((".jpg", ".jpeg", ".png")):
                 import cv2, numpy as np, easyocr
                 file_obj.file.seek(0)
@@ -755,7 +747,6 @@ def delete_employee(request, employee_code):
     employee_code_str = str(employee_code)
     padded_code = employee_code_str.zfill(5)
 
-    # Fetch possible matches safely
     matches = EmployeeDirectory.objects.filter(
         Q(employee_code=padded_code) | Q(employee_code=employee_code_str)
     )
@@ -772,7 +763,6 @@ def delete_employee(request, employee_code):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    # Proceed to delete the single match
     employee = matches.first()
     employee.delete()
 
@@ -852,10 +842,8 @@ class DTRFileViewSet(viewsets.ModelViewSet):
         return DTRFile.objects.filter(uploaded_by=user).order_by("-uploaded_at")
 
     def perform_create(self, serializer):
-        # 1️⃣ Save the file and capture the instance
         dtr_file = serializer.save(uploaded_by=self.request.user)
 
-        # 2️⃣ Log upload action
         log_action(
             user=self.request.user,
             action=f"Uploaded DTR file: {dtr_file.file.name}",
@@ -866,7 +854,7 @@ class DTRFileViewSet(viewsets.ModelViewSet):
     def parse(self, request, pk=None):
         dtr_file = self.get_object()
         file_path = dtr_file.file.path
-        dtr_file.entries.all().delete()  # clear existing entries
+        dtr_file.entries.all().delete()  
 
         def parse_excel_date(val):
             """Safely parse a date from Excel cell (merged cells, strings, numbers)"""
@@ -888,7 +876,6 @@ class DTRFileViewSet(viewsets.ModelViewSet):
                 return None
 
         try:
-            # 🔥 READ ALL SHEETS
             all_sheets = pd.read_excel(file_path, sheet_name=None, header=None)
 
             start_date_val = None
@@ -896,35 +883,27 @@ class DTRFileViewSet(viewsets.ModelViewSet):
 
             for sheet_name, df in all_sheets.items():
 
-                # Skip empty / invalid sheets
                 if df.empty or df.shape[0] < 15:
                     continue
 
-                # --------------------------------
-                # Extract start & end date ONCE
-                # --------------------------------
                 if not start_date_val:
-                    for val in df.iloc[8, 3:5]:  # D9:E9
+                    for val in df.iloc[8, 3:5]: 
                         start_date_val = parse_excel_date(val)
                         if start_date_val:
                             break
 
                 if not end_date_val:
-                    for val in df.iloc[9, 3:5]:  # D10:E10
+                    for val in df.iloc[9, 3:5]:  
                         end_date_val = parse_excel_date(val)
                         if end_date_val:
                             break
 
-                # Save dates once
                 if start_date_val and not dtr_file.start_date:
                     dtr_file.start_date = start_date_val
                 if end_date_val and not dtr_file.end_date:
                     dtr_file.end_date = end_date_val
                 dtr_file.save()
 
-                # --------------------------------
-                # Employee rows start at row 15
-                # --------------------------------
                 employee_df = df.iloc[14:, :]
 
                 for _, row in employee_df.iterrows():
@@ -992,7 +971,6 @@ class DTRFileViewSet(viewsets.ModelViewSet):
     def status(self, request, pk=None):
         file = self.get_object()
 
-        # ---------- GET ----------
         if request.method == "GET":
             return Response({
                 "id": file.id,
@@ -1000,7 +978,6 @@ class DTRFileViewSet(viewsets.ModelViewSet):
                 "rejection_reason": file.rejection_reason
             })
 
-        # ---------- PATCH ----------
         previous_status = file.status
 
         serializer = FileStatusSerializer(file, data=request.data, partial=True)
@@ -1140,7 +1117,6 @@ class DTRFileViewSet(viewsets.ModelViewSet):
                 end_str = data["date_covered_end"].strftime("%b %d, %Y")
                 date_covered = f"{start_str} → {end_str}"
 
-            # 🔧 Handle duplicates safely
             matches = EmployeeDirectory.objects.filter(employee_code=code)
             if matches.count() > 1:
                 keep = matches.first()
@@ -1210,22 +1186,19 @@ class DTRFileViewSet(viewsets.ModelViewSet):
         if not rows:
             return Response({"detail": "No rows provided"}, status=400)
 
-        # 1️⃣ Create DTRFile (same model Excel uses)
         dtr_file = DTRFile.objects.create(
             uploaded_by=request.user,
             start_date=start_date,
             end_date=end_date,
-            status="pending",  # same lifecycle
+            status="pending",  
         )
 
-        # 🔹 Log manual creation for audit
         log_action(
             user=request.user,
             action=f"Created manual DTR: {dtr_file.id} ({start_date} to {end_date})",
             ip_address=request.META.get("REMOTE_ADDR")
         )
 
-        # 2️⃣ Create DTREntry rows (same fields parse() fills)
         for row in rows:
             DTREntry.objects.create(
                 dtr_file=dtr_file,
@@ -1254,7 +1227,6 @@ class DTRFileViewSet(viewsets.ModelViewSet):
     def export(self, request, pk=None):
         dtr = self.get_object()
 
-        # Return original uploaded file if exists
         if dtr.file:
             response = HttpResponse(
                 dtr.file.open("rb"),
@@ -1267,9 +1239,6 @@ class DTRFileViewSet(viewsets.ModelViewSet):
         ws = wb.active
         ws.title = "Attendance Summary"
 
-        # ----------------------------
-        # 🎨 Styles
-        # ----------------------------
         bold = Font(name="Leelawadee", bold=True)
         title_font = Font(name="Leelawadee", size=14, bold=True)
         subtitle_font = Font(name="Leelawadee", size=12, bold=True)
@@ -1277,12 +1246,10 @@ class DTRFileViewSet(viewsets.ModelViewSet):
         left = Alignment(horizontal="left", vertical="center")
         right = Alignment(horizontal="right", vertical="center")
 
-        # Daily value fills
-        blank_fill = PatternFill("solid", fgColor="4F81BD")   # Blue
-        absent_fill = PatternFill("solid", fgColor="FF0000") # Red
-        dayoff_fill = PatternFill("solid", fgColor="00B050") # Green
+        blank_fill = PatternFill("solid", fgColor="4F81BD")  
+        absent_fill = PatternFill("solid", fgColor="FF0000") 
+        dayoff_fill = PatternFill("solid", fgColor="00B050") 
 
-        # Daily data header color
         daily_header_fill = PatternFill("solid", fgColor="4F81BD")
         daily_header_font = Font(name="Leelawadee", color="FFFFFF", bold=True)
 
@@ -1291,53 +1258,37 @@ class DTRFileViewSet(viewsets.ModelViewSet):
 
         total_columns = 6 + (dtr.end_date - dtr.start_date).days + 1 + 7
 
-        # ----------------------------
-        # 🧱 HEADER (Logo + Main/Sub Headers)
-        # ----------------------------
-        table_first_col = 2      # Table starts at column A
-        logo_cols_span = 2       # Logo width in columns
-        logo_rows_span = 5       # Logo height in rows
+        table_first_col = 2      
+        logo_cols_span = 2      
+        logo_rows_span = 5      
         header_start_col = table_first_col + logo_cols_span
-        header_end_col = total_columns  # Total table columns
+        header_end_col = total_columns  
 
         from openpyxl.drawing.image import Image as XLImage
         logo_path = os.path.join("media", "pmgi.png")
 
-        # ----------------------------
-        # Merge logo area
-        # ----------------------------
         ws.merge_cells(
             start_row=1, start_column=table_first_col,
             end_row=logo_rows_span, end_column=table_first_col + logo_cols_span - 1
         )
 
-        # ----------------------------
-        # Insert logo and scale to exact merged cell area
-        # ----------------------------
         if os.path.exists(logo_path):
             img = XLImage(logo_path)
             
-            # Calculate merged cell width in pixels
             cell_width = sum(
                 (ws.column_dimensions[get_column_letter(c)].width or 8) for c in range(table_first_col, table_first_col + logo_cols_span)
-            ) * 7.7  # approximate pixels
+            ) * 7.7 
 
-            # Calculate merged cell height in pixels
             cell_height = sum(
                 (ws.row_dimensions[r].height or 18) for r in range(1, logo_rows_span + 1)
-            ) * 1.09  # approximate pixels
+            ) * 1.09  
 
-            # Slightly scale up to fill merged area
             scale_factor = 1.06
             img.width = int(cell_width * scale_factor)
             img.height = int(cell_height * scale_factor)
 
-            # Insert image at top-left of merged cells
             ws.add_image(img, ws.cell(row=1, column=table_first_col).coordinate)
 
-        # ----------------------------
-        # Main header (rows 1-2)
-        # ----------------------------
         ws.merge_cells(
             start_row=1, start_column=header_start_col,
             end_row=2, end_column=header_end_col
@@ -1346,9 +1297,6 @@ class DTRFileViewSet(viewsets.ModelViewSet):
         main_header_cell.font = title_font
         main_header_cell.alignment = center
 
-        # ----------------------------
-        # Subheader (row 3)
-        # ----------------------------
         ws.merge_cells(
             start_row=3, start_column=header_start_col,
             end_row=4, end_column=header_end_col
@@ -1357,9 +1305,6 @@ class DTRFileViewSet(viewsets.ModelViewSet):
         subheader_cell.font = subtitle_font
         subheader_cell.alignment = center
 
-        # ----------------------------
-        # OPS-FRM code (row 4)
-        # ----------------------------
         ws.merge_cells(
             start_row=5, start_column=header_start_col,
             end_row=5, end_column=header_end_col - 2
@@ -1367,9 +1312,6 @@ class DTRFileViewSet(viewsets.ModelViewSet):
         ops_cell = ws.cell(row=5, column=header_start_col, value="OPS-FRM009-01-100125")
         ops_cell.alignment = center
 
-        # ----------------------------
-        # Edition (row 4, rightmost columns)
-        # ----------------------------
         col_edition = header_end_col - 1
         col_number = header_end_col
         ws.cell(row=5, column=col_edition, value="Edition").font = bold
@@ -1377,77 +1319,59 @@ class DTRFileViewSet(viewsets.ModelViewSet):
         ws.cell(row=5, column=col_edition).alignment = center
         ws.cell(row=5, column=col_number).alignment = center
 
-        # ----------------------------
-        # Apply borders to all header cells (including logo area)
-        # ----------------------------
         for row in ws.iter_rows(min_row=1, max_row=logo_rows_span,
                                 min_col=table_first_col, max_col=header_end_col):
             for cell in row:
                 cell.border = border
 
-        # ----------------------------
-        # 🧾 META INFO (Updated)
-        # ----------------------------
         meta_row = 7
         uploader = dtr.uploaded_by.username if dtr.uploaded_by else "N/A"
 
-        # PROJECT label (column D)
         ws[f"D{meta_row}"] = "PROJECT:"
         ws[f"D{meta_row}"].font = bold
-        ws[f"D{meta_row}"].alignment = right  # label stays left-aligned
+        ws[f"D{meta_row}"].alignment = right  
         ws[f"D{meta_row}"].border = border
 
-        # Project name / uploaded by (merge E and F)
-        start_col = 5  # column E
-        end_col = 6    # merge E and F
+        start_col = 5  
+        end_col = 6    
         ws.merge_cells(start_row=meta_row, start_column=start_col, end_row=meta_row, end_column=end_col)
         ws[f"E{meta_row}"] = uploader
         ws[f"E{meta_row}"].font = bold
-        ws[f"E{meta_row}"].alignment = Alignment(horizontal="center", vertical="center")  # center in merged cell
+        ws[f"E{meta_row}"].alignment = Alignment(horizontal="center", vertical="center")
 
-        # Apply border to all merged cells
         for col in range(start_col, end_col + 1):
             ws.cell(row=meta_row, column=col).border = border
 
-        # FROM label and date (next row)
-        from_text = dtr.start_date.strftime("%B %d, %Y")  # "September 16, 2025"
+        from_text = dtr.start_date.strftime("%B %d, %Y")
         ws[f"D{meta_row+1}"] = "FROM:"
         ws[f"D{meta_row+1}"].font = bold
         ws[f"D{meta_row+1}"].alignment = right
         ws[f"D{meta_row+1}"].border = border
 
-        # Merge E and F for the date
         start_col = 5
         end_col = 6
         ws.merge_cells(start_row=meta_row+1, start_column=start_col, end_row=meta_row+1, end_column=end_col)
         ws[f"E{meta_row+1}"] = from_text
         ws[f"E{meta_row+1}"].font = bold
-        ws[f"E{meta_row+1}"].alignment = Alignment(horizontal="center", vertical="center")  # center text in merged cell
+        ws[f"E{meta_row+1}"].alignment = Alignment(horizontal="center", vertical="center") 
 
-        # Apply border to all merged cells
         for col in range(start_col, end_col + 1):
             ws.cell(row=meta_row+1, column=col).border = border
 
-        # TO label and date (row after FROM)
-        to_text = dtr.end_date.strftime("%B %d, %Y")  # "September 20, 2025"
+        to_text = dtr.end_date.strftime("%B %d, %Y")
         ws[f"D{meta_row+2}"] = "TO:"
         ws[f"D{meta_row+2}"].font = bold
         ws[f"D{meta_row+2}"].alignment = right
         ws[f"D{meta_row+2}"].border = border
 
-        # Merge E and F for TO date
         ws.merge_cells(start_row=meta_row+2, start_column=start_col, end_row=meta_row+2, end_column=end_col)
         ws[f"E{meta_row+2}"] = to_text
         ws[f"E{meta_row+2}"].font = bold
-        ws[f"E{meta_row+2}"].alignment = Alignment(horizontal="center", vertical="center")  # center text
+        ws[f"E{meta_row+2}"].alignment = Alignment(horizontal="center", vertical="center")
 
-        # Apply border to all merged cells
         for col in range(start_col, end_col + 1):
             ws.cell(row=meta_row+2, column=col).border = border
 
-        # ----------------------------
-        # 📅 DATES
-        # ----------------------------
         dates = []
         cur = dtr.start_date
         while cur <= dtr.end_date:
@@ -1458,7 +1382,6 @@ class DTRFileViewSet(viewsets.ModelViewSet):
         headers_left = ["NO.", "EMPLOYEE NAME", "PM NO.", "POSITION", "SHIFT", "TIME"]
         headers_right = ["Total Days", "Total Hours", "Undertime", "OT", "Legal Hol", "Special Hol", "Night Diff"]
 
-        # Left headers
         for i, header in enumerate(headers_left, start=1):
             ws.merge_cells(start_row=table_start, start_column=i, end_row=table_start+1, end_column=i)
             cell = ws.cell(row=table_start, column=i, value=header)
@@ -1466,7 +1389,6 @@ class DTRFileViewSet(viewsets.ModelViewSet):
             cell.alignment = center
             cell.border = border
 
-        # Right headers
         col_idx = 6 + len(dates) + 1
         for header in headers_right:
             ws.merge_cells(start_row=table_start, start_column=col_idx, end_row=table_start+1, end_column=col_idx)
@@ -1476,25 +1398,20 @@ class DTRFileViewSet(viewsets.ModelViewSet):
             cell.border = border
             col_idx += 1
 
-        # ----------------------------
-        # Daily headers
-        # ----------------------------
         daily_start_col = 7
         for d in dates:
             fill = daily_header_fill
             font = daily_header_font
-            if d.weekday() == 6:  # Sunday
+            if d.weekday() == 6:  
                 fill = PatternFill("solid", fgColor="FFFF00")
                 font = Font(name="Leelawadee", color="000000", bold=True)
 
-            # Day name
             cell = ws.cell(row=table_start, column=daily_start_col, value=d.strftime("%a"))
             cell.font = font
             cell.fill = fill
             cell.alignment = center
             cell.border = border
 
-            # Day number
             cell = ws.cell(row=table_start+1, column=daily_start_col, value=d.day)
             cell.font = font
             cell.fill = fill
@@ -1503,9 +1420,6 @@ class DTRFileViewSet(viewsets.ModelViewSet):
 
             daily_start_col += 1
 
-        # ----------------------------
-        # Helper function
-        # ----------------------------
         def is_number(val):
             try:
                 float(val)
@@ -1513,9 +1427,6 @@ class DTRFileViewSet(viewsets.ModelViewSet):
             except (TypeError, ValueError):
                 return False
 
-        # ----------------------------
-        # Data rows
-        # ----------------------------
         row_idx = table_start + 2
         daily_col_start = 7
         daily_col_end = daily_col_start + len(dates) - 1
@@ -1523,13 +1434,11 @@ class DTRFileViewSet(viewsets.ModelViewSet):
         for idx, entry in enumerate(dtr.entries.all(), start=1):
             daily_vals = [entry.daily_data.get(d.strftime("%Y-%m-%d"), "") for d in dates]
 
-            # Compute numeric-only totals
             numeric_vals = [float(v) for v in daily_vals if is_number(v)]
             total_days = len(numeric_vals)
             total_hours = sum(numeric_vals)
             regular_ot = sum(max(v - 8, 0) for v in numeric_vals)
 
-            # Values to write
             values = (
                 [idx, entry.full_name, entry.employee_no, entry.position, entry.shift, entry.time]
                 + daily_vals
@@ -1550,7 +1459,6 @@ class DTRFileViewSet(viewsets.ModelViewSet):
                 cell.border = border
                 cell.alignment = center if c != 2 else left
 
-                # 🎨 Daily coloring
                 if daily_col_start <= c <= daily_col_end:
                     if v in ("", None):
                         cell.fill = blank_fill
@@ -1562,49 +1470,35 @@ class DTRFileViewSet(viewsets.ModelViewSet):
             ws.row_dimensions[row_idx].height = 18
             row_idx += 1
 
-        # ----------------------------
-        # AUTO-FIT POSITION COLUMN WIDTH
-        # ----------------------------
-        # Adjust column 4 (Position) width based on max content length
         position_col_index = 4
         ws.column_dimensions[get_column_letter(position_col_index)].width = max_col_lengths[position_col_index - 1] + 2
 
-       # ----------------------------
-        # 🔢 GRAND TOTAL ROW (Per Column)
-        # ----------------------------
+        grand_total_col = daily_col_start - 1  
+        top_left_col = grand_total_col - 1    
 
-        # Place "GRAND TOTAL" right before daily totals
-        grand_total_col = daily_col_start - 1  # column just before daily totals
-        top_left_col = grand_total_col - 1     # top-left of merged range (merge 2 columns for nicer display)
-
-        # Merge two columns for GRAND TOTAL
         ws.merge_cells(
             start_row=row_idx, start_column=top_left_col,
             end_row=row_idx, end_column=grand_total_col
         )
 
-        # Write text in top-left cell only
         cell = ws.cell(row=row_idx, column=top_left_col, value="GRAND TOTAL")
         cell.font = bold
         cell.alignment = Alignment(horizontal="right", vertical="center")
 
-        # Apply border to all merged cells
         for col in range(top_left_col, grand_total_col + 1):
             ws.cell(row=row_idx, column=col).border = border
 
         right_start_col = daily_col_end + 1
         right_end_col = daily_col_end + len(headers_right)
 
-        # Daily totals → count of numeric values
         for col in range(daily_col_start, daily_col_end + 1):
             cell = ws.cell(row=row_idx, column=col)
             cell.border = border
             cell.alignment = center
             if totals[col - 1] > 0:
-                cell.value = totals[col - 1]  # count of numeric entries
+                cell.value = totals[col - 1]  
                 cell.font = bold
 
-        # Right-side totals → sum numeric values
         for col in range(right_start_col, right_end_col + 1):
             cell = ws.cell(row=row_idx, column=col)
             cell.border = border
@@ -1615,14 +1509,10 @@ class DTRFileViewSet(viewsets.ModelViewSet):
 
         ws.row_dimensions[row_idx].height = 22
 
-        # ----------------------------
-        # ✍ SIGNATURES ROWS
-        # ----------------------------
-        row_idx += 2  # leave one empty row below GRAND TOTAL
+        row_idx += 2  
 
-        # First row: Titles
         titles = ["Prepared By:", "Checked By:", "Noted By:"]
-        col_positions = [2, 6, 12]  # B, F, L
+        col_positions = [2, 6, 12] 
 
         for col, title in zip(col_positions, titles):
             cell = ws.cell(row=row_idx, column=col, value=title)
@@ -1632,7 +1522,6 @@ class DTRFileViewSet(viewsets.ModelViewSet):
         sig_title_row = row_idx
         row_idx += 3
 
-        # Second row: Signature lines
         for col in col_positions:
             cell = ws.cell(row=row_idx, column=col, value="___________________________")
             cell.font = bold
@@ -1640,26 +1529,19 @@ class DTRFileViewSet(viewsets.ModelViewSet):
 
         row_idx += 1
 
-        # Third row: Designations
         designations = ["Supervisor", "Operation Officer", "Client Representative"]
         for col, des in zip(col_positions, designations):
             cell = ws.cell(row=row_idx, column=col, value=des)
             cell.font = Font(name="Leelawadee", bold=True)
             cell.alignment = left
 
-        # Adjust row heights
         ws.row_dimensions[sig_title_row].height = 20
         ws.row_dimensions[sig_title_row + 3].height = 20
         ws.row_dimensions[sig_title_row + 4].height = 20
 
-
-        # ----------------------------
-        # 📚 LEGENDS (Beside Noted By)
-        # ----------------------------
         legend_start_row = sig_title_row
-        legend_col = col_positions[2] + 13  # 3 columns to the right of "Noted By"
+        legend_col = col_positions[2] + 13 
 
-        # LEGENDS title
         cell = ws.cell(row=legend_start_row, column=legend_col, value="LEGENDS:")
         cell.font = bold
         cell.alignment = left
@@ -1683,19 +1565,12 @@ class DTRFileViewSet(viewsets.ModelViewSet):
             cell.font = Font(name="Leelawadee")
             cell.alignment = left
 
-
-        # ----------------------------
-        # 📏 AUTO WIDTH
-        # ----------------------------
         for col_idx, max_len in enumerate(max_col_lengths, start=1):
             letter = get_column_letter(col_idx)
             ws.column_dimensions[letter].width = max(max_len + 2, 8)
 
         ws.freeze_panes = f"A{table_start + 2}"
 
-        # ----------------------------
-        # 📥 RESPONSE
-        # ----------------------------
         response = HttpResponse(
             content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )

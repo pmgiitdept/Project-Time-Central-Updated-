@@ -1115,6 +1115,7 @@ export default function AdminDashboard() {
               currentUser?.username === "payroll.pmgi" ||
               currentUser?.username === "hr_staff.pmgi" ||
               currentUser?.username === "eas_finance.pmgi" ||
+              currentUser?.username === "safetyofc.pmgi" ||
               currentUser?.username === "operations_manager.pmgi"
             ) && (
               <div className="tables-wrapper">

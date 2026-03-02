@@ -217,6 +217,48 @@ export default function AdminDashboard() {
       icon: <FaChartBar />
     });
   }
+  else if (currentUser?.username === "operations_gl.pmgi") {
+
+    sidebarItems.splice(1, 0, {
+      key: "files",
+      label: "DTR Files",
+      icon: <FaFileAlt />
+    });
+
+    sidebarItems.splice(2, 0, {
+      key: "usageSummary",
+      label: "Usage Summary",
+      icon: <FaChartBar />
+    });
+  }
+  else if (currentUser?.username === "operations_hk.pmgi") {
+
+    sidebarItems.splice(1, 0, {
+      key: "files",
+      label: "DTR Files",
+      icon: <FaFileAlt />
+    });
+
+    sidebarItems.splice(2, 0, {
+      key: "usageSummary",
+      label: "Usage Summary",
+      icon: <FaChartBar />
+    });
+  }
+  else if (currentUser?.username === "operations.pmgi") {
+
+    sidebarItems.splice(1, 0, {
+      key: "files",
+      label: "DTR Files",
+      icon: <FaFileAlt />
+    });
+
+    sidebarItems.splice(2, 0, {
+      key: "usageSummary",
+      label: "Usage Summary",
+      icon: <FaChartBar />
+    });
+  }
 
   useEffect(() => {
     const fetchUploaders = async () => {

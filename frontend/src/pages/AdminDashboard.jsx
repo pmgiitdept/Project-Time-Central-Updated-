@@ -106,6 +106,12 @@ export default function AdminDashboard() {
 
   if (currentUser?.username === "itdept.pmgi") {
 
+    sidebarItems.splice(1, 0, {
+      key: "files",
+      label: "DTR Files",
+      icon: <FaFileAlt />
+    });
+
     sidebarItems.splice(2, 0, {
       key: "employeeDirectory",
       label: "Record Holdings",
@@ -127,6 +133,12 @@ export default function AdminDashboard() {
   } 
   else if (currentUser?.username === "payroll.pmgi") {
 
+    sidebarItems.splice(1, 0, {
+      key: "files",
+      label: "DTR Files",
+      icon: <FaFileAlt />
+    });
+
     sidebarItems.splice(2, 0, {
       key: "employeeDirectory",
       label: "Record Holdings",
@@ -142,6 +154,12 @@ export default function AdminDashboard() {
   }
   else if (currentUser?.username === "hr_staff.pmgi") {
 
+    sidebarItems.splice(1, 0, {
+      key: "files",
+      label: "DTR Files",
+      icon: <FaFileAlt />
+    });
+
     sidebarItems.splice(2, 0, {
       key: "employeeDirectory",
       label: "Record Holdings",
@@ -156,6 +174,12 @@ export default function AdminDashboard() {
 
   } 
   else if (currentUser?.username === "eas_finance.pmgi") {
+
+    sidebarItems.splice(1, 0, {
+      key: "files",
+      label: "DTR Files",
+      icon: <FaFileAlt />
+    });
 
     sidebarItems.splice(2, 0, {
       key: "employeeDirectory",
@@ -181,12 +205,17 @@ export default function AdminDashboard() {
   }
   else if (currentUser?.username === "operations_manager.pmgi") {
 
+    sidebarItems.splice(1, 0, {
+      key: "files",
+      label: "DTR Files",
+      icon: <FaFileAlt />
+    });
+
     sidebarItems.splice(2, 0, {
       key: "usageSummary",
       label: "Usage Summary",
       icon: <FaChartBar />
     });
-
   }
 
   useEffect(() => {

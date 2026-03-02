@@ -16,29 +16,25 @@ export default function useEmployee360(employeeNo, projects) {
 
         projectSet.add(proj.project);
 
-        if (emp.rows?.length > 0) {
-          emp.rows.forEach((row) => {
-            if (!row.daily_data) return;
+        emp.rows?.forEach((row) => {
+          if (!row.daily_data) return;
 
-            // Check if employee is reliever
-            if (/reliever/i.test(row.position || "")) isReliever = true;
+          // Check if employee is reliever
+          if (/reliever/i.test(row.position || "")) isReliever = true;
 
-            Object.keys(row.daily_data).forEach((date) => {
-              const val = row.daily_data[date];
-              const hours = Number(row.total_hours || 0);
+          Object.entries(row.daily_data).forEach(([date, val]) => {
+            const numericVal = Number(val);
+            if (isNaN(numericVal) || numericVal <= 0) return; // only positive hours
 
-              if (!daysMap[date]) {
-                daysMap[date] = { date, projects: [], hours: 0 };
-              }
+            if (!daysMap[date]) {
+              daysMap[date] = { date, projects: [], hours: 0 };
+            }
 
-              if (val !== null && val !== "" && !isNaN(val)) {
-                daysMap[date].projects.push(proj.project);
-                daysMap[date].hours += hours;
-                totalHours += hours;
-              }
-            });
+            daysMap[date].projects.push(proj.project);
+            daysMap[date].hours += numericVal;
+            totalHours += numericVal;
           });
-        }
+        });
       });
     });
 

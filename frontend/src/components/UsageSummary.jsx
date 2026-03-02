@@ -134,7 +134,6 @@ export default function UsageSummary() {
   const expectedDays =
     Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
 
-  // 🔥 Use date → hours map
   const dateHourMap = new Map();
 
   emp.rows.forEach((row) => {
@@ -147,7 +146,6 @@ export default function UsageSummary() {
         if (!dateHourMap.has(date)) {
           dateHourMap.set(date, numericVal);
         } else {
-          // if duplicate date, keep the larger value
           const existing = dateHourMap.get(date);
           dateHourMap.set(date, Math.max(existing, numericVal));
         }

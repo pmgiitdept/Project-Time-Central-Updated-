@@ -99,7 +99,6 @@ export default function AdminDashboard() {
 
   let sidebarItems = [
     { key: "dashboard", label: "Dashboard", icon: <FaTachometerAlt /> },
-    { key: "files", label: " DTR Files", icon: <FaFileAlt /> },
     { key: "dtrStatus", label: "DTR Status Archives ", icon: <FaTable /> },
     { key: "audit", label: "Audit Logs", icon: <FaClipboardList /> },
     { key: "settings", label: "Settings", icon: <FaCog /> },

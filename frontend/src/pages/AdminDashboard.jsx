@@ -171,6 +171,15 @@ export default function AdminDashboard() {
     });
 
   }
+  else if (currentUser?.username === "safetyofc.pmgi") {
+
+    sidebarItems.splice(2, 0, {
+      key: "usageSummary",
+      label: "Usage Summary",
+      icon: <FaChartBar />
+    });
+
+  }
   else if (currentUser?.username === "operations_manager.pmgi") {
 
     sidebarItems.splice(2, 0, {
@@ -985,7 +994,17 @@ export default function AdminDashboard() {
           )}
 
           {/* Files Section */}
-          {activeSection === "files" && (
+          {activeSection === "files" && 
+            (
+              currentUser?.username === "itdept.pmgi" ||
+              currentUser?.username === "payroll.pmgi" ||
+              currentUser?.username === "hr_staff.pmgi" ||
+              currentUser?.username === "eas_finance.pmgi" ||
+              currentUser?.username === "operations.pmgi" ||
+              currentUser?.username === "operations.hk" ||
+              currentUser?.username === "operations.gl" ||
+              currentUser?.username === "operations_manager.pmgi"
+            ) && (
             <div className="tables-wrapper">
               <div
                 style={{

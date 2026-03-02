@@ -125,37 +125,49 @@ export default function UsageSummary() {
   };
 
   const calculateEmployeeSummary = (emp, projStart, projEnd) => {
-    if (!emp.rows?.length || !projStart || !projEnd) {
-      return { logged: 0, expected: 0, totalHours: 0 };
-    }
+  if (!emp.rows?.length || !projStart || !projEnd) {
+    return { logged: 0, expected: 0, totalHours: 0 };
+  }
 
-    const start = new Date(projStart);
-    const end = new Date(projEnd);
-    const expectedDays =
-      Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+  const start = new Date(projStart);
+  const end = new Date(projEnd);
+  const expectedDays =
+    Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
 
-    const uniqueDates = new Set();
-    let totalHours = 0;
+  // 🔥 Use date → hours map
+  const dateHourMap = new Map();
 
-    emp.rows.forEach((row) => {
-      if (!row.daily_data) return;
+  emp.rows.forEach((row) => {
+    if (!row.daily_data) return;
 
-      Object.entries(row.daily_data).forEach(([date, value]) => {
-        const numericVal = Number(value);
+    Object.entries(row.daily_data).forEach(([date, value]) => {
+      const numericVal = Number(value);
 
-        if (!isNaN(numericVal) && numericVal > 0) {
-          uniqueDates.add(date);     
-          totalHours += numericVal;  
+      if (!isNaN(numericVal) && numericVal > 0) {
+        if (!dateHourMap.has(date)) {
+          dateHourMap.set(date, numericVal);
+        } else {
+          // if duplicate date, keep the larger value
+          const existing = dateHourMap.get(date);
+          dateHourMap.set(date, Math.max(existing, numericVal));
         }
-      });
+      }
     });
+  });
 
-    return {
-      logged: uniqueDates.size,
-      expected: expectedDays,
-      totalHours,
-    };
+  const loggedDays = dateHourMap.size;
+
+  let totalHours = 0;
+  dateHourMap.forEach((val) => {
+    totalHours += val;
+  });
+
+  return {
+    logged: loggedDays,
+    expected: expectedDays,
+    totalHours,
   };
+};
   
   const isReliever = (emp) => {
     return emp.rows.some(row => {

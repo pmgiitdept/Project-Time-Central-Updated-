@@ -125,33 +125,36 @@ export default function UsageSummary() {
   };
 
   const calculateEmployeeSummary = (emp, projStart, projEnd) => {
-    if (!emp.rows || emp.rows.length === 0 || !projStart || !projEnd) {
+    if (!emp.rows?.length || !projStart || !projEnd) {
       return { logged: 0, expected: 0, totalHours: 0 };
     }
 
     const start = new Date(projStart);
     const end = new Date(projEnd);
-    const expectedDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+    const expectedDays =
+      Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
 
-    let loggedDays = 0;
+    const uniqueDates = new Set();
     let totalHours = 0;
 
     emp.rows.forEach((row) => {
       if (!row.daily_data) return;
 
-      Object.keys(row.daily_data).forEach((date) => {
-        const val = row.daily_data[date];
-        if (val !== null && val !== "" && !isNaN(val)) {
-          loggedDays += 1; 
+      Object.entries(row.daily_data).forEach(([date, value]) => {
+        const numericVal = Number(value);
+
+        if (!isNaN(numericVal) && numericVal > 0) {
+          uniqueDates.add(date);     
+          totalHours += numericVal;  
         }
       });
-
-      totalHours += Number(row.total_hours) || 0;
     });
 
-    totalHours = totalHours ? totalHours : 0;
-
-    return { logged: loggedDays, expected: expectedDays, totalHours };
+    return {
+      logged: uniqueDates.size,
+      expected: expectedDays,
+      totalHours,
+    };
   };
   
   const isReliever = (emp) => {

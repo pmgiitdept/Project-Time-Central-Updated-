@@ -173,83 +173,130 @@ class FileViewSet(viewsets.ModelViewSet):
 
                 def is_number(val):
                     try:
-                        float(val)
+                        float(val.replace(",", ""))
                         return True
-                    except ValueError:
+                    except:
                         return False
 
                 file_obj.file.seek(0)
+
                 with pdfplumber.open(file_obj.file) as pdf:
-                    for i, page in enumerate(pdf.pages, start=1):
-                        page_data = {"page_number": i}
+                    for page_index, page in enumerate(pdf.pages, start=1):
 
-                        text = page.extract_text()
-                        if text:
-                            page_data["text"] = text
+                        page_data = {
+                            "page_number": page_index,
+                            "tables": [],
+                            "text": ""
+                        }
 
-                        lines = text.splitlines() if text else []
-                        structured_table = {"main_headers": [], "sub_headers": [], "rows": []}
+                        text = page.extract_text() or ""
+                        page_data["text"] = text
 
-                        if lines:
-                            header_idx = None
-                            for idx, line in enumerate(lines):
-                                if "Emp." in line and "DUTY" in line:
-                                    header_idx = idx
-                                    break
+                        structured_tables = []
 
-                            if header_idx is not None:
-                                structured_table["main_headers"] = [
-                                    "Emp. No",
-                                    "Name",
-                                    "Duty (By Days)",
-                                    "Late",
-                                    "UT",
-                                    "Work (By Hrs)",
-                                    "Day-Off (By Hours)",
-                                    "SH (By Hrs)",
-                                    "LH (By Hrs)",
-                                    "Day-Off - SH (By Hrs)",
-                                    "Day-Off - LH (By Hrs)"
-                                ]
-                                structured_table["sub_headers"] = [
-                                    [""], [""],
-                                    ["WRK", "ABS", "LV", "HOL", "RES"],
-                                    [""], [""],
-                                    ["REG", "OT", "ND", "OTND"],
-                                    ["REG", "OT", "ND", "OTND"],
-                                    ["REG", "OT", "ND", "OTND"],
-                                    ["REG", "OT", "ND", "OTND"],
-                                    ["REG", "OT", "ND", "OTND"],
-                                    ["REG", "OT", "ND", "OTND"],
+                        # ==========================================
+                        # 🥇 STEP 1: Try real PDF table extraction
+                        # ==========================================
+                        extracted_tables = page.extract_tables()
+
+                        if extracted_tables:
+                            for table in extracted_tables:
+                                if not table or len(table) < 2:
+                                    continue
+
+                                # Remove None values
+                                cleaned = [
+                                    [cell.strip() if cell else "" for cell in row]
+                                    for row in table
                                 ]
 
-                                data_lines = lines[header_idx + 1:]
-                                expected_cols = sum(len(group) for group in structured_table["sub_headers"])
+                                max_cols = max(len(row) for row in cleaned)
 
-                                for dl in data_lines:
-                                    parts = dl.split()
-                                    if not parts or not parts[0].isdigit():
-                                        continue
+                                normalized_rows = [
+                                    row + [""] * (max_cols - len(row))
+                                    for row in cleaned
+                                ]
 
-                                    emp_no = parts[0]
-                                    name_parts, numbers = [], []
-                                    found_number = False
+                                first_row = normalized_rows[0]
+                                header_is_text = any(
+                                    cell and not is_number(cell)
+                                    for cell in first_row
+                                )
 
-                                    for p in parts[1:]:
-                                        if is_number(p):
-                                            found_number = True
-                                            numbers.append(f"{float(p):.2f}")
-                                        elif not found_number:
-                                            name_parts.append(p)
+                                if header_is_text:
+                                    main_headers = first_row
+                                    rows = normalized_rows[1:]
+                                else:
+                                    main_headers = [f"Column {i+1}" for i in range(max_cols)]
+                                    rows = normalized_rows
 
-                                    clean_name = " ".join(name_parts).strip()
-                                    padded_numbers = numbers + ["0.00"] * (expected_cols - len(numbers))
-                                    row = [emp_no, clean_name] + padded_numbers[:expected_cols]
-                                    structured_table["rows"].append(row)
+                                sub_headers = [[""] for _ in range(len(main_headers))]
 
-                        if structured_table["rows"]:
-                            page_data["tables"] = [structured_table]
+                                structured_tables.append({
+                                    "main_headers": main_headers,
+                                    "sub_headers": sub_headers,
+                                    "rows": rows
+                                })
 
+                        # ====================================================
+                        # 🥈 STEP 2: Fallback to text-based smart detection
+                        # ====================================================
+                        if not structured_tables:
+                            lines = [l.strip() for l in text.split("\n") if l.strip()]
+
+                            current_table = []
+                            detected_tables = []
+
+                            for line in lines:
+                                parts = line.split()
+
+                                numeric_count = sum(
+                                    1 for p in parts if is_number(p)
+                                )
+
+                                # Heuristic for table-like rows
+                                if len(parts) >= 2 and (numeric_count >= 1 or len(parts) >= 4):
+                                    current_table.append(parts)
+                                else:
+                                    if current_table:
+                                        detected_tables.append(current_table)
+                                        current_table = []
+
+                            if current_table:
+                                detected_tables.append(current_table)
+
+                            for table in detected_tables:
+                                if len(table) < 2:
+                                    continue
+
+                                max_cols = max(len(row) for row in table)
+
+                                normalized_rows = [
+                                    row + [""] * (max_cols - len(row))
+                                    for row in table
+                                ]
+
+                                first_row = normalized_rows[0]
+                                header_is_text = any(
+                                    not is_number(cell) for cell in first_row
+                                )
+
+                                if header_is_text:
+                                    main_headers = first_row
+                                    rows = normalized_rows[1:]
+                                else:
+                                    main_headers = [f"Column {i+1}" for i in range(max_cols)]
+                                    rows = normalized_rows
+
+                                sub_headers = [[""] for _ in range(len(main_headers))]
+
+                                structured_tables.append({
+                                    "main_headers": main_headers,
+                                    "sub_headers": sub_headers,
+                                    "rows": rows
+                                })
+
+                        page_data["tables"] = structured_tables
                         pages_data.append(page_data)
 
                 return Response({"pages": pages_data})

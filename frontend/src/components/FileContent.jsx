@@ -323,7 +323,7 @@ export default function FileContent({ fileId, role }) {
       const tables =
         p.tables && p.tables.length > 0
           ? p.tables
-          : [{ main_headers: mainHeaders, sub_headers: subHeaders, rows: [] }];
+          : [];
 
       return {
         page_number: p.page_number ?? pageIdx + 1,
@@ -376,19 +376,20 @@ export default function FileContent({ fileId, role }) {
     }
   };
 
-  const handleCellChange = (pageIdx, rowIdx, colIdx, value, format = false) => {
+  const handleCellChange = (pageIdx, tableIdx, rowIdx, colIdx, value, format = false) => {
     setPages((prevPages) => {
       const updated = [...prevPages];
-      const table = { ...updated[pageIdx].tables[0] };
+      const table = { ...updated[pageIdx].tables[tableIdx] };
       const row = [...table.rows[rowIdx]];
 
       row[colIdx] = format ? formatNumeric(value, colIdx) : value;
       table.rows[rowIdx] = row;
-      updated[pageIdx].tables[0] = table;
+      updated[pageIdx].tables[tableIdx] = table;
+
       return updated;
     });
 
-    if (format) {  
+    if (format) {
       if (saveTimeout.current) clearTimeout(saveTimeout.current);
       saveTimeout.current = setTimeout(() => handleAutoSave(), 1500);
     }
@@ -398,8 +399,10 @@ export default function FileContent({ fileId, role }) {
     setPages((prevPages) => {
       const updated = [...prevPages];
       const table = { ...updated[pageIdx].tables[0] };
-      table.rows[rowIdx] = [...originalPages[pageIdx].tables[0].rows[rowIdx]];
-      updated[pageIdx].tables[0] = table;
+      table.rows[rowIdx] = [
+        ...originalPages[pageIdx].tables[tableIdx].rows[rowIdx]
+      ];
+      updated[pageIdx].tables[tableIdx] = table;
       return updated;
     });
   };
@@ -482,40 +485,24 @@ export default function FileContent({ fileId, role }) {
     );
   }
 
-  const mainHeaders = [
-    "Emp.No",
-    "Name",
-    "Duty (By Days)",
-    "Late",
-    "UT",
-    "Work (By Hrs)",
-    "Day-Off (By Hrs)",
-    "SH (By Hrs)",
-    "LH (By Hrs)",
-    "Day-Off - SH (By Hrs)",
-    "Day-Off - LH (By Hrs)",
-  ];
+  const currentTable = currentPageData?.tables?.[0] || {
+    main_headers: [],
+    sub_headers: [],
+    rows: []
+  };
 
-  const subHeaders = [
-    [""],
-    [""],
-    ["WRK", "ABS", "LV", "HOL", "RES"],
-    [""],
-    [""],
-    ["REG", "OT", "ND", "OTND"],
-    ["REG", "OT", "ND", "OTND"],
-    ["REG", "OT", "ND", "OTND"],
-    ["REG", "OT", "ND", "OTND"],
-    ["REG", "OT", "ND", "OTND"],
-    ["REG", "OT", "ND", "OTND"],
-  ];
+  const mainHeaders = currentTable.main_headers || [];
+  const subHeaders = currentTable.sub_headers || [];
 
   const mergedRows = pages.flatMap((p, pageIdx) =>
-    (p.tables?.[0]?.rows || []).map((row, rowIdx) => ({
-      row,
-      pageIdx,
-      rowIdx,
-    }))
+    (p.tables || []).flatMap((table, tableIdx) =>
+      (table.rows || []).map((row, rowIdx) => ({
+        row,
+        pageIdx,
+        tableIdx,
+        rowIdx,
+      }))
+    )
   );
 
   return (
@@ -640,7 +627,15 @@ export default function FileContent({ fileId, role }) {
                 width: "100%",
               }}
             >
-               <DTRTable role={role} fileId={fileId} />
+               <DTRTable
+                  role={role}
+                  pages={pages}
+                  setPages={setPages}
+                  mainHeaders={mainHeaders}
+                  subHeaders={subHeaders}
+                  mergedRows={mergedRows}
+                  handleCellChange={handleCellChange}
+                />
             </div>
           </div>
         </div>

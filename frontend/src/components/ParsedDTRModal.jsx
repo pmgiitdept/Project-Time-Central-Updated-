@@ -1,121 +1,158 @@
-/* ParsedDTRModal.jsx */
-import React, { useState } from "react";
-import "./styles/PDFModal.css"; // we can reuse same CSS
+/* UploadedPDFs.jsx */
+import { useState, useEffect } from "react";
 import api from "../api";
+import { motion } from "framer-motion";
+import "./styles/ClientDashboard.css";
+import PDFTextModal from "./PDFTextModal"; // For PDFs
+import PDFContent from "./PDFContent";     // For Parsed DTRs
 
-export default function ParsedDTRModal({ dtrData, currentUser, onClose }) {
-  const [editableData, setEditableData] = useState(dtrData?.rows || []);
-  const [changes, setChanges] = useState({});
-  const isAdmin = currentUser?.role === "admin";
+export default function UploadedPDFs({ refreshTrigger, currentUser, uploaderFilter }) {
+  const [pdfFiles, setPdfFiles] = useState([]);
+  const [parsedDTRs, setParsedDTRs] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [selectedPDF, setSelectedPDF] = useState(null);
+  const [selectedParsedDTR, setSelectedParsedDTR] = useState(null);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
-  if (!dtrData) return null;
-
-  const handleEditCell = (rowIdx, field, newValue) => {
-    if (!isAdmin) return;
-
-    setEditableData((prev) => {
-      const updated = [...prev];
-      updated[rowIdx] = { ...updated[rowIdx], [field]: newValue };
-      return updated;
-    });
-
-    setChanges((prev) => ({
-      ...prev,
-      [rowIdx]: { ...prev[rowIdx], [field]: newValue },
-    }));
+  // Fetch PDFs
+  const fetchPDFs = async () => {
+    try {
+      const res = await api.get("/files/pdfs/");
+      let data = res.data.results || res.data;
+      if (uploaderFilter) data = data.filter(pdf => pdf.uploaded_by === uploaderFilter);
+      setPdfFiles(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Failed to fetch PDFs:", err);
+      setError("Failed to fetch PDFs");
+      setPdfFiles([]);
+    }
   };
 
-  const handleSave = async () => {
-    if (!isAdmin) return alert("Only admins can save changes.");
-
+  // Fetch Parsed DTRs
+  const fetchParsedDTRs = async () => {
     try {
-      await api.put(`/files/parsed-dtrs/${dtrData.id}/`, {
-        rows: editableData,
-        remarks: dtrData.remarks,
-      });
-      alert("✅ Changes saved successfully!");
+      const res = await api.get("/files/parsed-dtrs/");
+      let data = res.data.results || res.data;
+      if (uploaderFilter) data = data.filter(dtr => dtr.uploaded_by === uploaderFilter);
+      setParsedDTRs(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error("Failed to save Parsed DTR:", err);
-      alert("❌ Save failed. Check console for details.");
+      console.error("Failed to fetch Parsed DTRs:", err);
+      setParsedDTRs([]);
+    }
+  };
+
+  useEffect(() => {
+    setLoading(true);
+    setError("");
+    Promise.all([fetchPDFs(), fetchParsedDTRs()]).finally(() => setLoading(false));
+  }, [refreshTrigger]);
+
+  const toggleCollapse = () => setIsCollapsed(!isCollapsed);
+  const selectPDF = (pdf) => setSelectedPDF(pdf);
+  const selectParsedDTR = (dtr) => setSelectedParsedDTR(dtr);
+
+  const handleDeletePDF = async (pdfId) => {
+    if (!window.confirm("Are you sure you want to delete this PDF?")) return;
+    try {
+      await api.delete(`/files/pdfs/${pdfId}/`);
+      setPdfFiles(prev => prev.filter(p => p.id !== pdfId));
+      alert("PDF deleted successfully!");
+    } catch (err) {
+      console.error("Failed to delete PDF:", err);
+      alert("Failed to delete the PDF. Please try again.");
     }
   };
 
   return (
-    <div className="pdf-card-container">
-      <div className="pdf-card-header">
-        <h3>
-          {dtrData.employee_name} ({dtrData.employee_no})
-        </h3>
-        <p>Period: {dtrData.period_from} → {dtrData.period_to}</p>
-        <p>Project: {dtrData.project || "N/A"} | Dept: {dtrData.department || "N/A"}</p>
-        {isAdmin && (
-          <div className="header-buttons">
-            <button className="save-button" onClick={handleSave}>
-              💾 Save Changes
-            </button>
-          </div>
-        )}
-        <button className="close-btn" onClick={onClose}>❌ Close</button>
-      </div>
+    <div className="dashboard-layout">
+      {/* Left sidebar */}
+      <motion.div
+        className="upload-card sidebar1"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        transition={{ duration: 0.5, ease: "easeInOut" }}
+      >
+        <div className="upload-card-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <h2 className="upload-title">Uploaded DTRs</h2>
+          <button onClick={toggleCollapse} className="collapse-btn">
+            {isCollapsed ? "🔽 Show" : "🔼 Hide"}
+          </button>
+        </div>
 
-      <div className="pdf-card-body">
-        {editableData.length === 0 ? (
-          <p>No DTR data available.</p>
-        ) : (
-          <div className="table-container">
-            <table className={`pdf-table ${isAdmin ? "editable-table" : ""}`}>
-              <thead>
-                <tr>
-                  {Object.keys(editableData[0]).map((key, idx) => (
-                    <th key={idx}>{key.toUpperCase()}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {editableData.map((row, rIdx) => (
-                  <tr key={rIdx}>
-                    {Object.entries(row).map(([field, value], cIdx) => (
-                      <td key={cIdx}>
-                        {isAdmin ? (
-                          <input
-                            type="text"
-                            value={value || ""}
-                            onChange={(e) => handleEditCell(rIdx, field, e.target.value)}
-                          />
-                        ) : (
-                          value
-                        )}
-                      </td>
-                    ))}
-                  </tr>
+        {!isCollapsed && (
+          <>
+            {loading ? (
+              <p>Loading files...</p>
+            ) : error ? (
+              <p style={{ color: "red" }}>{error}</p>
+            ) : pdfFiles.length === 0 && parsedDTRs.length === 0 ? (
+              <p>No uploaded DTRs yet.</p>
+            ) : (
+              <div className="pdf-grid">
+                {/* PDFs */}
+                {pdfFiles.map(pdf => (
+                  <motion.div key={pdf.id} className="pdf-card" whileHover={{ scale: 1.03 }} transition={{ duration: 0.2 }}>
+                    <p className="pdf-name">📄 {pdf.file.split("/").pop()}</p>
+                    <p className="pdf-info">Uploaded: <strong>{new Date(pdf.uploaded_at).toLocaleString()}</strong></p>
+                    <p className="pdf-info">Period: <strong>{pdf.readable_period || "N/A"}</strong></p>
+                    <p className="pdf-info">Project: <strong>{pdf.uploaded_by_name || "N/A"}</strong></p>
+
+                    <div className="pdf-buttons">
+                      <button onClick={() => selectPDF(pdf)} className="upload-button">🧾 View DTR</button>
+                      {currentUser?.role === "admin" && (
+                        <button
+                          onClick={() => handleDeletePDF(pdf.id)}
+                          className="upload-button delete-btn"
+                          style={{ background: "#e63946", color: "white", marginLeft: "0.5rem" }}
+                        >
+                          🗑️ Delete
+                        </button>
+                      )}
+                    </div>
+                  </motion.div>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        )}
 
-        {dtrData.totals && (
-          <div className="totals-container">
-            <h4>Totals</h4>
-            <table className="pdf-table">
-              <tbody>
-                {Object.entries(dtrData.totals).map(([key, value]) => (
-                  <tr key={key}>
-                    <td><strong>{key}</strong></td>
-                    <td>{value}</td>
-                  </tr>
+                {/* Parsed DTRs using PDFContent */}
+                {parsedDTRs.map(dtr => (
+                  <motion.div key={dtr.id} className="pdf-card" whileHover={{ scale: 1.03 }} transition={{ duration: 0.2 }}>
+                    <p className="pdf-name">🗂 {dtr.employee_name} ({dtr.employee_no})</p>
+                    <p className="pdf-info">Period: <strong>{dtr.period_from} → {dtr.period_to}</strong></p>
+                    <p className="pdf-info">Project: <strong>{dtr.project || "N/A"}</strong></p>
+
+                    <div className="pdf-buttons">
+                      <button onClick={() => selectParsedDTR(dtr)} className="upload-button">🧾 View Parsed DTR</button>
+                    </div>
+                  </motion.div>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </div>
+            )}
+          </>
         )}
+      </motion.div>
 
-        {dtrData.remarks && (
-          <div className="remarks-container">
-            <strong>Remarks:</strong> {dtrData.remarks}
+      {/* PDF Viewer Modal for PDFs */}
+      {selectedPDF && (
+        <PDFTextModal
+          pdfData={selectedPDF}
+          currentUser={currentUser}
+          onClose={() => setSelectedPDF(null)}
+        />
+      )}
+
+      {/* PDFContent Modal for Parsed DTRs */}
+      {selectedParsedDTR && (
+        <div className="modal-overlay3">
+          <div className="modal-content3" style={{ width: "90%", maxWidth: "1000px", height: "90vh", overflow: "auto" }}>
+            <div className="modal-header">
+              <h2>{selectedParsedDTR.employee_name} ({selectedParsedDTR.employee_no})</h2>
+              <button onClick={() => setSelectedParsedDTR(null)}>✖ Close</button>
+            </div>
+            <PDFContent fileId={selectedParsedDTR.id} role={currentUser?.role} />
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

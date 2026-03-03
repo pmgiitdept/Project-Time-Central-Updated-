@@ -570,7 +570,7 @@ export default function AdminDashboard() {
           siteName: s.site_name,
           maxFileSize: s.max_file_size,
           allowedTypes: s.allowed_types,
-          retentionDays: s.retention_days || 30,
+          retentionDays: s.retention_days || 365,
           requireVerification: s.require_verification || false,
           autoArchive: s.auto_archive || false,
           defaultRole: s.default_role || "client",
@@ -586,7 +586,7 @@ export default function AdminDashboard() {
           site_name: "Project Time Central",
           max_file_size: 50,
           allowed_types: ["pdf", "docx"],
-          retention_days: 30,
+          retention_days: 365,
           require_verification: false,
           auto_archive: false,
           default_role: "client",
@@ -1597,7 +1597,7 @@ export default function AdminDashboard() {
                       File retention period (days):
                       <input
                         type="number"
-                        value={settings.retentionDays || 30}
+                        value={settings.retentionDays || 365}
                         onChange={e => setSettings({ ...settings, retentionDays: parseInt(e.target.value) || 0 })}
                         className="ml-2 border rounded px-2 py-1 w-full"
                       />

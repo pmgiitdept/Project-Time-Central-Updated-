@@ -383,20 +383,6 @@ export default function FileTable({ role, setSelectedFile, uploaderFilter = null
                             setSelectedFileId(file.id);
                           }}
                         >
-                            {role === "admin" && (
-                              <td>
-                                <input
-                                  type="checkbox"
-                                  checked={selectedFiles.includes(file.id)}
-                                  onChange={(e) => {
-                                    if (e.target.checked) setSelectedFiles([...selectedFiles, file.id]);
-                                    else setSelectedFiles(selectedFiles.filter(id => id !== file.id));
-                                  }}
-                                  onClick={(e) => e.stopPropagation()}
-                                />
-                              </td>
-                            )}
-
                             <td>{file.uploaded_by?.username || "N/A"}</td>
                             <td>{new Date(file.uploaded_at).toLocaleString()}</td>
 

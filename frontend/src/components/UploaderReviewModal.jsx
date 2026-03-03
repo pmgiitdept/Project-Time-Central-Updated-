@@ -8,13 +8,12 @@ import "./styles/ClientDashboard.css";
 import "./styles/UploaderReviewModal.css";
 
 export default function UploaderReviewModal({ uploader, uploaders = [], onClose }) {
-  const [selectedUploader, setSelectedUploader] = useState(uploader); // start with current uploader
+  const [selectedUploader, setSelectedUploader] = useState(uploader); 
   const [selectedFile, setSelectedFile] = useState(null);
 
   const rightContentRef = useRef(null);
   const topScrollRef = useRef(null);
 
-  // --- Scroll sync logic
   useEffect(() => {
     const topScroll = topScrollRef.current;
     const content = rightContentRef.current;
@@ -32,7 +31,6 @@ export default function UploaderReviewModal({ uploader, uploaders = [], onClose 
     };
   }, []);
 
-  // --- ESC key closes modal
   useEffect(() => {
     const handleEsc = (e) => {
       if (e.key === "Escape") onClose();

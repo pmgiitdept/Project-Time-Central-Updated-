@@ -169,196 +169,89 @@ class FileViewSet(viewsets.ModelViewSet):
             # --- PDF ---
             elif file_name.endswith(".pdf"):
                 import pdfplumber
-                from pdf2image import convert_from_bytes
-                import easyocr
-                import numpy as np
-                import io
-                import logging
-
-                # Set up logging
-                logging.basicConfig(level=logging.INFO)
-                
                 pages_data = []
-
-                # 🔥 Initialize EasyOCR once
-                reader = easyocr.Reader(['en'], gpu=False)
 
                 def is_number(val):
                     try:
-                        float(val.replace(",", ""))
+                        float(val)
                         return True
-                    except:
+                    except ValueError:
                         return False
 
                 file_obj.file.seek(0)
-                pdf_bytes = file_obj.file.read()
+                with pdfplumber.open(file_obj.file) as pdf:
+                    for i, page in enumerate(pdf.pages, start=1):
+                        page_data = {"page_number": i}
 
-                with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
-                    for page_index, page in enumerate(pdf.pages, start=1):
+                        text = page.extract_text()
+                        if text:
+                            page_data["text"] = text
 
-                        logging.info(f"📄 Processing Page {page_index}")
+                        lines = text.splitlines() if text else []
+                        structured_table = {"main_headers": [], "sub_headers": [], "rows": []}
 
-                        page_data = {
-                            "page_number": page_index,
-                            "tables": [],
-                            "text": ""
-                        }
+                        if lines:
+                            header_idx = None
+                            for idx, line in enumerate(lines):
+                                if "Emp." in line and "DUTY" in line:
+                                    header_idx = idx
+                                    break
 
-                        text = page.extract_text() or ""
-                        page_data["text"] = text
-
-                        structured_tables = []
-
-                        # ==========================================
-                        # 🥇 STEP 1: Native PDF table extraction
-                        # ==========================================
-                        extracted_tables = page.extract_tables()
-                        logging.info(f"Native tables found: {len(extracted_tables) if extracted_tables else 0}")
-
-                        if extracted_tables:
-                            for table in extracted_tables:
-                                if not table or len(table) < 2:
-                                    continue
-
-                                cleaned = [
-                                    [cell.strip() if cell else "" for cell in row]
-                                    for row in table
+                            if header_idx is not None:
+                                structured_table["main_headers"] = [
+                                    "Emp. No",
+                                    "Name",
+                                    "Duty (By Days)",
+                                    "Late",
+                                    "UT",
+                                    "Work (By Hrs)",
+                                    "Day-Off (By Hours)",
+                                    "SH (By Hrs)",
+                                    "LH (By Hrs)",
+                                    "Day-Off - SH (By Hrs)",
+                                    "Day-Off - LH (By Hrs)"
                                 ]
-                                max_cols = max(len(row) for row in cleaned)
-                                normalized_rows = [row + [""] * (max_cols - len(row)) for row in cleaned]
-                                first_row = normalized_rows[0]
+                                structured_table["sub_headers"] = [
+                                    [""], [""],
+                                    ["WRK", "ABS", "LV", "HOL", "RES"],
+                                    [""], [""],
+                                    ["REG", "OT", "ND", "OTND"],
+                                    ["REG", "OT", "ND", "OTND"],
+                                    ["REG", "OT", "ND", "OTND"],
+                                    ["REG", "OT", "ND", "OTND"],
+                                    ["REG", "OT", "ND", "OTND"],
+                                    ["REG", "OT", "ND", "OTND"],
+                                ]
 
-                                header_is_text = any(cell and not is_number(cell) for cell in first_row)
+                                data_lines = lines[header_idx + 1:]
+                                expected_cols = sum(len(group) for group in structured_table["sub_headers"])
 
-                                if header_is_text:
-                                    main_headers = first_row
-                                    rows = normalized_rows[1:]
-                                else:
-                                    main_headers = [f"Column {i+1}" for i in range(max_cols)]
-                                    rows = normalized_rows
-
-                                sub_headers = [[""] for _ in range(len(main_headers))]
-
-                                structured_tables.append({
-                                    "main_headers": main_headers,
-                                    "sub_headers": sub_headers,
-                                    "rows": rows
-                                })
-
-                        # ==========================================
-                        # 🥈 STEP 2: Text-based table detection
-                        # ==========================================
-                        if not structured_tables and text.strip():
-                            logging.info("Fallback to text-based table detection")
-                            lines = [l.strip() for l in text.split("\n") if l.strip()]
-                            current_table = []
-                            detected_tables = []
-
-                            for line in lines:
-                                # split by 2+ spaces or tabs (more robust than single space)
-                                import re
-                                parts = re.split(r'\s{2,}|\t', line)
-                                numeric_count = sum(1 for p in parts if is_number(p))
-
-                                if len(parts) >= 3:
-                                    current_table.append(parts)
-                                else:
-                                    if current_table:
-                                        detected_tables.append(current_table)
-                                        current_table = []
-
-                            if current_table:
-                                detected_tables.append(current_table)
-
-                            logging.info(f"Text-detected tables: {len(detected_tables)}")
-
-                            for table in detected_tables:
-                                if len(table) < 2:
-                                    continue
-
-                                max_cols = max(len(row) for row in table)
-                                normalized_rows = [row + [""] * (max_cols - len(row)) for row in table]
-
-                                first_row = normalized_rows[0]
-                                header_is_text = any(not is_number(cell) for cell in first_row)
-
-                                if header_is_text:
-                                    main_headers = first_row
-                                    rows = normalized_rows[1:]
-                                else:
-                                    main_headers = [f"Column {i+1}" for i in range(max_cols)]
-                                    rows = normalized_rows
-
-                                sub_headers = [[""] for _ in range(len(main_headers))]
-
-                                structured_tables.append({
-                                    "main_headers": main_headers,
-                                    "sub_headers": sub_headers,
-                                    "rows": rows
-                                })
-
-                        # ==========================================
-                        # 🥉 STEP 3: OCR for scanned PDFs
-                        # ==========================================
-                        if not structured_tables and not text.strip():
-                            logging.info("Fallback to OCR-based table detection")
-                            images = convert_from_bytes(
-                                pdf_bytes,
-                                first_page=page_index,
-                                last_page=page_index
-                            )
-
-                            for img in images:
-                                img_np = np.array(img)
-                                results = reader.readtext(img_np, detail=0)
-                                ocr_text = "\n".join(results)
-                                page_data["text"] = ocr_text
-
-                                lines = [l.strip() for l in ocr_text.split("\n") if l.strip()]
-                                current_table = []
-                                detected_tables = []
-
-                                for line in lines:
-                                    parts = re.split(r'\s{2,}|\t', line)
-                                    numeric_count = sum(1 for p in parts if is_number(p))
-
-                                    if len(parts) >= 3:
-                                        current_table.append(parts)
-                                    else:
-                                        if current_table:
-                                            detected_tables.append(current_table)
-                                            current_table = []
-
-                                if current_table:
-                                    detected_tables.append(current_table)
-
-                                logging.info(f"OCR-detected tables: {len(detected_tables)}")
-
-                                for table in detected_tables:
-                                    if len(table) < 2:
+                                for dl in data_lines:
+                                    parts = dl.split()
+                                    if not parts or not parts[0].isdigit():
                                         continue
 
-                                    max_cols = max(len(row) for row in table)
-                                    normalized_rows = [row + [""] * (max_cols - len(row)) for row in table]
+                                    emp_no = parts[0]
+                                    name_parts, numbers = [], []
+                                    found_number = False
 
-                                    main_headers = normalized_rows[0]
-                                    rows = normalized_rows[1:]
-                                    sub_headers = [[""] for _ in range(len(main_headers))]
+                                    for p in parts[1:]:
+                                        if is_number(p):
+                                            found_number = True
+                                            numbers.append(f"{float(p):.2f}")
+                                        elif not found_number:
+                                            name_parts.append(p)
 
-                                    structured_tables.append({
-                                        "main_headers": main_headers,
-                                        "sub_headers": sub_headers,
-                                        "rows": rows
-                                    })
+                                    clean_name = " ".join(name_parts).strip()
+                                    padded_numbers = numbers + ["0.00"] * (expected_cols - len(numbers))
+                                    row = [emp_no, clean_name] + padded_numbers[:expected_cols]
+                                    structured_table["rows"].append(row)
 
-                        # Log if no tables detected at all
-                        if not structured_tables:
-                            logging.warning(f"❌ No tables detected on page {page_index}")
+                        if structured_table["rows"]:
+                            page_data["tables"] = [structured_table]
 
-                        page_data["tables"] = structured_tables
                         pages_data.append(page_data)
 
-                logging.info(f"✅ Total pages processed: {len(pages_data)}")
                 return Response({"pages": pages_data})
 
             elif file_name.endswith((".jpg", ".jpeg", ".png")):

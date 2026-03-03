@@ -22,9 +22,6 @@ export default function DTRTable({ role , fileId}) {
   const [editableRow, setEditableRow] = useState(null); 
   const originalRowRef = useRef(null);
 
-  const oneMonthAgo = new Date();
-  oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-
   const currentUser = (() => {
     try {
       return JSON.parse(localStorage.getItem("user") || "null");
@@ -189,18 +186,6 @@ export default function DTRTable({ role , fileId}) {
       prev.includes(col) ? prev.filter((c) => c !== col) : [...prev, col]
     );
   };
-
-  const visibleFiles = dtrFiles.filter(file => {
-    if (!file) return false;
-
-    const uploadedDate = new Date(file.uploaded_at || file.start_date);
-
-    if (file.status === "verified" && uploadedDate < oneMonthAgo) {
-      return false;
-    }
-
-    return true; 
-  });
 
   const staticColumns = [
     { key: "full_name", label: "Full Name" },

@@ -20,9 +20,7 @@ export default function UploadedPDFs({ refreshTrigger, currentUser, uploaderFilt
     try {
       const res = await api.get("/files/pdfs/");
       let data = res.data.results || res.data;
-      if (uploaderFilter) {
-        data = data.filter(pdf => pdf.uploaded_by === uploaderFilter);
-      }
+      if (uploaderFilter) data = data.filter(pdf => pdf.uploaded_by === uploaderFilter);
       setPdfFiles(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Failed to fetch PDFs:", err);
@@ -36,9 +34,7 @@ export default function UploadedPDFs({ refreshTrigger, currentUser, uploaderFilt
     try {
       const res = await api.get("/files/parsed-dtrs/");
       let data = res.data.results || res.data;
-      if (uploaderFilter) {
-        data = data.filter(dtr => dtr.uploaded_by === uploaderFilter);
-      }
+      if (uploaderFilter) data = data.filter(dtr => dtr.uploaded_by === uploaderFilter);
       setParsedDTRs(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Failed to fetch Parsed DTRs:", err);
@@ -58,8 +54,7 @@ export default function UploadedPDFs({ refreshTrigger, currentUser, uploaderFilt
   const selectParsedDTR = (dtr) => setSelectedParsedDTR(dtr);
 
   const handleDeletePDF = async (pdfId) => {
-    const confirmed = window.confirm("Are you sure you want to delete this PDF?");
-    if (!confirmed) return;
+    if (!window.confirm("Are you sure you want to delete this PDF?")) return;
 
     try {
       await api.delete(`/files/pdfs/${pdfId}/`);
@@ -73,7 +68,6 @@ export default function UploadedPDFs({ refreshTrigger, currentUser, uploaderFilt
 
   return (
     <div className="dashboard-layout">
-      {/* Left sidebar for PDFs and Parsed DTRs */}
       <motion.div
         className="upload-card sidebar1"
         initial={{ opacity: 0, y: 20 }}
@@ -98,41 +92,43 @@ export default function UploadedPDFs({ refreshTrigger, currentUser, uploaderFilt
               <p>No uploaded DTRs yet.</p>
             ) : (
               <div className="pdf-grid">
-                {/* Render PDF files */}
-                {pdfFiles.map(pdf => (
-                  <motion.div key={pdf.id} className="pdf-card" whileHover={{ scale: 1.03 }} transition={{ duration: 0.2 }}>
-                    <p className="pdf-name">📄 {pdf.file.split("/").pop()}</p>
-                    <p className="pdf-info">Uploaded: <strong>{new Date(pdf.uploaded_at).toLocaleString()}</strong></p>
-                    <p className="pdf-info">Period: <strong>{pdf.readable_period || "N/A"}</strong></p>
-                    <p className="pdf-info">Project: <strong>{pdf.uploaded_by_name || "N/A"}</strong></p>
+                {pdfFiles.map(pdf => {
+                  // Find linked parsed DTR, if any
+                  const linkedDTR = parsedDTRs.find(dtr => dtr.pdf_id === pdf.id);
 
-                    <div className="pdf-buttons">
-                      <button onClick={() => selectPDF(pdf)} className="upload-button">🧾 View DTR</button>
-                      {currentUser?.role === "admin" && (
-                        <button
-                          onClick={() => handleDeletePDF(pdf.id)}
-                          className="upload-button delete-btn"
-                          style={{ background: "#e63946", color: "white", marginLeft: "0.5rem" }}
-                        >
-                          🗑️ Delete
-                        </button>
-                      )}
-                    </div>
-                  </motion.div>
-                ))}
+                  return (
+                    <motion.div key={pdf.id} className="pdf-card" whileHover={{ scale: 1.03 }} transition={{ duration: 0.2 }}>
+                      <p className="pdf-name">📄 {pdf.file.split("/").pop()}</p>
+                      <p className="pdf-info">Uploaded: <strong>{new Date(pdf.uploaded_at).toLocaleString()}</strong></p>
+                      <p className="pdf-info">Period: <strong>{pdf.readable_period || "N/A"}</strong></p>
+                      <p className="pdf-info">Project: <strong>{pdf.uploaded_by_name || "N/A"}</strong></p>
 
-                {/* Render Parsed DTRs */}
-                {parsedDTRs.map(dtr => (
-                  <motion.div key={dtr.id} className="pdf-card" whileHover={{ scale: 1.03 }} transition={{ duration: 0.2 }}>
-                    <p className="pdf-name">🗂 {dtr.employee_name} ({dtr.employee_no})</p>
-                    <p className="pdf-info">Period: <strong>{dtr.period_from} → {dtr.period_to}</strong></p>
-                    <p className="pdf-info">Project: <strong>{dtr.project || "N/A"}</strong></p>
+                      <div className="pdf-buttons">
+                        <button onClick={() => selectPDF(pdf)} className="upload-button">🧾 View DTR</button>
 
-                    <div className="pdf-buttons">
-                      <button onClick={() => selectParsedDTR(dtr)} className="upload-button">🧾 View Parsed DTR</button>
-                    </div>
-                  </motion.div>
-                ))}
+                        {linkedDTR && (
+                          <button
+                            onClick={() => selectParsedDTR(linkedDTR)}
+                            className="upload-button"
+                            style={{ marginLeft: "0.5rem" }}
+                          >
+                            🧾 View Parsed DTR
+                          </button>
+                        )}
+
+                        {currentUser?.role === "admin" && (
+                          <button
+                            onClick={() => handleDeletePDF(pdf.id)}
+                            className="upload-button delete-btn"
+                            style={{ background: "#e63946", color: "white", marginLeft: "0.5rem" }}
+                          >
+                            🗑️ Delete
+                          </button>
+                        )}
+                      </div>
+                    </motion.div>
+                  );
+                })}
               </div>
             )}
           </>

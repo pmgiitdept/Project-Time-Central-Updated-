@@ -169,7 +169,14 @@ class FileViewSet(viewsets.ModelViewSet):
             # --- PDF ---
             elif file_name.endswith(".pdf"):
                 import pdfplumber
+                from pdf2image import convert_from_bytes
+                import easyocr
+                import numpy as np
+
                 pages_data = []
+
+                # 🔥 Initialize EasyOCR ONCE (important!)
+                reader = easyocr.Reader(['en'], gpu=False)
 
                 def is_number(val):
                     try:
@@ -179,8 +186,9 @@ class FileViewSet(viewsets.ModelViewSet):
                         return False
 
                 file_obj.file.seek(0)
+                pdf_bytes = file_obj.file.read()
 
-                with pdfplumber.open(file_obj.file) as pdf:
+                with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
                     for page_index, page in enumerate(pdf.pages, start=1):
 
                         page_data = {
@@ -204,7 +212,6 @@ class FileViewSet(viewsets.ModelViewSet):
                                 if not table or len(table) < 2:
                                     continue
 
-                                # Remove None values
                                 cleaned = [
                                     [cell.strip() if cell else "" for cell in row]
                                     for row in table
@@ -241,7 +248,8 @@ class FileViewSet(viewsets.ModelViewSet):
                         # ====================================================
                         # 🥈 STEP 2: Fallback to text-based smart detection
                         # ====================================================
-                        if not structured_tables:
+                        if not structured_tables and text.strip():
+
                             lines = [l.strip() for l in text.split("\n") if l.strip()]
 
                             current_table = []
@@ -249,12 +257,8 @@ class FileViewSet(viewsets.ModelViewSet):
 
                             for line in lines:
                                 parts = line.split()
+                                numeric_count = sum(1 for p in parts if is_number(p))
 
-                                numeric_count = sum(
-                                    1 for p in parts if is_number(p)
-                                )
-
-                                # Heuristic for table-like rows
                                 if len(parts) >= 2 and (numeric_count >= 1 or len(parts) >= 4):
                                     current_table.append(parts)
                                 else:
@@ -295,6 +299,65 @@ class FileViewSet(viewsets.ModelViewSet):
                                     "sub_headers": sub_headers,
                                     "rows": rows
                                 })
+
+                        # ====================================================
+                        # 🥉 STEP 3: OCR Fallback (Scanned PDFs)
+                        # ====================================================
+                        if not structured_tables and not text.strip():
+
+                            images = convert_from_bytes(
+                                pdf_bytes,
+                                first_page=page_index,
+                                last_page=page_index
+                            )
+
+                            for img in images:
+                                img_np = np.array(img)
+                                results = reader.readtext(img_np, detail=0)
+
+                                ocr_text = "\n".join(results)
+                                page_data["text"] = ocr_text
+
+                                lines = [l.strip() for l in ocr_text.split("\n") if l.strip()]
+
+                                current_table = []
+                                detected_tables = []
+
+                                for line in lines:
+                                    parts = line.split()
+                                    numeric_count = sum(1 for p in parts if is_number(p))
+
+                                    if len(parts) >= 2 and (numeric_count >= 1 or len(parts) >= 4):
+                                        current_table.append(parts)
+                                    else:
+                                        if current_table:
+                                            detected_tables.append(current_table)
+                                            current_table = []
+
+                                if current_table:
+                                    detected_tables.append(current_table)
+
+                                for table in detected_tables:
+                                    if len(table) < 2:
+                                        continue
+
+                                    max_cols = max(len(row) for row in table)
+
+                                    normalized_rows = [
+                                        row + [""] * (max_cols - len(row))
+                                        for row in table
+                                    ]
+
+                                    main_headers = normalized_rows[0]
+                                    rows = normalized_rows[1:]
+
+                                    sub_headers = [[""] for _ in range(len(main_headers))]
+
+                                    structured_tables.append({
+                                        "main_headers": main_headers,
+                                        "sub_headers": sub_headers,
+                                        "rows": rows
+                                    })
 
                         page_data["tables"] = structured_tables
                         pages_data.append(page_data)

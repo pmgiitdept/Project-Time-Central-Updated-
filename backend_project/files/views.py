@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from django.http import FileResponse, Http404, HttpResponse
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from openpyxl import load_workbook, Workbook
-import io, re, logging, csv, math, traceback, os, numbers
+import io, re, logging, csv, math, traceback, os, numbers, base64
 from accounts.models import User
 from reportlab.pdfgen import canvas
 from django.db.models import Count, Q, IntegerField
@@ -26,6 +26,7 @@ from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from openpyxl.drawing.image import Image
 from openpyxl.utils import get_column_letter
 from rest_framework.pagination import PageNumberPagination
+from pdf2image import convert_from_bytes
 
 def log_action(user, action, status="success", ip_address=None):
     AuditLog.objects.create(
@@ -511,6 +512,38 @@ class FileViewSet(viewsets.ModelViewSet):
 
         except Exception as e:
             return Response({"detail": f"Failed to save content: {str(e)}"}, status=400)
+        
+    @action(detail=True, methods=["get"], url_path="visual-content")
+    def get_visual_content(self, request, pk=None):
+        """
+        Return PDF pages as base64 images so frontend can display them exactly as uploaded.
+        Only for PDFs.
+        """
+        file_obj = self.get_object()
+        file_name = file_obj.file.name.lower()
+
+        if not file_name.endswith(".pdf"):
+            return Response({"detail": "Visual content only supported for PDFs"}, status=400)
+
+        try:
+            file_obj.file.seek(0)
+            pdf_bytes = file_obj.file.read()
+            pages = convert_from_bytes(pdf_bytes)
+
+            pages_data = []
+            for i, page in enumerate(pages, start=1):
+                from io import BytesIO
+                buffer = BytesIO()
+                page.save(buffer, format="PNG")
+                img_str = base64.b64encode(buffer.getvalue()).decode("utf-8")
+                pages_data.append({"page_number": i, "image_base64": img_str})
+
+            return Response({"pages": pages_data})
+
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return Response({"detail": f"Failed to render PDF visually: {str(e)}"}, status=400)
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])

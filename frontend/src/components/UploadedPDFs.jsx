@@ -15,6 +15,8 @@ export default function UploadedPDFs({ refreshTrigger, currentUser, uploaderFilt
   const [selectedParsedDTR, setSelectedParsedDTR] = useState(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
+  const [selectedVisualPDF, setSelectedVisualPDF] = useState(null);
+
   const fetchPDFs = async () => {
     try {
       const res = await api.get("/files/pdfs/");
@@ -104,6 +106,15 @@ export default function UploadedPDFs({ refreshTrigger, currentUser, uploaderFilt
 
                     <div className="pdf-buttons">
                       <button onClick={() => selectPDF(pdf)} className="upload-button">🧾 View DTR</button>
+
+                      <button
+                        onClick={() => setSelectedVisualPDF(pdf)}
+                        className="upload-button"
+                        style={{ marginLeft: "0.5rem" }}
+                      >
+                        👁️ View Visual
+                      </button>
+
                       {currentUser?.role === "admin" && (
                         <button
                           onClick={() => handleDeletePDF(pdf.id)}
@@ -142,6 +153,13 @@ export default function UploadedPDFs({ refreshTrigger, currentUser, uploaderFilt
         />
       )}
 
+      {selectedVisualPDF && (
+        <PDFVisualModal
+          pdfData={selectedVisualPDF}
+          onClose={() => setSelectedVisualPDF(null)}
+        />
+      )}
+      
       {selectedParsedDTR && (
         <ParsedDTRModal
           dtrData={selectedParsedDTR}

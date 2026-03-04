@@ -3,7 +3,6 @@ import { useState } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import "./styles/PDFModal.css";
 
-// Point to the static file in public/
 pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
 export default function PDFModal({ fileUrl, isOpen, onClose }) {

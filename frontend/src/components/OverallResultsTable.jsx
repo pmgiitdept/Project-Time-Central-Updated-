@@ -21,7 +21,6 @@ export default function OverallResultsTable() {
   const [selectedProject, setSelectedProject] = useState("");
   const [projectStats, setProjectStats] = useState([]);
 
-  // --- Fetch DTR summary ---
   const fetchDTRStats = async () => {
     try {
       const token = localStorage.getItem("access_token");
@@ -47,7 +46,6 @@ export default function OverallResultsTable() {
     }
   };
 
-  // --- Fetch Employee Directory summary ---
   const fetchEmployeeStats = async () => {
     try {
       const token = localStorage.getItem("access_token");
@@ -138,7 +136,6 @@ export default function OverallResultsTable() {
           </button>
         </div>
 
-        {/* === DTR Pie Charts === */}
         <section className="chart-section">
           <div className="chart-header">
             <FaChartPie size={24} color="#28a745" style={{ marginRight: 8 }} />
@@ -182,7 +179,6 @@ export default function OverallResultsTable() {
           </div>
         </section>
 
-        {/* === Employee Count per Project / Department === */}
         <section className="chart-section">
           <div className="chart-header">
             <FaUsers size={22} color="#007bff" style={{ marginRight: 8 }} />
@@ -192,7 +188,6 @@ export default function OverallResultsTable() {
             Understand how employees are distributed across each <strong>Project</strong>. Hover over bars for details.
           </p>
 
-          {/* 🧮 Calculate Total Employee Count */}
           <div className="chart-summary" style={{ textAlign: "center", marginBottom: "0.8rem" }}>
             <p style={{ fontSize: "1rem", color: "#555" }}>
               <strong>Total Manpower:</strong>{" "}
@@ -202,7 +197,6 @@ export default function OverallResultsTable() {
             </p>
           </div>
 
-          {/* 🆕 Scrollable Chart Wrapper */}
           <div style={{ width: "100%", overflowX: "auto" }}>
             <div style={{ width: `${empStats.length * 80}px`, minWidth: "100%" }}>
               <ResponsiveContainer width="100%" height={350}>
@@ -213,8 +207,8 @@ export default function OverallResultsTable() {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis
                     dataKey="name"
-                    interval={0}               // ✅ Show all labels
-                    angle={-35}                // ✅ Tilt for readability
+                    interval={0}              
+                    angle={-35}               
                     textAnchor="end"
                     height={80}
                     tick={{ fontSize: 12, fill: "#333", fontWeight: 500 }}
@@ -237,7 +231,6 @@ export default function OverallResultsTable() {
           </div>
         </section>
 
-        {/* === Project-Specific Breakdown === */}
         <section className="chart-section">
           <div className="chart-header">
             <FaProjectDiagram size={22} color="#17a2b8" style={{ marginRight: 8 }} />

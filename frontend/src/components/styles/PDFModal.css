@@ -330,7 +330,7 @@
   width: 50px;
   border: 1px solid #ccc;
   min-width: 0; 
-  box-sizing: border-box; /* include padding/border in width */
+  box-sizing: border-box;
   padding: 0.3rem 0.5rem;
   font-size: 10px;
   background: #fff;

@@ -433,24 +433,22 @@ export default function AdminDashboard() {
 
       const files = Array.isArray(res.data.results) ? res.data.results : res.data;
 
-      // Helper: Format date based on selected period
       const formatDate = (dateStr) => {
         if (!dateStr) return "Unknown";
 
-        // Parse as UTC date to avoid timezone issues
         const date = new Date(dateStr);
         if (isNaN(date)) return "Unknown";
 
         switch (period) {
           case "day":
-            return `${date.getUTCMonth() + 1}/${date.getUTCDate()}/${date.getUTCFullYear()}`; // MM/DD/YYYY
+            return `${date.getUTCMonth() + 1}/${date.getUTCDate()}/${date.getUTCFullYear()}`; 
           case "week":
             const weekStart = new Date(date);
             const weekEnd = new Date(date);
             weekEnd.setUTCDate(weekStart.getUTCDate() + 6);
             return `${weekStart.getUTCMonth() + 1}/${weekStart.getUTCDate()} - ${weekEnd.getUTCMonth() + 1}/${weekEnd.getUTCDate()}`;
           case "month":
-            return date.toLocaleDateString("en-US", { month: "short", year: "numeric" }); // Oct 2025
+            return date.toLocaleDateString("en-US", { month: "short", year: "numeric" }); 
           case "year":
             return date.getFullYear().toString();
           default:
@@ -458,7 +456,6 @@ export default function AdminDashboard() {
         }
       };
 
-      // Group files by formatted date
       const grouped = {};
       files.forEach((file) => {
         const periodKey = formatDate(file.uploaded_at);
@@ -860,7 +857,6 @@ export default function AdminDashboard() {
 
   return (
     <div className="admin-dashboard">
-      {/* Navbar */}
       <nav className="navbar">
         <div className="navbar-left">
           <img src="/images/pmgi.png" alt="Logo Left" className="navbar-logo" />
@@ -886,9 +882,7 @@ export default function AdminDashboard() {
         />
       </nav>
 
-      {/* Main Content */}
       <div className="dashboard-main">
-        {/* Sidebar */}
         <div className={`sidebar ${sidebarOpen ? "" : "closed"}`}>
           <h3>Menu</h3>
           <div className="sidebar-buttons">
@@ -905,7 +899,6 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Sidebar toggle */}
         <button
           className={`sidebar-toggle ${sidebarOpen ? "open" : ""}`}
           onClick={() => setSidebarOpen((prev) => !prev)}
@@ -916,9 +909,7 @@ export default function AdminDashboard() {
           <span className="burger-line"></span>
         </button>
 
-        {/* Dashboard Content */}
         <div className="dashboard-content">
-          {/* Dashboard Overview */}
           {activeSection === "dashboard" && (
             <motion.div
               className="dashboard-overview space-y-6"
@@ -930,7 +921,6 @@ export default function AdminDashboard() {
               <div className="title-container">
               <h2 className="text-2xl font-bold title">Dashboard Overview</h2>
               </div>
-              {/* Top Cards */}
               <div className="cards grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="card p-4 rounded-2xl shadow bg-white flex items-center">
                   <div className="card-icon text-green-500 text-3xl"><FaCheckCircle /></div>
@@ -966,7 +956,6 @@ export default function AdminDashboard() {
               </div>
 
               <div className="charts-section">
-                {/* ================= FILES OVERVIEW ================= */}
                 <div className="chart-card enhanced-card">
                   <div className="chart-header enhanced-header">
                     <div>
@@ -1012,7 +1001,6 @@ export default function AdminDashboard() {
                   </ResponsiveContainer>
                 </div>
 
-                {/* ================= USERS OVERVIEW ================= */}
                 <div className="chart-card enhanced-card">
                   <div className="chart-header enhanced-header">
                     <div>
@@ -1063,7 +1051,6 @@ export default function AdminDashboard() {
             </motion.div>
           )}
 
-          {/* Files Section */}
           {activeSection === "files" && 
             (
               currentUser?.username === "itdept.pmgi" ||
@@ -1168,18 +1155,12 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {/* ===================== */}
-          {/* 📂 DTR STATUS DASHBOARD */}
-          {/* ===================== */}
           {activeSection === "dtrStatus" && (
             <div className="tables-wrapper">
               <DTRStatusDashboard />
             </div>
           )}
 
-          {/* ===================== */}
-          {/* 📊 USAGE SUMMARY */}
-          {/* ===================== */}
           {activeSection === "usageSummary" &&
             (
               currentUser?.username === "itdept.pmgi" ||
@@ -1194,7 +1175,6 @@ export default function AdminDashboard() {
               </div>
           )}
 
-          {/* Users Section */}
           {activeSection === "users" && currentUser?.username === "itdept.pmgi" && (
             <motion.div
               className="users-card"
@@ -1212,23 +1192,19 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
-                {/* Flexible Additional Container */}
                 <div className="user-cards-container" style={{ display: "flex", gap: "1rem", marginBottom: "1.5rem", marginTop: "1.5rem", flexWrap: "wrap", justifyContent: "center" }}>
-                  {/* Active Users Card */}
                   <div className="card p-4 rounded-2xl shadow bg-white flex flex-col items-center" style={{ minWidth: "200px" }}>
                     <FaUserClock size={32} className="text-blue-500 mb-2" />
                     <h3 className="text-lg font-semibold">Active Users (Week)</h3>
                     <p className="text-xl font-bold">{activeThisWeek}</p>
                   </div>
 
-                  {/* Pending Users Card */}
                   <div className="card p-4 rounded-2xl shadow bg-white flex flex-col items-center" style={{ minWidth: "200px" }}>
                     <FaUsers size={32} className="text-orange-400 mb-2" />
                     <h3 className="text-lg font-semibold">Inactive Users</h3>
                     <p className="text-xl font-bold">{inactiveUsers.length}</p>
                   </div>
 
-                  {/* Role Distribution Card */}
                   <div className="card p-4 rounded-2xl shadow bg-white flex flex-col items-center" style={{ minWidth: "200px" }}>
                     <FaUserShield size={32} className="text-green-500 mb-2" />
                     <h3 className="text-lg font-semibold">Roles Distribution</h3>
@@ -1246,7 +1222,6 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
-                {/* Search & Filter */}
                 <div className="users-search">
                   <input
                     type="text"
@@ -1328,7 +1303,6 @@ export default function AdminDashboard() {
             </motion.div>
           )}
           
-          {/* Audit Logs Section */}
           {activeSection === "audit" && (
             <motion.div
               className="audit-logs"
@@ -1338,7 +1312,6 @@ export default function AdminDashboard() {
               transition={{ duration: 0.5, ease: "easeInOut" }}
             >
               <h2>Audit Logs</h2>
-              {/* Stats Cards */}
               <div className="audit-cards mb-6">
                 <div className="card p-4 rounded-2xl shadow bg-white">
                   <h3 className="text-lg font-semibold">Total Logs</h3>
@@ -1369,7 +1342,6 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              {/* Filters */}
               <div className="audit-filters flex flex-wrap gap-3 mb-4 items-center">
                 <input
                   type="text"
@@ -1423,7 +1395,6 @@ export default function AdminDashboard() {
                 </button>
               </div>
 
-              {/* Audit Logs Chart */}
               <div className="chart-card mb-6">
                 <h3 className="mb-2 font-semibold">Logs Activity</h3>
                 <ResponsiveContainer width="100%" height={250}>
@@ -1446,7 +1417,6 @@ export default function AdminDashboard() {
                 </ResponsiveContainer>
               </div>
 
-              {/* Logs Table */}
               <div className="audit-table-wrapper">
                 <table className="audit-table w-full border-collapse">
                   <thead>
@@ -1512,7 +1482,7 @@ export default function AdminDashboard() {
                     Previous
                   </button>
                   <span>
-                    Page {page} / {Math.ceil(totalLogs / 50)} {/* 50 = PAGE_SIZE */}
+                    Page {page} / {Math.ceil(totalLogs / 50)}
                   </span>
                   <button
                     className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
@@ -1525,7 +1495,6 @@ export default function AdminDashboard() {
             </motion.div>
           )}
 
-          {/* Reports Section */}
           {activeSection === "reports" && (
             <motion.div
               className="reports"
@@ -1559,7 +1528,6 @@ export default function AdminDashboard() {
             </motion.div>
           )}
 
-          {/* Settings Section */}
           {activeSection === "settings" && (
             <motion.div
               className="settings-wrapper"
@@ -1569,7 +1537,6 @@ export default function AdminDashboard() {
               transition={{ duration: 0.5, ease: "easeInOut" }}
             >
               <div className="settings-container p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* File Upload Settings Card */}
                 <div className="settings-card p-4 rounded-2xl shadow bg-white">
                   <h3 className="text-lg font-semibold mb-4">File Upload Settings</h3>
                   <div className="flex flex-col gap-3">
@@ -1623,7 +1590,6 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
-                {/* User Management Settings Card */}
                 <div className="settings-card p-4 rounded-2xl shadow bg-white">
                   <h3 className="text-lg font-semibold mb-4">User Management</h3>
                   <div className="flex flex-col gap-3">
@@ -1661,7 +1627,6 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
-                {/* Audit & Security Settings Card */}
                 <div className="settings-card p-4 rounded-2xl shadow bg-white md:col-span-2">
                   <h3 className="text-lg font-semibold mb-4">Audit & Security</h3>
                   <div className="flex flex-col gap-3">
@@ -1695,7 +1660,6 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
-                {/* Save Button */}
                 <div className="md:col-span-2 flex justify-end">
                   <button
                     onClick={updateSettings}
@@ -1711,9 +1675,7 @@ export default function AdminDashboard() {
            {activeSection === "employeeDirectory" && <EmployeeDirectory />}
         </div>
       </div>
-      {/* Floating Chat Button + Chat Window */}
       <div className="chat-float">
-      {/* Floating Chat Button */}
       <button
         className="chat-toggle-btn"
         onClick={() => {
@@ -1725,7 +1687,6 @@ export default function AdminDashboard() {
         {hasUnread && <span className="chat-notification-dot"></span>}
       </button>
 
-      {/* Floating UserList + RoomList Toggles */}
       <AnimatePresence>
         {chatOpen && (
           <>
@@ -1774,7 +1735,6 @@ export default function AdminDashboard() {
         )}
       </AnimatePresence>
 
-      {/* Chat Popup */}
       <AnimatePresence>
         {chatOpen && (
           <motion.div
@@ -1816,7 +1776,6 @@ export default function AdminDashboard() {
                 )}
               </AnimatePresence>*/}
 
-              {/* UserList */}
               <AnimatePresence>
                 {showUserList && (
                   <motion.div

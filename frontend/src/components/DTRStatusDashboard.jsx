@@ -8,7 +8,6 @@ export default function DTRStatusDashboard() {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Filters
   const [uploaderFilter, setUploaderFilter] = useState("");
   const [startDateFilter, setStartDateFilter] = useState("");
   const [endDateFilter, setEndDateFilter] = useState("");
@@ -30,11 +29,9 @@ export default function DTRStatusDashboard() {
     }
   };
 
-  // 🔥 Normalize status safely
   const normalizeStatus = (status) =>
     (status || "").toString().toLowerCase().trim();
 
-  // 🎯 Apply Filters (safe version)
   const filteredFiles = useMemo(() => {
     return files.filter((file) => {
       const matchesUploader =
@@ -68,7 +65,6 @@ export default function DTRStatusDashboard() {
     });
   }, [files, uploaderFilter, startDateFilter, endDateFilter, uploadedDateFilter]);
 
-  // 🔹 Split by Status (SAFE VERSION)
   const verifiedFiles = filteredFiles.filter(
     (f) => normalizeStatus(f.status) === "verified"
   );
@@ -81,7 +77,6 @@ export default function DTRStatusDashboard() {
     (f) => normalizeStatus(f.status) === "rejected"
   );
 
-  // 🔎 Catch any unexpected statuses (prevents silent disappearing)
   const otherFiles = filteredFiles.filter(
     (f) =>
       !["verified", "pending", "rejected"].includes(
@@ -97,7 +92,6 @@ export default function DTRStatusDashboard() {
         status. Use the filters to narrow down results.
       </p>
 
-      {/* FILTER SECTION */}
       <div className="filter-bar">
         <div className="filter-group">
           <label>Uploader</label>
@@ -137,7 +131,6 @@ export default function DTRStatusDashboard() {
         </div>
       </div>
 
-      {/* THREE + FALLBACK COLUMN */}
       <div className="status-columns">
         <DTRStatusTable title="Verified" files={verifiedFiles} />
         <DTRStatusTable title="Pending" files={pendingFiles} />

@@ -1,6 +1,6 @@
 // hooks/useTokenExpirations.jsx
 import { useEffect, useState } from "react";
-import api from "../api"; // your axios instance
+import api from "../api"; 
 import * as jwt_decode from "jwt-decode";
 
 export default function useTokenExpiration() {
@@ -41,7 +41,6 @@ export default function useTokenExpiration() {
       localStorage.setItem("access_token", res.data.access);
       setModalVisible(false);
 
-      // reschedule next check
       scheduleTokenCheck();
     } catch (err) {
       console.error("Failed to refresh token", err);

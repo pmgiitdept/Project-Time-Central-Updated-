@@ -118,7 +118,6 @@ export default function FileTable({ role, setSelectedFile, uploaderFilter = null
   };
 
   const handleDownload = async (fileId, fileName, fileUrl) => {
-    // If fileUrl exists, open in new tab for PDF
     if (fileUrl && fileUrl.endsWith(".pdf")) {
       window.open(fileUrl, "_blank");
       return;
@@ -204,7 +203,6 @@ export default function FileTable({ role, setSelectedFile, uploaderFilter = null
 
   return (
     <>
-      {/* Delete Modal */}
       {deleteModal.open && (
         <div
           className="modal-overlay5"
@@ -346,7 +344,6 @@ export default function FileTable({ role, setSelectedFile, uploaderFilter = null
             </div>
           )}
 
-          {/* Tables by Status */}
           {["verified", "pending", "rejected"].map((status) => {
             const filtered = filteredFiles.filter(f => f.status === status);
             if (filtered.length === 0) return null;
@@ -414,7 +411,6 @@ export default function FileTable({ role, setSelectedFile, uploaderFilter = null
                                     className="action-btn download"
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      // Pass actual file URL if PDF, otherwise filename
                                       handleDownload(file.id, `DTR_${file.id}.xlsx`, file.file);
                                     }}
                                     disabled={downloadLoading[file.id]}
@@ -438,7 +434,6 @@ export default function FileTable({ role, setSelectedFile, uploaderFilter = null
                               </td>
                             )}
 
-                            {/* ✅ Ellipsis Rejection Cell */}
                             <td>
                               {file.status === "rejected" && file.rejection_reason ? (
                                 <span

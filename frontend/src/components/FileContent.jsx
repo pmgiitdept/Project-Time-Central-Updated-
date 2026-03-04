@@ -527,7 +527,6 @@ export default function FileContent({ fileId, role }) {
       transition={{ duration: 0.5, ease: "easeInOut" }}
     >
       <div className="file-content-flex">
-        {/* Left side: text / table controls */}
         <div className="file-content-left">
           <div className="file-metadata">
             <div className="metadata-grid">
@@ -581,7 +580,6 @@ export default function FileContent({ fileId, role }) {
         </div>
       </div>
 
-      {/* Expanded Table Outside Left Panel */}
       {expanded && (
         <div
           className="expanded-table-wrapper"
@@ -591,7 +589,6 @@ export default function FileContent({ fileId, role }) {
         </div>
       )}
       
-      {/* Full Table Modal */}
       {isTableOpen && (
         <div className="modal-overlay3">
           <div className="modal-content3">
@@ -600,7 +597,6 @@ export default function FileContent({ fileId, role }) {
               <button onClick={() => setIsTableOpen(false)}>✖ Close</button>
             </div>
 
-            {/* Export / Print buttons */}
             <div className="modal-toolbar">
               <button onClick={() => handlePrint()}>🖨 Print</button>
               <div style={{ display: "inline-block", marginLeft: "1rem" }}>

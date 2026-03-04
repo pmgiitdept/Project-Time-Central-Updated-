@@ -184,7 +184,6 @@ export default function RoomList({ currentUser, onSelectRoom, isVisible, unreadC
         })}
       </div>
 
-      {/* ✅ Delete Modal */}
       {deleteModal.open && (
         <DeleteModal
           roomName={deleteModal.roomName}
@@ -196,7 +195,6 @@ export default function RoomList({ currentUser, onSelectRoom, isVisible, unreadC
         />
       )}
 
-      {/* ✅ Passkey Modal */}
       {passkeyModal.open && (
         <PasskeyModal
           roomName={passkeyModal.roomName}

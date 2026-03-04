@@ -5,13 +5,9 @@ const baseURL = import.meta.env.VITE_API_URL || "http://localhost:8000/api/";
 
 const api = axios.create({
   baseURL,
-  withCredentials: true, // ✅ add this for cookies/session support
+  withCredentials: true, 
 });
 
-// ✅ Log once during development
-//console.log("API Base URL:", baseURL);
-
-// 🔐 Automatically attach Authorization header for every request
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("access_token");
@@ -23,7 +19,6 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// 🔁 Handle token refresh on 401
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -40,21 +35,14 @@ api.interceptors.response.use(
             { headers: { "Content-Type": "application/json" } }
           );
 
-          // ✅ Save new access token
           localStorage.setItem("access_token", res.data.access);
 
-          // ✅ Update and retry the original request
           originalRequest.headers.Authorization = `Bearer ${res.data.access}`;
           return api(originalRequest);
         }
       } catch (refreshError) {
         console.error("Refresh token failed:", refreshError);
 
-        // ❌ Remove only auth-related keys, not everything
-        //localStorage.removeItem("access_token");
-        //localStorage.removeItem("refresh_token");
-
-        // ✅ Redirect gracefully only if not already on login
         if (window.location.pathname !== "/login") {
           window.location.href = "/login";
         }

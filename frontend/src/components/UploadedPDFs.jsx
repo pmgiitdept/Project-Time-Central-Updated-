@@ -15,7 +15,6 @@ export default function UploadedPDFs({ refreshTrigger, currentUser, uploaderFilt
   const [selectedParsedDTR, setSelectedParsedDTR] = useState(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  // Fetch PDFs
   const fetchPDFs = async () => {
     try {
       const res = await api.get("/files/pdfs/");
@@ -31,7 +30,6 @@ export default function UploadedPDFs({ refreshTrigger, currentUser, uploaderFilt
     }
   };
 
-  // Fetch Parsed DTRs
   const fetchParsedDTRs = async () => {
     try {
       const res = await api.get("/files/parsed-dtrs/");
@@ -73,7 +71,6 @@ export default function UploadedPDFs({ refreshTrigger, currentUser, uploaderFilt
 
   return (
     <div className="dashboard-layout">
-      {/* Left sidebar for PDFs and Parsed DTRs */}
       <motion.div
         className="upload-card sidebar1"
         initial={{ opacity: 0, y: 20 }}
@@ -98,7 +95,6 @@ export default function UploadedPDFs({ refreshTrigger, currentUser, uploaderFilt
               <p>No uploaded DTRs yet.</p>
             ) : (
               <div className="pdf-grid">
-                {/* Render PDF files */}
                 {pdfFiles.map(pdf => (
                   <motion.div key={pdf.id} className="pdf-card" whileHover={{ scale: 1.03 }} transition={{ duration: 0.2 }}>
                     <p className="pdf-name">📄 {pdf.file.split("/").pop()}</p>
@@ -121,7 +117,6 @@ export default function UploadedPDFs({ refreshTrigger, currentUser, uploaderFilt
                   </motion.div>
                 ))}
 
-                {/* Render Parsed DTRs */}
                 {parsedDTRs.map(dtr => (
                   <motion.div key={dtr.id} className="pdf-card" whileHover={{ scale: 1.03 }} transition={{ duration: 0.2 }}>
                     <p className="pdf-name">🗂 {dtr.employee_name} ({dtr.employee_no})</p>
@@ -139,7 +134,6 @@ export default function UploadedPDFs({ refreshTrigger, currentUser, uploaderFilt
         )}
       </motion.div>
 
-      {/* Modals */}
       {selectedPDF && (
         <PDFTextModal
           pdfData={selectedPDF}

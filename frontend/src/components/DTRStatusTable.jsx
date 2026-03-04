@@ -20,7 +20,6 @@ export default function DTRStatusTable({ title, files = [] }) {
   };
 
   const getFileName = (file) => {
-    // If backend sends file path instead of filename
     if (file.filename) return file.filename;
 
     if (file.file) {

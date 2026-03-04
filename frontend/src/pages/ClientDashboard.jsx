@@ -97,7 +97,6 @@ export default function ClientDashboard() {
   const handleNewMessage = (room, message) => {
     setMessages(prev => [...prev, message]);
 
-    // Skip if message is from self
     if (message.sender?.toLowerCase() === currentUser.username?.toLowerCase()) return;
 
     setUnreadCounts(prev => ({
@@ -105,12 +104,10 @@ export default function ClientDashboard() {
       [room]: (prev[room] || 0) + 1,
     }));
 
-    // Show red dot in floating chat button only if popup is closed
     if (!chatOpen) {
       setHasUnread(true);
     }
   };
-
 
   useEffect(() => {
     const fetchRooms = async () => {
@@ -125,16 +122,11 @@ export default function ClientDashboard() {
   }, []);
 
   const loadPDFFiles = () => {
-    // You can either just trigger a refresh
     setRefresh(prev => !prev);
-
-    // OR, if you want to actually fetch PDFs:
-    // api.get("/files/pdfs/").then(res => setPdfFiles(res.data));
   };
 
   return (
     <div className="dashboard-container">
-      {/* Navbar */}
       <nav className="dashboard-navbar">
         <div className="navbar-left">
           <img src="/images/pmgi.png" alt="Logo" className="navbar-logo" />
@@ -180,7 +172,6 @@ export default function ClientDashboard() {
         exit={{ opacity: 0, y: -20 }}
         transition={{ duration: 0.5, ease: "easeInOut" }}
       >
-        {/* Centered Left Panel */}
         <div className="left-panel">
           <UploadSection
             refreshFiles={refreshFiles}
@@ -201,9 +192,7 @@ export default function ClientDashboard() {
           <UploadedPDFs refreshTrigger={refresh} />
         </div>
 
-        {/* Floating Chat + Users List */}
         <div className="chat-float">
-              {/* Floating Chat Button */}
               <button
                 className="chat-toggle-btn"
                 onClick={() => {
@@ -215,7 +204,6 @@ export default function ClientDashboard() {
                 {hasUnread && <span className="chat-notification-dot"></span>}
               </button>
         
-              {/* Floating UserList + RoomList Toggles */}
               <AnimatePresence>
                 {chatOpen && (
                   <>
@@ -264,7 +252,6 @@ export default function ClientDashboard() {
                 )}
               </AnimatePresence>
         
-              {/* Chat Popup */}
               <AnimatePresence>
                 {chatOpen && (
                   <motion.div
@@ -275,7 +262,6 @@ export default function ClientDashboard() {
                     transition={{ duration: 0.3, ease: "easeInOut" }}
                   >
                     <div className="chat-container">
-                      {/* RoomList */}
                       {/*<AnimatePresence>
                         {showRooms && (
                           <motion.div
@@ -311,7 +297,6 @@ export default function ClientDashboard() {
                         )}
                       </AnimatePresence>*/}
         
-                      {/* UserList */}
                       <AnimatePresence>
                         {showUserList && (
                           <motion.div

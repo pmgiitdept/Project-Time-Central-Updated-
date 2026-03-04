@@ -1,6 +1,6 @@
 // components/AboutModal.jsx
 import { motion, AnimatePresence } from "framer-motion";
-import "./styles/UserManualModal.css"; // reuse unified modal styles
+import "./styles/UserManualModal.css"; 
 
 export default function AboutModal({ isOpen, onClose }) {
   if (!isOpen) return null;
@@ -30,7 +30,6 @@ export default function AboutModal({ isOpen, onClose }) {
             transition={{ duration: 0.3 }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header */}
             <div className="manual-header">
               <div className="about-header-left">
                 <img
@@ -45,7 +44,6 @@ export default function AboutModal({ isOpen, onClose }) {
               </div>
             </div>
 
-            {/* Scrollable Content */}
             <div className="manual-content">
               <section>
                 <h3>🏢 About the System</h3>

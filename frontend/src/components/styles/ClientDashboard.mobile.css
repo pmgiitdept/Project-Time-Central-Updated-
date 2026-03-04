@@ -1,6 +1,4 @@
-/* Mobile layout (Android 373x601) */
 @media only screen and (max-width: 600px) {
-  /* Overall layout */
   .dashboard-container {
     padding: 0.5rem;
   }

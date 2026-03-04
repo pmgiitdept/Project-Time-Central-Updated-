@@ -15,17 +15,15 @@ function getWeekNumber(d) {
 export default function Employee360Modal({ employee, projects, onClose }) {
   const data = useEmployee360(employee?.employee_no, projects);
 
-  // --- ESC key handler ---
   useEffect(() => {
     const handleEsc = (e) => {
       if (e.key === "Escape") {
-        onClose(); // close modal on ESC
+        onClose();
       }
     };
 
     window.addEventListener("keydown", handleEsc);
 
-    // Cleanup listener on unmount
     return () => window.removeEventListener("keydown", handleEsc);
   }, [onClose]);
   
@@ -45,10 +43,8 @@ export default function Employee360Modal({ employee, projects, onClose }) {
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
         >
-          {/* Close */}
           <button className="close-btn" onClick={onClose}>✖</button>
 
-          {/* Header */}
           <h2>👤 Manpower Profile</h2>
           <h3>
             {employee.full_name}{" "}
@@ -57,7 +53,6 @@ export default function Employee360Modal({ employee, projects, onClose }) {
             </span>
           </h3>
 
-          {/* Summary */}
           {data && (
             <div className="employee360-summary">
               <p>
@@ -79,7 +74,6 @@ export default function Employee360Modal({ employee, projects, onClose }) {
             </div>
           )}
 
-          {/* Conflicts */}
           {data?.conflictCount > 0 && (
             <div
               className={`employee360-conflicts ${data.conflictLevel.toLowerCase()}`}
@@ -104,18 +98,15 @@ export default function Employee360Modal({ employee, projects, onClose }) {
             </div>
           )}
 
-          {/* Weekly Calendar Timeline */}
             {data?.timeline?.length > 0 && (
             <div className="employee360-timeline">
                 <h4>🗓 Work Timeline (Weekly View)</h4>
 
                 <div className="timeline-calendar">
-                {/* Build a week-by-week structure */}
                 {(() => {
-                    // Sort days chronologically
+
                     const days = [...data.timeline].sort((a, b) => new Date(a.date) - new Date(b.date));
 
-                    // Group by week (ISO week number)
                     const weeksMap = {};
                     days.forEach((day) => {
                     const dt = new Date(day.date);
@@ -130,7 +121,7 @@ export default function Employee360Modal({ employee, projects, onClose }) {
                         <div className="week-days">
                             {daysInWeek.map((day) => {
                             const dt = new Date(day.date);
-                            const formattedDate = dt.toLocaleDateString(); // MM/DD/YYYY by default
+                            const formattedDate = dt.toLocaleDateString();
 
                             return (
                                 <div
@@ -138,10 +129,8 @@ export default function Employee360Modal({ employee, projects, onClose }) {
                                 className={`week-day ${day.isConflict ? "conflict" : ""}`}
                                 title={`Date: ${formattedDate}\nProjects: ${day.projects.join(", ")}\nHours: ${day.hours.toFixed(2)}`}
                                 >
-                                {/* Display full date */}
                                 <div className="day-date">{formattedDate}</div>
 
-                                {/* Projects */}
                                 <div className="day-projects">
                                     {day.projects.map((p) => (
                                     <span key={p} className="day-project">{p}</span>

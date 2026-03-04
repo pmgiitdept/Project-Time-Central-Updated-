@@ -90,7 +90,6 @@ export default function ViewerDashboard() {
         exit={{ opacity: 0, y: -20 }}
         transition={{ duration: 0.5, ease: "easeInOut" }}
       >
-        {/* Centered Left Panel */}
         <div className="left-panels">
           <FileTable role={role} setSelectedFile={setSelectedFile} />
           {selectedFile && (
@@ -101,9 +100,7 @@ export default function ViewerDashboard() {
           )}
         </div>
 
-        {/* Floating Chat + Users List */}
         <div className="chat-float">
-          {/* Floating Chat Button */}
           <button
             className="chat-toggle-btn"
             onClick={() => {
@@ -115,7 +112,6 @@ export default function ViewerDashboard() {
           {hasUnread && <span className="chat-notification-dot"></span>}
           </button>
                 
-          {/* Floating UserList + RoomList Toggles */}
           <AnimatePresence>
             {chatOpen && (
           <>
@@ -164,7 +160,6 @@ export default function ViewerDashboard() {
               )}
               </AnimatePresence>
                 
-              {/* Chat Popup */}
               <AnimatePresence>
                 {chatOpen && (
                   <motion.div
@@ -175,7 +170,6 @@ export default function ViewerDashboard() {
                     transition={{ duration: 0.3, ease: "easeInOut" }}
                   >
                     <div className="chat-container">
-                    {/* RoomList */}
                       <AnimatePresence>
                         {showRooms && (
                           <motion.div
@@ -206,7 +200,6 @@ export default function ViewerDashboard() {
                         )}
                         </AnimatePresence>
                 
-                        {/* UserList */}
                         <AnimatePresence>
                           {showUserList && (
                             <motion.div

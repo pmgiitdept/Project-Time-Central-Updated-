@@ -3,8 +3,8 @@ import { useState, useEffect } from "react";
 import api from "../api";
 import { motion } from "framer-motion";
 import "./styles/ClientDashboard.css";
-import PDFTextModal from "./PDFTextModal"; // For PDFs
-import PDFContent from "./PDFContent";     // For Parsed DTRs
+import PDFTextModal from "./PDFTextModal"; 
+import PDFContent from "./PDFContent";     
 
 export default function UploadedPDFs({ refreshTrigger, currentUser, uploaderFilter }) {
   const [pdfFiles, setPdfFiles] = useState([]);
@@ -29,7 +29,6 @@ export default function UploadedPDFs({ refreshTrigger, currentUser, uploaderFilt
     }
   };
 
-  // Fetch Parsed DTRs
   const fetchParsedDTRs = async () => {
     try {
       const res = await api.get("/files/parsed-dtrs/");
@@ -66,7 +65,6 @@ export default function UploadedPDFs({ refreshTrigger, currentUser, uploaderFilt
 
   return (
     <div className="dashboard-layout">
-      {/* Left sidebar */}
       <motion.div
         className="upload-card sidebar1"
         initial={{ opacity: 0, y: 20 }}
@@ -91,7 +89,6 @@ export default function UploadedPDFs({ refreshTrigger, currentUser, uploaderFilt
               <p>No uploaded DTRs yet.</p>
             ) : (
               <div className="pdf-grid">
-                {/* PDFs */}
                 {pdfFiles.map(pdf => (
                   <motion.div key={pdf.id} className="pdf-card" whileHover={{ scale: 1.03 }} transition={{ duration: 0.2 }}>
                     <p className="pdf-name">📄 {pdf.file.split("/").pop()}</p>
@@ -114,7 +111,6 @@ export default function UploadedPDFs({ refreshTrigger, currentUser, uploaderFilt
                   </motion.div>
                 ))}
 
-                {/* Parsed DTRs using PDFContent */}
                 {parsedDTRs.map(dtr => (
                   <motion.div key={dtr.id} className="pdf-card" whileHover={{ scale: 1.03 }} transition={{ duration: 0.2 }}>
                     <p className="pdf-name">🗂 {dtr.employee_name} ({dtr.employee_no})</p>
@@ -132,7 +128,6 @@ export default function UploadedPDFs({ refreshTrigger, currentUser, uploaderFilt
         )}
       </motion.div>
 
-      {/* PDF Viewer Modal for PDFs */}
       {selectedPDF && (
         <PDFTextModal
           pdfData={selectedPDF}
@@ -141,7 +136,6 @@ export default function UploadedPDFs({ refreshTrigger, currentUser, uploaderFilt
         />
       )}
 
-      {/* PDFContent Modal for Parsed DTRs */}
       {selectedParsedDTR && (
         <div className="modal-overlay3">
           <div className="modal-content3" style={{ width: "90%", maxWidth: "1000px", height: "90vh", overflow: "auto" }}>

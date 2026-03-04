@@ -276,7 +276,6 @@ export default function DTRTable({ role , fileId}) {
         </div>
       </div> */}
 
-      {/* Table Controls: Hide Columns + View Full Table */}
       {selectedFile && fileContents.length > 0 && (
         <div className="table-controls">
           <button
@@ -295,7 +294,6 @@ export default function DTRTable({ role , fileId}) {
         </div>
       )}
 
-      {/* File Content Table */}
       {fileContents.length > 0 && (
         <div className="dtr-file-content">
           <h3 className="content-title">
@@ -345,16 +343,14 @@ export default function DTRTable({ role , fileId}) {
                         <th key={col.key}>{col.label}</th>
                       )
                   )}
-                  {/* Edit column header */}
                   {canEditRow && <th>Edit</th>}
                 </tr>
               </thead>
               <tbody>
                 {filteredContents
-                  ?.filter((row) => row) // Skip null or undefined rows
+                  ?.filter((row) => row) 
                   .map((row, rIdx) => (
                     <tr key={row?.id ?? `row-${rIdx}`}>
-                      {/* Full Name - Sticky Col */}
                       {!hiddenColumns.includes("full_name") && (
                         <td className="sticky-col sticky-1">
                           {editableRow === rIdx ? (
@@ -372,7 +368,6 @@ export default function DTRTable({ role , fileId}) {
                         </td>
                       )}
 
-                      {/* Employee # - Sticky Col */}
                       {!hiddenColumns.includes("employee_no") && (
                         <td>
                           {editableRow === rIdx ? (
@@ -390,7 +385,6 @@ export default function DTRTable({ role , fileId}) {
                         </td>
                       )}
 
-                      {/* Daily Data Columns */}
                       {dateColumns.map(
                         (date) =>
                           !hiddenColumns.includes(date) && (
@@ -411,7 +405,6 @@ export default function DTRTable({ role , fileId}) {
                           )
                       )}
 
-                      {/* Extra Columns */}
                       {extraColumns.map(
                         (col) =>
                           !hiddenColumns.includes(col.key) && (
@@ -432,7 +425,6 @@ export default function DTRTable({ role , fileId}) {
                           )
                       )}
 
-                      {/* Edit Column */}
                       {canEditRow && (
                         <td>
                           {editableRow === rIdx ? (
@@ -458,7 +450,6 @@ export default function DTRTable({ role , fileId}) {
             </table>
           </div>
 
-          {/* Save Button for Viewer (keeps existing behavior) */}
           {role === "viewer" && (
             <button
               className="save-btn"
@@ -471,7 +462,6 @@ export default function DTRTable({ role , fileId}) {
         </div>
       )}
 
-      {/* Modal for Hide Columns */}
       {isModalOpen && (
         <div className="modal-overlay1">
           <div className="modal-content1">
@@ -496,7 +486,6 @@ export default function DTRTable({ role , fileId}) {
         </div>
       )}
 
-      {/* Full Table Modal */}
       {isFullTableOpen && (
         <div className="modal-overlay1">
           <div className="modal-content2 large-modal">
@@ -509,7 +498,6 @@ export default function DTRTable({ role , fileId}) {
                 ✖
               </button>
             </div>
-           {/* File details summary */}
             <div className="dtr-info-bar">
               <div className="info-section">
                 <div className="info-item">
@@ -535,7 +523,6 @@ export default function DTRTable({ role , fileId}) {
               </div>
             </div>
 
-            {/* 🔍 Search Bar */}
             <div className="search-bar">
               <input
                 type="text"
@@ -572,7 +559,6 @@ export default function DTRTable({ role , fileId}) {
                         )
                     )}
 
-                    {/* ✅ New: Edit column header */}
                     {canEditRow && <th className="edit-column">Edit</th>}
                   </tr>
                 </thead>
@@ -640,7 +626,6 @@ export default function DTRTable({ role , fileId}) {
                           )
                       )}
 
-                      {/* ✅ New: Edit buttons (only for operations.pmgi) */}
                       {canEditRow && (
                         <td className="edit-column">
                           {editableRow === rIdx ? (

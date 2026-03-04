@@ -19,12 +19,11 @@ export default function useEmployee360(employeeNo, projects) {
         emp.rows?.forEach((row) => {
           if (!row.daily_data) return;
 
-          // Check if employee is reliever
           if (/reliever/i.test(row.position || "")) isReliever = true;
 
           Object.entries(row.daily_data).forEach(([date, val]) => {
             const numericVal = Number(val);
-            if (isNaN(numericVal) || numericVal <= 0) return; // only positive hours
+            if (isNaN(numericVal) || numericVal <= 0) return;
 
             if (!daysMap[date]) {
               daysMap[date] = { date, projects: [], hours: 0 };

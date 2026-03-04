@@ -1,6 +1,4 @@
 /* styles/UploaderReviewModal.css */
-
-/* --- Overlay --- */
 .uploader-modal-overlay {
   position: fixed;
   top: 0;
@@ -16,7 +14,6 @@
   padding: 1rem;
 }
 
-/* --- Modal Container --- */
 .uploader-modal {
   background: #fff;
   width: 120%;
@@ -31,7 +28,6 @@
   font-size: 0.7rem;
 }
 
-/* Header */
 .uploader-modal-header {
   display: flex;
   justify-content: flex-start;
@@ -56,21 +52,17 @@
   cursor: pointer;
 }
 
-/* --- Body --- */
 .uploader-modal-body.full-util {
   display: flex;
   flex: 1;
   gap: 1rem;
   padding: 0.5rem 1rem;
-
-  /* add scrolling */
-  overflow: auto;       /* allows both horizontal and vertical scroll */
-  min-width: 0;         /* ensures flex children can shrink */
+  overflow: auto;       
+  min-width: 0;         
 }
 
-/* LEFT COLUMN */
 .uploader-column.left.full-height {
-  flex: 1; /* smaller */
+  flex: 1;
   min-width: 300px;
   display: flex;
   flex-direction: column;
@@ -85,7 +77,6 @@
   min-width: 0;
 }
 
-/* FileTable (left side of left column) */
 .file-table-left {
   flex: auto;
   width: 400px;
@@ -98,9 +89,8 @@
   box-shadow: 0 6px 15px rgba(0,0,0,0.05);
 }
 
-/* FileContent (right side of left column) */
 .file-content-right {
-  flex: auto; /* bigger than table */
+  flex: auto; 
   min-width: 0;
   background: #fff;
   border-radius: 12px;
@@ -110,9 +100,8 @@
   box-shadow: 0 6px 15px rgba(0,0,0,0.05);
 }
 
-/* RIGHT COLUMN */
 .uploader-column.right.full-height {
-  flex: 1; /* much bigger */
+  flex: 1; 
   min-width: 300px;
   max-width: none;
   background: #fff;
@@ -123,7 +112,6 @@
   box-shadow: 0 6px 15px rgba(0,0,0,0.05);
 }
 
-/* Section titles */
 .uploader-column h3 {
   margin: 0;
   font-size: 0.65rem;
@@ -132,14 +120,12 @@
   padding-bottom: 0.15rem;
 }
 
-/* Scrollable areas */
 .file-content-wrapper,
 .file-content-right,
 .uploader-column.right.full-height {
   overflow-y: auto;
 }
 
-/* Compact tables */
 .uploader-modal-body.compact {
   font-size: 0.65rem;
   gap: 0.4rem;
@@ -156,7 +142,6 @@
   font-size: 0.6rem;
 }
 
-/* PDFs adjustments */
 .uploader-column.right .uploaded-pdfs.embedded,
 .uploader-column.right .upload-card.embedded {
   font-size: 0.6rem;
@@ -168,7 +153,6 @@
   min-width: 60px;
 }
 
-/* Responsive */
 @media (max-width: 1200px) {
   .uploader-column {
     min-width: 200px;
@@ -186,16 +170,16 @@
 .right-top-scrollbar {
   overflow-x: auto;
   overflow-y: hidden;
-  height: 16px; /* adjust thickness */
+  height: 16px; 
   margin-bottom: 4px;
 }
 
 .right-top-scrollbar .scroll-inner {
-  width: 2000px; /* this should match content width or use JS to auto-calc */
-  height: 1px; /* invisible bar that drives scroll */
+  width: 2000px; 
+  height: 1px; 
 }
 
 .right-content-scroll {
   flex: 1;
-  overflow: auto; /* allows both horizontal & vertical scroll */
+  overflow: auto; 
 }

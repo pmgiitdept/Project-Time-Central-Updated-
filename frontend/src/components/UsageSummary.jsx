@@ -294,12 +294,10 @@ export default function UsageSummary() {
     >
     <div className="usage-summary">
 
-      {/* 🧭 Operations Monitoring */}
       <OperationsMonitoring projects={filteredProjects} />
 
       <h2>📊 Project Manpower Usage Summary</h2>
 
-      {/* 🆕 STEP 1: Summary Bar */}
       <div className="usage-summary-bar">
         <div>📦 <strong>Projects:</strong> {summary.projectCount}</div>
         <div>👥 <strong>Employees:</strong> {summary.employeeCount}</div>
@@ -310,7 +308,6 @@ export default function UsageSummary() {
         </div>
       </div>
 
-      {/* 🔽 Filters */}
       <div className="usage-filters">
         <select value={selectedProject} onChange={(e) => setSelectedProject(e.target.value)}>
           <option value="">All Projects</option>

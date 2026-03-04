@@ -62,7 +62,6 @@ export default function UploadedParsedDTRs({ refreshTrigger, currentUser, employ
 
   return (
     <div className="dashboard-layout">
-      {/* Left sidebar for Parsed DTRs */}
       <motion.div
         className="upload-card sidebar1"
         initial={{ opacity: 0, y: 20 }}
@@ -135,7 +134,6 @@ export default function UploadedParsedDTRs({ refreshTrigger, currentUser, employ
         )}
       </motion.div>
 
-      {/* Main content for DTR viewer */}
       {selectedDTR && (
         <ParsedDTRModal
           dtrData={selectedDTR}

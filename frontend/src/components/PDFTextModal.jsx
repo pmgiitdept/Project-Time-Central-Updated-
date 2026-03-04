@@ -20,7 +20,6 @@ export default function PDFTextModal({ pdfData, currentUser }) {
   const goPrev = () =>
     currentPage > 1 && setCurrentPage(currentPage - 1);
 
-  // Handle editing a single cell (admin only)
   const handleEditCell = (tableIdx, rowIdx, colIdx, newValue) => {
     if (!isAdmin) return;
 
@@ -30,13 +29,11 @@ export default function PDFTextModal({ pdfData, currentUser }) {
       const tables = [...(updated[pageKey].tables || [])];
       const table = tables[tableIdx].map((r) => [...r]);
 
-      // Save old value safely
       const oldValue =
         typeof table[rowIdx][colIdx] === "object"
           ? table[rowIdx][colIdx]?.text || ""
           : table[rowIdx][colIdx] || "";
 
-      // Save updated value
       table[rowIdx][colIdx] =
         typeof table[rowIdx][colIdx] === "object"
           ? { ...table[rowIdx][colIdx], text: newValue }
@@ -47,7 +44,6 @@ export default function PDFTextModal({ pdfData, currentUser }) {
       return updated;
     });
 
-    // Track changes for backend
     setChanges((prev) => {
       const pageKey = String(currentPage);
       const pageChanges = prev[pageKey] || [];
@@ -70,7 +66,6 @@ export default function PDFTextModal({ pdfData, currentUser }) {
     });
   };
 
-  // Save changes to backend
   const handleSave = async () => {
     if (!isAdmin) return alert("Only admins can save changes.");
 
@@ -99,7 +94,6 @@ export default function PDFTextModal({ pdfData, currentUser }) {
     Object.keys(editableData).forEach((pageNum, pageIndex) => {
       const page = editableData[pageNum];
 
-      // --- Left side: Project + Address ---
       doc.setFontSize(12);
       doc.setFont("helvetica", "bold");
       doc.text(`PROJECT: ${projectName}`, leftMargin, 20);
@@ -116,9 +110,8 @@ export default function PDFTextModal({ pdfData, currentUser }) {
         doc.text(line, leftMargin, 20 + 6 + i * 5);
       });
 
-      const leftBlockHeight = 6 + addressLines.length * 5; // total height of left block
+      const leftBlockHeight = 6 + addressLines.length * 5; 
 
-      // --- Right side: Legends as two columns ---
       const legendLines = [
         "Legend:",
         "LOW - Length Of Work",
@@ -155,10 +148,8 @@ export default function PDFTextModal({ pdfData, currentUser }) {
 
       const rightBlockHeight = Math.max(col1.length, col2.length) * 4;
 
-      // --- startY for table below both left and right blocks ---
       let startY = 20 + Math.max(leftBlockHeight, rightBlockHeight) + 5;
 
-      // --- Header text (centered and bold) ---
       if (page.header_text?.length) {
         doc.setFont("helvetica", "bold");
         doc.setFontSize(10);
@@ -171,7 +162,6 @@ export default function PDFTextModal({ pdfData, currentUser }) {
         startY += page.header_text.length * 7 + 3;
       }
 
-      // --- Tables ---
       if (page.tables?.length) {
         page.tables.forEach((table) => {
           if (!table || table.length === 0) return;
@@ -221,7 +211,6 @@ export default function PDFTextModal({ pdfData, currentUser }) {
         });
       }
 
-      // --- Footer: Employee Signature & Authorized Official ---
       const footerY = startY + 10;
       const lineLength = 60;
       const gapBetween = 40;

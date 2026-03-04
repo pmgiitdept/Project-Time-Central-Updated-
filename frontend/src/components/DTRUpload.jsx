@@ -12,16 +12,13 @@ function getDTRCutoffStatus() {
   const year = today.getFullYear();
   const month = today.getMonth();
 
-  // 15th cutoff → valid until 20
   const cutoff15Start = new Date(year, month, 15);
   const cutoff15End = new Date(year, month, 20);
 
-  // 30th cutoff → valid for 5 days (spills to next month)
   const cutoff30Start = new Date(year, month, 30);
   const cutoff30End = new Date(cutoff30Start);
   cutoff30End.setDate(cutoff30End.getDate() + 5);
 
-  // Previous month 30th cutoff (for early month dates like Jan 2–4)
   const prev30Start = new Date(year, month - 1, 30);
   const prev30End = new Date(prev30Start);
   prev30End.setDate(prev30End.getDate() + 5);
@@ -51,10 +48,8 @@ export default function DTRUpload({ refreshDTR }) {
   const fileInputRef = useRef(null);
   const [hasSubmitted, setHasSubmitted] = useState(false);
 
-  /* ======== Cutoff Logic ======== */
   const { canSubmit, message } = getDTRCutoffStatus();
 
-  /* ================= Excel Upload ================= */
   const handleUpload = async (e) => {
     e.preventDefault();
     if (!canSubmit) return toast.error("DTR upload is unavailable at this time.");
@@ -139,8 +134,8 @@ export default function DTRUpload({ refreshDTR }) {
           <ManualDTRCard
             onClose={() => setShowManual(false)}
             onSuccess={() => {
-              setHasSubmitted(true); // 🔒 lock submission
-              refreshDTR();          // 🔄 refresh list
+              setHasSubmitted(true); 
+              refreshDTR();          
             }}
           />
         )}
@@ -148,8 +143,6 @@ export default function DTRUpload({ refreshDTR }) {
     </>
   );
 }
-
-/* ================= Manual Card Form ================= */
 
 function ManualDTRCard({ onClose, onSuccess }) {
   const [startDate, setStartDate] = useState("");
@@ -181,7 +174,6 @@ function ManualDTRCard({ onClose, onSuccess }) {
     Object.values(dailyData).forEach((val) => {
       const hours = parseFloat(val);
 
-      // Ignore non-numeric inputs
       if (isNaN(hours)) return;
 
       totalHours += hours;
@@ -197,12 +189,10 @@ function ManualDTRCard({ onClose, onSuccess }) {
     };
   }
 
-  /* ======== Cutoff Logic for Date Inputs ======== */  
   const { canSubmit, message } = getDTRCutoffStatus();
 
   const formatDate = (d) => d.toISOString().split("T")[0];
 
-  /* ===== Date helpers ===== */
   const dateList = useMemo(() => {
     if (!startDate || !endDate) return [];
     const start = new Date(startDate);
@@ -229,13 +219,11 @@ function ManualDTRCard({ onClose, onSuccess }) {
   const updateDaily = (rowIndex, date, value) => {
     const updated = [...rows];
 
-    // Update daily value
     const newDailyData = {
       ...updated[rowIndex].daily_data,
       [date]: value,
     };
 
-    // Recompute totals
     const { total_hours, regular_ot } = computeTotals(newDailyData);
 
     updated[rowIndex] = {

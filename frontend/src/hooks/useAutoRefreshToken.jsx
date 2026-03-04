@@ -15,7 +15,7 @@ export default function useAutoRefreshToken() {
           console.warn("❌ Silent refresh failed:", err);
         }
       }
-    }, 10 * 60 * 1000); // every 10 minutes (adjustable)
+    }, 10 * 60 * 1000);
 
     return () => clearInterval(interval);
   }, []);

@@ -12,7 +12,6 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import EmployeeDtrModal from "./EmployeeDtrModal";
 
-// ---------------- AddEmployee component ----------------
 const AddEmployee = React.memo(({ onAdded }) => {
   const [employee, setEmployee] = useState({ employee_code: "", employee_name: "" });
 
@@ -50,7 +49,6 @@ const AddEmployee = React.memo(({ onAdded }) => {
   );
 });
 
-// ---------------- DeleteEmployee component ----------------
 const DeleteEmployee = React.memo(({ employees, onDeleted }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [confirmingCode, setConfirmingCode] = useState(null);
@@ -139,7 +137,6 @@ const DeleteEmployee = React.memo(({ employees, onDeleted }) => {
   );
 });
 
-// ---------------- EmployeeRow component (row-level editable) ----------------
 const EmployeeRow = React.memo(({ emp, columns, hiddenColumns, onRowClick, onSave }) => {
   const [editing, setEditing] = useState(false);
   const [rowData, setRowData] = useState(emp);
@@ -230,7 +227,6 @@ const EmployeeRow = React.memo(({ emp, columns, hiddenColumns, onRowClick, onSav
   );
 });
 
-// ---------------- Main EmployeeDirectory ----------------
 export default function EmployeeDirectory() {
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -821,7 +817,6 @@ export default function EmployeeDirectory() {
             </button>
           </div> */}
           
-          {/* === LEFT SECTION: EMPLOYEE MANAGEMENT === */}
           <div className="employee-section-group">
             <h3 className="employee-section-title">👥 Employee Management</h3>
             <div className="employee-controls">
@@ -849,12 +844,10 @@ export default function EmployeeDirectory() {
             </div>
           </div>
 
-          {/* === RIGHT SECTION: TOOLS === */}
           <div className="employee-section-group">
             <h3 className="employee-section-title">🛠️ Tools & Filters</h3>
             <div className="employee-controls">
 
-              {/* Project Filter */}
               <div className="employee-project-filter" ref={projectFilterRef} style={{ position: "relative" }}>
                 <button className="employee-hide-btn" onClick={() => setProjectFilterOpen(prev => !prev)}>
                   {selectedProject || "🏗️ Filter by Project"}
@@ -885,7 +878,6 @@ export default function EmployeeDirectory() {
                 )}
               </div>
 
-              {/* Hide Columns */}
               <div className="employee-hide-column" ref={toggleRef}>
                 <button className="employee-hide-btn" onClick={() => setToggleOpen(prev => !prev)}>
                   👁️ Hide Columns
@@ -906,7 +898,6 @@ export default function EmployeeDirectory() {
                 )}
               </div>
 
-              {/* Export & Print */}
               <div className="employee-button-wrapper">
                 <button className="employee-hide-btn" onClick={handleExportExcel}>📁 Export Excel</button>
               </div>
@@ -920,9 +911,7 @@ export default function EmployeeDirectory() {
           </div>
         </div>
 
-        {/* Second row */}
         <div className="employee-row">
-          {/* Search */}
           <div className="employee-search-wrapper">
             <FaSearch className="employee-search-icon" />
             <input
@@ -934,7 +923,6 @@ export default function EmployeeDirectory() {
             />
           </div>
 
-          {/* Date filter */}
           <div className="employee-button-wrapper">
             <label style={{ fontWeight: 600, marginRight: "0.5rem" }}>Filter by Date:</label>
             <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} style={{ marginRight: "0.5rem", padding: "0.3rem" }} />

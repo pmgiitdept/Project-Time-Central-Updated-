@@ -16,25 +16,24 @@
 
 .dtr-modal-content {
   background: white;
-  padding: 15px;              /* slightly smaller padding */
+  padding: 15px;              
   border-radius: 12px;
-  width: 85%;                 /* large modal container */
-  max-width: 1800px;          /* bigger width */
-  max-height: 90%;            /* taller modal */
+  width: 85%;               
+  max-width: 1800px;         
+  max-height: 90%;           
   overflow-y: auto;
   box-shadow: 0 5px 20px rgba(0,0,0,0.3);
   position: relative;
-  font-size: 0.65rem;         /* smaller text overall */
+  font-size: 0.65rem;         
 }
 
-/* Close button */
 .close-btn {
   position: absolute;
   background: #ff6b6b;
-  top: 15px;                  /* closer to edge */
+  top: 15px;                 
   right: 15px;
   border: none;
-  font-size: 16px;            /* smaller button */
+  font-size: 16px;           
   cursor: pointer;
 }
 
@@ -58,7 +57,7 @@
 .dtr-table th,
 .dtr-table td {
   border: 1px solid #ccc;
-  padding: 4px 6px;           /* smaller padding */
+  padding: 4px 6px;          
   background: #ffffff;
   white-space: nowrap;
 }
@@ -71,7 +70,7 @@
   z-index: 2;
   text-align: center;
   font-weight: bold;
-  font-size: 0.6rem;          /* smaller header */
+  font-size: 0.6rem;         
 }
 
 .dtr-table th:nth-child(1){
@@ -79,7 +78,7 @@
   left: 0;
   background: linear-gradient(135deg, #41099b, #7528cc);
   font-weight: bold;
-  min-width: 120px;           /* narrower column */
+  min-width: 120px;         
 }
 
 .dtr-table td:nth-child(1) {
@@ -111,17 +110,16 @@
 }
 */
 
-/* Project History Block */
 .project-history-block {
   margin-bottom: 1.5rem;
   background: #f9fafb;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
-  padding: 0.8rem 1rem;       /* smaller padding */
+  padding: 0.8rem 1rem;       
 }
 
 .project-header {
-  font-size: 1rem;            /* smaller header text */
+  font-size: 1rem;            
   color: #2c3e50;
   font-weight: 600;
   margin-bottom: 0.4rem;

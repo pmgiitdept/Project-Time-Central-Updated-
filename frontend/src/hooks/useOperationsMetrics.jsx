@@ -7,10 +7,8 @@ export default function useOperationsMetrics(projects = []) {
     let totalExceptions = 0;
     const projectHealth = [];
 
-    // Track overlaps per employee per date across projects
     const overlapTracker = {};
 
-    // Track employee conflicts per project for heatmap
     const employeeProjectConflicts = {};
 
     projects.forEach((proj) => {
@@ -18,19 +16,16 @@ export default function useOperationsMetrics(projects = []) {
       let totalLoggedHours = 0;
 
       proj.employees.forEach((emp) => {
-        // Initialize employee utilization
         if (!utilizationByEmployee[emp.employee_no]) {
           utilizationByEmployee[emp.employee_no] = 0;
         }
 
-        // Initialize employeeProjectConflicts
         if (!employeeProjectConflicts[emp.employee_no]) {
           employeeProjectConflicts[emp.employee_no] = {
-            full_name: emp.full_name || "N/A", // 🔹 Store full name directly
+            full_name: emp.full_name || "N/A",
           };
         }
 
-        // Initialize project conflict counter for this project
         employeeProjectConflicts[emp.employee_no][proj.project] = 0;
 
         emp.rows.forEach((row) => {
@@ -40,11 +35,9 @@ export default function useOperationsMetrics(projects = []) {
             const val = row.daily_data[date];
             if (val === null || val === "" || isNaN(val)) return;
 
-            // Initialize overlap tracker
             if (!overlapTracker[emp.employee_no]) overlapTracker[emp.employee_no] = {};
             if (!overlapTracker[emp.employee_no][date]) overlapTracker[emp.employee_no][date] = new Set();
 
-            // Track project for this employee + date
             overlapTracker[emp.employee_no][date].add(proj.project);
           });
         });
@@ -71,12 +64,11 @@ export default function useOperationsMetrics(projects = []) {
         project: proj.project,
         utilization,
         manpower: proj.totalEmployees,
-        overlaps: 0, // will fill later if needed
+        overlaps: 0, 
         status: utilization < 70 ? "LOW" : utilization > 110 ? "OVER" : "NORMAL",
       });
     });
 
-    // Resolve overlap risks across projects
     const overlapRisks = [];
     Object.entries(overlapTracker).forEach(([employee_no, dates]) => {
       let totalOverlaps = 0;
@@ -86,7 +78,6 @@ export default function useOperationsMetrics(projects = []) {
         if (projectSet.size > 1) {
           totalOverlaps += projectSet.size - 1;
 
-          // Track conflicts per project for heatmap
           projectSet.forEach((proj) => {
             employeeProjectConflicts[employee_no][proj] =
               (employeeProjectConflicts[employee_no][proj] || 0) + 1;
@@ -98,7 +89,7 @@ export default function useOperationsMetrics(projects = []) {
       if (totalOverlaps > 0) {
         overlapRisks.push({
           employee_no,
-          full_name: employeeProjectConflicts[employee_no].full_name, // 🔹 use stored full_name
+          full_name: employeeProjectConflicts[employee_no].full_name, 
           overlaps: totalOverlaps,
           conflictingProjects: Array.from(conflictingProjectsSet),
         });
@@ -112,7 +103,7 @@ export default function useOperationsMetrics(projects = []) {
       overlapRisks,
       exceptionSummary: { total: totalExceptions },
       projectHealth,
-      employeeProjectConflicts, // 🔹 now contains full_name directly
+      employeeProjectConflicts,
     };
   }, [projects]);
 }

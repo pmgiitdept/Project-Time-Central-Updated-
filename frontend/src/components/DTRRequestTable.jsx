@@ -15,7 +15,6 @@ export default function DTRRequestTable({ refreshTrigger }) {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      // Ensure requests is always an array
       const data = Array.isArray(res.data) ? res.data : res.data.results || [];
       setRequests(data);
 

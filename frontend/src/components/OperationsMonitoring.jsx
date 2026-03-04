@@ -13,7 +13,6 @@ export default function OperationsMonitoring({ projects }) {
     projectHealth,
   } = useOperationsMetrics(projects);
 
-  // Prepare data for charts
   const utilizationTrend = utilizationByProject.map(p => ({
     project: p.project,
     utilization: p.utilization,
@@ -39,7 +38,6 @@ export default function OperationsMonitoring({ projects }) {
     >
       <h2>🧭 Project Performance Analytics</h2>
 
-      {/* Snapshot Cards */}
       <div className="ops-cards">
         <div className="ops-card">
           <h3>⚙ Utilization</h3>
@@ -55,7 +53,6 @@ export default function OperationsMonitoring({ projects }) {
         </div>
       </div>
 
-      {/* Project Health Table */}
       <div className="ops-section">
         <h3>📊 Project Health</h3>
         <p className="section-note">
@@ -87,14 +84,12 @@ export default function OperationsMonitoring({ projects }) {
         </div>
       </div>
 
-      {/* Trend Charts Section */}
       <div className="ops-section">
         <h3>📊 Key Metrics Overview</h3>
         <p className="section-note">
             These charts provide quick insights into utilization trends, employee overlap risk, and exception breakdowns. Use them to identify potential capacity issues and monitor employee workload across projects.
         </p>
 
-        {/* Charts container */}
         <div className="charts-container">
             <div className="chart-card">
             <h4>📈 Utilization Trend</h4>
@@ -138,79 +133,74 @@ export default function OperationsMonitoring({ projects }) {
         </div>
       </div>
 
-      {/* Employee Conflict Heatmap */}
     <div className="ops-section">
-    <h3>🔥 Employee Conflict Heatmap</h3>
-    <p className="heatmap-note">
-        Shows number of overlapping days each employee has across projects. Colors indicate severity: green = low/no conflicts, yellow = medium, red = high. Blank = employee not assigned to that project.
-    </p>
+      <h3>🔥 Employee Conflict Heatmap</h3>
+      <p className="heatmap-note">
+          Shows number of overlapping days each employee has across projects. Colors indicate severity: green = low/no conflicts, yellow = medium, red = high. Blank = employee not assigned to that project.
+      </p>
 
-    {Object.keys(employeeProjectConflicts).length === 0 ? (
-        <p className="ops-empty">No conflicts detected 🎉</p>
-    ) : (
-        <div className="heatmap-wrapper scrollable">
-        <table className="heatmap-table">
-            <thead>
-            <tr>
-                <th style={{ minWidth: "140px", position: "sticky", left: 0, background: "#f1f3f5", zIndex: 3 }}>
-                Employee
-                </th>
-                {utilizationByProject.map(p => (
-                <th key={p.project} style={{ position: "sticky", top: 0, background: "#f1f3f5", zIndex: 2 }}>
-                    {p.project}
-                </th>
-                ))}
-            </tr>
-            </thead>
-            <tbody>
-            {Object.entries(employeeProjectConflicts).map(([empNo, projects]) => {
-                // 🔹 Build a map of all employees from projects to get the full name
-                const empFullName =
-                projects.full_name ||
-                (() => {
-                    for (const proj of utilizationByProject) {
-                    const emp = proj.employees?.find(e => e.employee_no === empNo);
-                    if (emp) return emp.full_name;
-                    }
-                    return "N/A";
-                })();
+      {Object.keys(employeeProjectConflicts).length === 0 ? (
+          <p className="ops-empty">No conflicts detected 🎉</p>
+      ) : (
+          <div className="heatmap-wrapper scrollable">
+          <table className="heatmap-table">
+              <thead>
+              <tr>
+                  <th style={{ minWidth: "140px", position: "sticky", left: 0, background: "#f1f3f5", zIndex: 3 }}>
+                  Employee
+                  </th>
+                  {utilizationByProject.map(p => (
+                  <th key={p.project} style={{ position: "sticky", top: 0, background: "#f1f3f5", zIndex: 2 }}>
+                      {p.project}
+                  </th>
+                  ))}
+              </tr>
+              </thead>
+              <tbody>
+              {Object.entries(employeeProjectConflicts).map(([empNo, projects]) => {
+                  const empFullName =
+                  projects.full_name ||
+                  (() => {
+                      for (const proj of utilizationByProject) {
+                      const emp = proj.employees?.find(e => e.employee_no === empNo);
+                      if (emp) return emp.full_name;
+                      }
+                      return "N/A";
+                  })();
 
-                return (
-                <tr key={empNo}>
-                    <td style={{ minWidth: "140px", position: "sticky", left: 0, background: "#ffffff", zIndex: 1 }}>
-                    {empNo} - {empFullName}
-                    </td>
+                  return (
+                  <tr key={empNo}>
+                      <td style={{ minWidth: "140px", position: "sticky", left: 0, background: "#ffffff", zIndex: 1 }}>
+                      {empNo} - {empFullName}
+                      </td>
 
-                    {utilizationByProject.map(p => {
-                    // Only color if the employee is actually assigned to this project
-                    if (!(p.project in projects)) return <td key={p.project}></td>;
+                      {utilizationByProject.map(p => {
+                      if (!(p.project in projects)) return <td key={p.project}></td>;
 
-                    const val = projects[p.project] || 0;
-                    let color = "#d1fae5"; // green = low/no conflicts
-                    if (val >= 3) color = "#fca5a5"; // red = high
-                    else if (val === 2) color = "#fde68a"; // yellow = medium
+                      const val = projects[p.project] || 0;
+                      let color = "#d1fae5";
+                      if (val >= 3) color = "#fca5a5"; 
+                      else if (val === 2) color = "#fde68a";
 
-                    return (
-                        <td
-                        key={p.project}
-                        style={{ backgroundColor: color, textAlign: "center" }}
-                        title={`${val} overlapping days`}
-                        >
-                        {val > 0 ? val : ""}
-                        </td>
-                    );
-                    })}
-                </tr>
-                );
-            })}
-            </tbody>
-        </table>
-        </div>
-    )}
+                      return (
+                          <td
+                          key={p.project}
+                          style={{ backgroundColor: color, textAlign: "center" }}
+                          title={`${val} overlapping days`}
+                          >
+                          {val > 0 ? val : ""}
+                          </td>
+                      );
+                      })}
+                  </tr>
+                  );
+              })}
+              </tbody>
+          </table>
+          </div>
+      )}
     </div>
 
-
-      {/* Employee Risk Table */}
       <div className="ops-section">
         <h3>👤 Employee Risks</h3>
         {overlapRisks.length === 0 ? (

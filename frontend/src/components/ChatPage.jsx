@@ -23,14 +23,12 @@ export default function ChatPage({ currentUser }) {
 
   return (
     <div className="chat-page">
-      {/* Sidebar with users */}
       <UserList
         currentUser={currentUser}
         onSelectRoom={handleSelectRoom}
         isVisible={true}
       />
 
-      {/* Active chat */}
       {activeRoom && (
         <ChatSection
           currentUser={currentUser}

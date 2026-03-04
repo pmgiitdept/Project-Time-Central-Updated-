@@ -7,7 +7,7 @@ export default function useHeartbeat() {
 
   useEffect(() => {
     const startPing = () => {
-      if (intervalRef.current) return; // already running
+      if (intervalRef.current) return;
       intervalRef.current = setInterval(async () => {
         const token = localStorage.getItem("access_token");
         if (!token) return;
@@ -26,12 +26,10 @@ export default function useHeartbeat() {
       }
     };
 
-    // start on login
     if (localStorage.getItem("access_token")) {
       startPing();
     }
 
-    // clean up on unmount
     return () => stopPing();
   }, []);
 

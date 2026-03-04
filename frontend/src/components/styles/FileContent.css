@@ -1,12 +1,12 @@
 /* styles/FileContent.css */
 .file-content-container {
-  margin-top: 1rem;          /* less top spacing */
+  margin-top: 1rem;        
   background: #fdfdfd;
-  padding: 0.8rem;           /* reduced padding */
+  padding: 0.8rem;           
   border-radius: 10px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
   overflow-x: auto;
-  font-size: 0.75rem;        /* smaller base text */
+  font-size: 0.75rem;        
 }
 
 .file-content-table {
@@ -15,7 +15,7 @@
   border-spacing: 0;
   text-align: left;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  font-size: 0.75rem;       /* smaller table text */
+  font-size: 0.75rem;     
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
@@ -31,14 +31,14 @@
 .file-content-table thead tr th {
   font-weight: 600;
   text-transform: uppercase;
-  font-size: 0.7rem;       /* smaller header */
+  font-size: 0.7rem;      
   letter-spacing: 0.3px;
-  padding: 0.4rem 0.6rem;  /* smaller padding */
+  padding: 0.4rem 0.6rem;  
 }
 
 .file-content-table th,
 .file-content-table td {
-  padding: 0.4rem 0.6rem;  /* tighter cells */
+  padding: 0.4rem 0.6rem; 
   border-bottom: 1px solid #e0e0e0;
   vertical-align: middle;
   white-space: nowrap;
@@ -46,7 +46,7 @@
 
 .file-content-table tbody tr:hover {
   background: #f7f9fb;
-  transform: none; /* remove scale for compact */
+  transform: none; 
 }
 
 .file-content-table tbody tr {

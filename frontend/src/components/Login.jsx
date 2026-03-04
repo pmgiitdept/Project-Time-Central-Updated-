@@ -19,25 +19,19 @@ export default function Login() {
     try {
       const res = await api.post("/auth/login/", { username, password });
 
-      // 🧠 Depending on your backend, adjust this:
-      // Example response: { access, refresh, user: { username, role, ... } }
-
       const userData = res.data.user || {
         username: res.data.username,
         role: res.data.role,
       };
 
-      // ✅ Store tokens
       localStorage.setItem("access_token", res.data.access);
       localStorage.setItem("refresh_token", res.data.refresh);
       localStorage.setItem("user", JSON.stringify(userData));
 
-      // ✅ Update context state
       setCurrentUser(userData);
 
       toast.success(`Welcome ${userData.username}!`);
 
-      // ✅ Navigate based on role
       const from = location.state?.from?.pathname || "/";
       if (userData.role === "admin") navigate("/admin", { replace: true });
       else if (userData.role === "client") navigate("/client", { replace: true });
@@ -52,7 +46,6 @@ export default function Login() {
 
   return (
     <div className="login-container">
-      {/* Navbar */}
       <nav className="login-navbar">
         <div className="navbar-left">
           <img src="/images/pmgi.png" alt="Logo" className="navbar-logo" />
@@ -68,12 +61,10 @@ export default function Login() {
       </nav>
 
       <img src="/images/ptc-logo.png" alt="App Logo" className="login-top-logo" />
-      {/* Card */}
       <div className="login-card">
         <h1 className="login-title">Welcome! Please log in</h1>
 
         <form onSubmit={handleSubmit} className="login-form">
-          {/* Username field */}
           <div className="input-group">
             <input
               type="text"
@@ -85,7 +76,6 @@ export default function Login() {
             <label htmlFor="username">Username</label>
           </div>
 
-          {/* Password field */}
           <div className="input-group">
             <input
               type="password"
@@ -101,7 +91,6 @@ export default function Login() {
         </form>
       </div>
 
-      {/* Footer */}
       <footer className="login-footer">
         <div className="footer-left">
           <p>

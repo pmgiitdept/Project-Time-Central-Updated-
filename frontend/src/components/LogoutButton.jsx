@@ -30,7 +30,6 @@ export default function LogoutButton() {
 
   return (
     <div style={{ display: "inline-block" }}>
-      {/* Logout Icon Button */}
       <button
         className="logout-icon-btn"
         onClick={() => setShowConfirm(true)}
@@ -39,7 +38,6 @@ export default function LogoutButton() {
         <FaSignOutAlt />
       </button>
 
-      {/* Confirmation Modal */}
       {showConfirm && (
         <div className="logout-modal-overlay">
           <div className="logout-modal">

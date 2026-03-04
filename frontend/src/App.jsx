@@ -29,10 +29,8 @@ function App() {
       )}
 
       <Routes>
-        {/* Public route */}
         <Route path="/login" element={<Login />} />
 
-        {/* Protected routes */}
         <Route
           path="/viewer"
           element={
@@ -58,7 +56,6 @@ function App() {
           }
         />
 
-        {/* Default fallback */}
         <Route path="*" element={<Login />} />
       </Routes>
 

@@ -140,18 +140,16 @@
   box-shadow: none; 
 }
 
-/* Make sure <select> keeps the color */
 select.upload-button {
-  appearance: none;        /* Chrome / Safari */
+  appearance: none;       
   -webkit-appearance: none;
   -moz-appearance: none;
   background-color: #1d4ed8;
   color: #ffffff;
 }
 
-/* Dropdown options */
 select.upload-button option {
-  background-color: #ffffff; /* options stay readable */
+  background-color: #ffffff;
   color: #000000;
 }
 
@@ -546,16 +544,14 @@ select.upload-button option {
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
-/* Header should stay fixed */
 .upload-card-header {
   flex-shrink: 0;
 }
 
-/* Scrollable PDF list */
 .pdf-grid {
-  flex: 1;                   /* take remaining space */
-  overflow-y: auto;          /* vertical scrollbar */
-  padding-right: 6px;        /* space for scrollbar */
+  flex: 1;                  
+  overflow-y: auto;         
+  padding-right: 6px;       
 }
 
 .main-content {
@@ -593,9 +589,9 @@ select.upload-button option {
 }
 
 .manual-row-grid {
-  display: grid; /* make it a grid */
+  display: grid; 
   grid-template-columns: repeat(5, minmax(140px, 1fr));
-  gap: 12px; /* gap between input fields */
+  gap: 12px; 
   font-weight: 600;
   margin-bottom: 12px;
   color: #444;

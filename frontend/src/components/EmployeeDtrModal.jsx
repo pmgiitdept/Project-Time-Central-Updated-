@@ -10,7 +10,7 @@ const getDateRange = (start, end) => {
   const current = new Date(start);
   const last = new Date(end);
 
-  current.setHours(12, 0, 0, 0); // noon = extra safety
+  current.setHours(12, 0, 0, 0); 
   last.setHours(12, 0, 0, 0);
 
   while (current <= last) {
@@ -90,7 +90,6 @@ export default function EmployeeDtrModal({
     fetchDtr();
   }, [employee, isOpen]);
 
-  // 🧠 Click outside + ESC close behavior
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (modalRef.current && !modalRef.current.contains(event.target)) {
@@ -191,7 +190,6 @@ export default function EmployeeDtrModal({
                                 const totalDays = dailyDates.reduce((count, d) => {
                                   const val = rec.daily_data[d];
 
-                                  // Count as 1 if value exists AND is numeric
                                   if (val !== null && val !== "" && !isNaN(val)) {
                                     return count + 1;
                                   }
@@ -207,7 +205,6 @@ export default function EmployeeDtrModal({
                                       <td key={d}>{rec.daily_data[d] || ""}</td>
                                     ))}
 
-                                    {/* ✅ Total Days (count-only, not sum) */}
                                     <td>{totalDays}</td>
 
                                     <td>{rec.total_hours}</td>

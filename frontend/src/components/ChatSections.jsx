@@ -51,11 +51,10 @@ export default function ChatSection({
     try {
       let allMessages = [];
 
-      // Determine backend base URL dynamically
       const backendBase =
         window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
-          ? "http://127.0.0.1:8000/api" // local dev
-          : "https://api.project-time-central.cloud/api"; // production
+          ? "http://127.0.0.1:8000/api" 
+          : "https://api.project-time-central.cloud/api";
 
       let url = `/chat/messages/${roomName}/`;
 
@@ -68,7 +67,6 @@ export default function ChatSection({
         const data = res.data;
         allMessages = [...allMessages, ...data.results];
 
-        // Update URL for next page; make it relative
         url = data.next ? data.next.replace(backendBase, "") : null;
       }
 
@@ -97,19 +95,15 @@ export default function ChatSection({
 
   useEffect(() => {
     if (!currentUser?.token) return;
-    if (ws.current) return; // already initialized
+    if (ws.current) return; 
 
-    // Determine protocol automatically
     const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
 
-    // Determine backend host dynamically:
-    // - localhost or 127.0.0.1 for local dev
-    // - production uses api.project-time-central.cloud
     let backendHost;
     if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
-      backendHost = "127.0.0.1:8000"; // local Docker backend
+      backendHost = "127.0.0.1:8000";
     } else {
-      backendHost = "api.project-time-central.cloud"; // production backend
+      backendHost = "api.project-time-central.cloud"; 
     }
 
     const token =

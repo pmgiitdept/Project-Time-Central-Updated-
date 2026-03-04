@@ -41,7 +41,6 @@ export default function UserList({ currentUser, onSelectRoom, unreadCounts = {},
     <div className="user-list-wrapper">
       <h3 className="user-list-title">Users</h3>
 
-      {/* Sticky Search Bar */}
       <div className="user-search-container">
         <input
           type="text"
@@ -80,7 +79,6 @@ export default function UserList({ currentUser, onSelectRoom, unreadCounts = {},
                   ></span>
                 </div>
 
-                {/* Move status dot to the right */}
                 <span className={`status-dot ${user.is_online ? "online" : "offline"}`}></span>
 
                 {unreadCounts[room] > 0 && (

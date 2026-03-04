@@ -8,7 +8,6 @@ export default function useSessionManager() {
   const refreshInterval = useRef(null);
   const warningTimeout = useRef(null);
 
-  // 🔐 Decode and get expiration time
   const getTokenExpiry = () => {
     const token = localStorage.getItem("access_token");
     if (!token) return null;
@@ -20,7 +19,6 @@ export default function useSessionManager() {
     }
   };
 
-  // ♻️ Silent refresh
   const silentRefresh = async () => {
     const refresh = localStorage.getItem("refresh_token");
     if (!refresh) return false;
@@ -36,7 +34,6 @@ export default function useSessionManager() {
     }
   };
 
-  // 🕐 Schedule token expiry warning modal
   const scheduleWarning = () => {
     const expTime = getTokenExpiry();
     if (!expTime) return;
@@ -48,14 +45,12 @@ export default function useSessionManager() {
       return;
     }
 
-    // Show modal 1 min before expiry
     const warningTime = Math.max(timeLeft - 60 * 1000, 0);
 
     clearTimeout(warningTimeout.current);
     warningTimeout.current = setTimeout(() => setModalVisible(true), warningTime);
   };
 
-  // 🔁 Keep user logged in manually
   const handleKeepLoggedIn = async () => {
     const success = await silentRefresh();
     if (success) {
@@ -66,7 +61,6 @@ export default function useSessionManager() {
     }
   };
 
-  // 🚪 Log out user
   const handleLogout = () => {
     clearInterval(refreshInterval.current);
     clearTimeout(warningTimeout.current);
@@ -74,12 +68,9 @@ export default function useSessionManager() {
     window.location.href = "/login";
   };
 
-  // 🚀 Initialize checks
   useEffect(() => {
-    // Run once on mount
     scheduleWarning();
 
-    // Silent refresh every 10 minutes (or configurable)
     refreshInterval.current = setInterval(async () => {
       const expTime = getTokenExpiry();
       if (!expTime) return;
@@ -87,13 +78,12 @@ export default function useSessionManager() {
       const now = Date.now();
       const timeLeft = expTime - now;
 
-      // If expiring within 5 minutes, refresh early
       if (timeLeft < 5 * 60 * 1000) {
         const success = await silentRefresh();
         if (success) {
-          scheduleWarning(); // reschedule after new token
+          scheduleWarning(); 
         } else {
-          setModalVisible(true); // show warning if refresh fails
+          setModalVisible(true); 
         }
       }
     }, 10 * 60 * 1000);

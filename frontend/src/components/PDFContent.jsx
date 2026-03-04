@@ -4,7 +4,7 @@ import { Document, Page, pdfjs } from "react-pdf";
 import api from "../api";
 import { toast } from "react-toastify";
 import { motion } from "framer-motion";
-import "./styles/FileContent.css"; // reuse styling for consistency
+import "./styles/FileContent.css"; 
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 
@@ -15,7 +15,7 @@ export default function PDFContent({ fileId, role }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
 
-  const isEditable = role === "admin"; // if you plan on adding admin actions later
+  const isEditable = role === "admin";
 
   const fetchFileInfo = async () => {
     setLoading(true);
@@ -25,7 +25,7 @@ export default function PDFContent({ fileId, role }) {
         headers: { Authorization: `Bearer ${token}` },
       });
       setFileInfo(metaRes.data);
-      setFileUrl(metaRes.data.file); // full file URL
+      setFileUrl(metaRes.data.file); 
     } catch (err) {
       console.error(err);
       toast.error("Failed to fetch file info");
@@ -87,7 +87,6 @@ export default function PDFContent({ fileId, role }) {
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.5, ease: "easeInOut" }}
     >
-      {/* Metadata */}
       <div className="file-content-left file-metadata">
         <div className="metadata-grid">
           <div>
@@ -113,7 +112,6 @@ export default function PDFContent({ fileId, role }) {
           </div>
         </div>
 
-        {/* Toolbar */}
         <div className="modal-toolbar" style={{ marginTop: "1rem" }}>
           <button onClick={goToPrevPage} disabled={currentPage <= 1}>
             ◀ Previous
@@ -130,7 +128,6 @@ export default function PDFContent({ fileId, role }) {
         </div>
       </div>
 
-      {/* PDF Viewer */}
       <div
         style={{
           marginTop: "1rem",

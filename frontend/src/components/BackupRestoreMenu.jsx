@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import { toast } from "react-toastify";
 import api from "../api";
-import "./styles/BackupRestoreMenu.css"; // you can style it similar to employee directory
+import "./styles/BackupRestoreMenu.css"; 
 
 export default function BackupRestoreMenu() {
   const [open, setOpen] = useState(false);
@@ -9,7 +9,6 @@ export default function BackupRestoreMenu() {
   const fileInputRef = useRef(null);
   const menuRef = useRef(null);
 
-  // --- BACKUP FUNCTION ---
   const handleBackup = async () => {
     try {
       const res = await api.get("/files/employees/backup/", { responseType: "blob" });
@@ -25,7 +24,6 @@ export default function BackupRestoreMenu() {
     }
   };
 
-  // --- RESTORE FUNCTION ---
   const handleRestore = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -42,50 +40,49 @@ export default function BackupRestoreMenu() {
       toast.error("Restore failed. Please check the file.");
     } finally {
       setUploading(false);
-      e.target.value = null; // reset input
+      e.target.value = null; 
     }
   };
 
   return (
     <div className="employee-button-wrapper1" ref={menuRef}>
-  <button
-    className="employee-hide-btn"
-    onClick={() => setOpen(!open)}
-  >
-    💾 Backup & Restore
-  </button>
+      <button
+        className="employee-hide-btn"
+        onClick={() => setOpen(!open)}
+      >
+        💾 Backup & Restore
+      </button>
 
-  {open && (
-    <div className="employee-directory-floating">
-      <h2 className="employee-directory-title">Backup & Restore</h2>
+      {open && (
+        <div className="employee-directory-floating">
+          <h2 className="employee-directory-title">Backup & Restore</h2>
 
-      <div className="employee-upload">
-        <button
-          className="employee-directory-upload-btn"
-          onClick={handleBackup}
-        >
-          ⬇️ Download Backup
-        </button>
+          <div className="employee-upload">
+            <button
+              className="employee-directory-upload-btn"
+              onClick={handleBackup}
+            >
+              ⬇️ Download Backup
+            </button>
 
-        <input
-          type="file"
-          accept=".xlsx"
-          ref={fileInputRef}
-          onChange={handleRestore}
-          style={{ display: "none" }}
-        />
+            <input
+              type="file"
+              accept=".xlsx"
+              ref={fileInputRef}
+              onChange={handleRestore}
+              style={{ display: "none" }}
+            />
 
-        <button
-          className="employee-directory-upload-btn"
-          onClick={() => fileInputRef.current.click()}
-          disabled={uploading}
-        >
-          {uploading ? "Restoring..." : "⬆️ Upload to Restore"}
-        </button>
-      </div>
+            <button
+              className="employee-directory-upload-btn"
+              onClick={() => fileInputRef.current.click()}
+              disabled={uploading}
+            >
+              {uploading ? "Restoring..." : "⬆️ Upload to Restore"}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
-  )}
-</div>
-
   );
 }

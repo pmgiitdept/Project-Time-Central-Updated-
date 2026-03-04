@@ -9,15 +9,15 @@
 }
 
 .file-table-left {
-  width: 180px;          /* ⬅️ smaller than 420 */   
+  width: 180px;        
   overflow-y: auto;
   background: #ffffff;
-  padding: 0.3rem;       /* ⬅️ tighter padding */
-  border-radius: 8px;   /* ⬅️ slightly smaller radius */
+  padding: 0.3rem;     
+  border-radius: 8px;  
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
-  font-size: 0.6rem;    /* ⬅️ matches compact tables */
+  font-size: 0.6rem;   
 }
 
 .file-content-right {
@@ -695,9 +695,8 @@
   color: #7f1d1d;
 }
 
-/* Compact table for modal */
 .file-table-wrapper.embedded {
-  gap: 1rem; /* reduce spacing between table & content */
+  gap: 1rem; 
   font-size: 0.8rem;
 }
 

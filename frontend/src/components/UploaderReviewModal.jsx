@@ -51,14 +51,11 @@ export default function UploaderReviewModal({ uploader, uploaders = [], onClose 
         exit={{ opacity: 0, scale: 0.95 }}
         transition={{ duration: 0.25 }}
       >
-        {/* Header */}
         <div className="uploader-modal-header">
           <h2>Uploader Review: {selectedUploader.username}</h2>
         </div>
 
-        {/* Body */}
         <div className="uploader-modal-body full-util">
-          {/* LEFT COLUMN */}
           <div className="uploader-column left full-height">
             <div className="file-table-wrapper full-height">
               <div className="file-table-left">
@@ -77,7 +74,6 @@ export default function UploaderReviewModal({ uploader, uploaders = [], onClose 
             </div>
           </div>
 
-          {/* RIGHT COLUMN */}
           <div className="uploader-column right full-height">
             <div className="right-top-scrollbar" ref={topScrollRef}>
               <div className="scroll-inner" />

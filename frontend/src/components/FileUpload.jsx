@@ -6,7 +6,6 @@ import "./styles/ClientDashboard.css";
 import { motion } from "framer-motion";
 import { parseDTRExcel } from "../utils/parseDTRExcel";
 
-/* ======== Cutoff Logic ======== */
 function getDTRCutoffStatus() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -61,10 +60,6 @@ export default function FileUpload({ refreshFiles, refreshPDFs }) {
       console.log("Parsed DTR Excel:", parsedDTRs);
 
       toast.success(`Parsed ${parsedDTRs.length} DTR sheet(s) successfully`);
-
-      // 🔜 NEXT:
-      // setPreviewData(parsedDTRs)
-      // OR send JSON to backend
 
       setHasSubmitted(true);
       setFile(null);

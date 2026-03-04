@@ -1,10 +1,6 @@
-/* ================================
-   Operations Monitoring Dashboard
-   ================================ */
-
 .operations-monitoring {
   padding: 1.5rem;
-  background: #f5f6f8; /* neutral ops gray */
+  background: #f5f6f8;
   border-radius: 14px;
   border: 1px solid #e2e4e8;
 }
@@ -15,10 +11,6 @@
   font-weight: 700;
   color: #1f2937;
 }
-
-/* ================================
-   Top Snapshot Cards
-   ================================ */
 
 .ops-cards {
   display: grid;
@@ -48,10 +40,6 @@
   color: #111827;
 }
 
-/* ================================
-   Sections
-   ================================ */
-
 .ops-section {
   margin-top: 1.5rem;
 }
@@ -63,29 +51,22 @@
   color: #1f2937;
 }
 
-/* ============================
-   Ops Risk Table
-   ============================ */
-
-/* Wraps tables to allow horizontal scrolling */
 .ops-table-wrapper {
-  max-height: 220px;       /* vertical scroll limit */
-  overflow-y: auto;        /* vertical scrolling */
-  overflow-x: auto;        /* horizontal scrolling */
+  max-height: 220px;      
+  overflow-y: auto;       
+  overflow-x: auto;        
   border-radius: 10px;
   border: 1px solid #e5e7eb;
   background: #ffffff;
 }
 
-/* Ensure table uses full width but scrolls if needed */
 .ops-table {
-  min-width: 600px;        /* ensures scroll appears if table wider than container */
+  min-width: 600px;        
   width: 100%;
   border-collapse: collapse;
   font-size: 0.75rem;
 }
 
-/* Sticky headers still work with scrollable wrapper */
 .ops-table thead th {
   position: sticky;
   top: 0;
@@ -103,12 +84,10 @@
   white-space: nowrap;
 }
 
-/* Subtle hover for scan */
 .ops-table tbody tr:hover {
   background: #f1f5f9;
 }
 
-/* Optional: horizontal scroll indicator for small screens */
 .ops-table-wrapper::-webkit-scrollbar {
   height: 6px;
 }
@@ -122,7 +101,6 @@
   background: rgba(0,0,0,0.05);
 }
 
-/* Risk badges */
 .risk-badge {
   padding: 0.15rem 0.45rem;
   border-radius: 6px;
@@ -145,14 +123,9 @@
   color: #c62828;
 }
 
-/* Optional row hint */
 tr[data-risk="high"] {
   background: #fff5f5;
 }
-
-/* ================================
-   Tables
-   ================================ */
 
 .ops-table {
   width: 100%;
@@ -186,10 +159,6 @@ tr[data-risk="high"] {
   background: #f9fafb;
 }
 
-/* ================================
-   Status Badges
-   ================================ */
-
 .status {
   font-weight: 700;
   font-size: 0.7rem;
@@ -213,10 +182,6 @@ tr[data-risk="high"] {
   color: #b91c1c;
 }
 
-/* ================================
-   Risk List
-   ================================ */
-
 .risk-list {
   margin-top: 0.4rem;
   padding-left: 1rem;
@@ -227,10 +192,6 @@ tr[data-risk="high"] {
 .risk-list li {
   margin-bottom: 0.3rem;
 }
-
-/* ================================
-   Responsive
-   ================================ */
 
 @media (max-width: 768px) {
   .ops-table th,
@@ -244,7 +205,6 @@ tr[data-risk="high"] {
   margin-top: 0.8rem;
 }
 
-/* Charts side by side */
 .charts-container {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -258,24 +218,21 @@ tr[data-risk="high"] {
   font-weight: 600;
 }
 
-/* Heatmap scrollable wrapper */
 .heatmap-wrapper.scrollable {
-  max-height: 250px;       /* vertical scroll limit */
-  overflow: auto;          /* enable both vertical and horizontal scroll */
+  max-height: 250px;      
+  overflow: auto;         
   border: 1px solid #e5e7eb;
   border-radius: 10px;
   background: #ffffff;
 }
 
-/* Heatmap table */
 .heatmap-table {
   border-collapse: collapse;
   width: 100%;
   font-size: 0.7rem;
-  min-width: 600px;        /* ensures horizontal scroll if table is wide */
+  min-width: 600px;        
 }
 
-/* Table cells */
 .heatmap-table th,
 .heatmap-table td {
   padding: 0.4rem 0.6rem;
@@ -285,21 +242,19 @@ tr[data-risk="high"] {
 
 .heatmap-table td:first-child,
 .heatmap-table th:first-child {
-  min-width: 140px; /* small but enough for empNo + name */
+  min-width: 140px; 
   text-align: left;
 }
 
-/* Sticky header */
 .heatmap-table th {
   position: sticky;
   top: 0;
-  background: #f1f3f5;     /* same as table header background */
-  z-index: 2;              /* ensures it stays above table cells */
+  background: #f1f3f5;    
+  z-index: 2;           
   font-weight: 600;
   text-align: center;
 }
 
-/* Table body cells */
 .heatmap-table td {
   font-weight: 500;
   color: #111827;
@@ -311,7 +266,6 @@ tr[data-risk="high"] {
   margin-bottom: 0.4rem;
 }
 
-/* Responsive adjustments */
 @media (max-width: 768px) {
   .charts-container {
     grid-template-columns: 1fr;

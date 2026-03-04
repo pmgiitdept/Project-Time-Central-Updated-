@@ -1,4 +1,3 @@
-/* UploadedPDFs.jsx */
 import { useState, useEffect } from "react";
 import api from "../api";
 import { motion } from "framer-motion";
@@ -12,19 +11,18 @@ export default function UploadedPDFs({ refreshTrigger, currentUser, uploaderFilt
   const [parsedDTRs, setParsedDTRs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [selectedPDF, setSelectedPDF] = useState(null);
-  const [selectedParsedDTR, setSelectedParsedDTR] = useState(null);
-  const [isCollapsed, setIsCollapsed] = useState(false);
 
-  const [selectedVisualPDF, setSelectedVisualPDF] = useState(null);
+  // Unified modal selection
+  const [activeModal, setActiveModal] = useState({
+    type: null, // 'text', 'visual', 'parsed'
+    data: null,
+  });
 
   const fetchPDFs = async () => {
     try {
       const res = await api.get("/files/pdfs/");
       let data = res.data.results || res.data;
-      if (uploaderFilter) {
-        data = data.filter(pdf => pdf.uploaded_by === uploaderFilter);
-      }
+      if (uploaderFilter) data = data.filter(pdf => pdf.uploaded_by === uploaderFilter);
       setPdfFiles(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Failed to fetch PDFs:", err);
@@ -37,9 +35,7 @@ export default function UploadedPDFs({ refreshTrigger, currentUser, uploaderFilt
     try {
       const res = await api.get("/files/parsed-dtrs/");
       let data = res.data.results || res.data;
-      if (uploaderFilter) {
-        data = data.filter(dtr => dtr.uploaded_by === uploaderFilter);
-      }
+      if (uploaderFilter) data = data.filter(dtr => dtr.uploaded_by === uploaderFilter);
       setParsedDTRs(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Failed to fetch Parsed DTRs:", err);
@@ -53,10 +49,7 @@ export default function UploadedPDFs({ refreshTrigger, currentUser, uploaderFilt
     Promise.all([fetchPDFs(), fetchParsedDTRs()]).finally(() => setLoading(false));
   }, [refreshTrigger]);
 
-  const toggleCollapse = () => setIsCollapsed(!isCollapsed);
-
-  const selectPDF = (pdf) => setSelectedPDF(pdf);
-  const selectParsedDTR = (dtr) => setSelectedParsedDTR(dtr);
+  const toggleCollapse = () => setIsCollapsed(prev => !prev);
 
   const handleDeletePDF = async (pdfId) => {
     const confirmed = window.confirm("Are you sure you want to delete this PDF?");
@@ -71,6 +64,12 @@ export default function UploadedPDFs({ refreshTrigger, currentUser, uploaderFilt
       alert("Failed to delete the PDF. Please try again.");
     }
   };
+
+  // Modal handlers
+  const openTextModal = (pdf) => setActiveModal({ type: "text", data: pdf });
+  const openVisualModal = (pdf) => setActiveModal({ type: "visual", data: pdf });
+  const openParsedModal = (dtr) => setActiveModal({ type: "parsed", data: dtr });
+  const closeModal = () => setActiveModal({ type: null, data: null });
 
   return (
     <div className="dashboard-layout">
@@ -106,22 +105,12 @@ export default function UploadedPDFs({ refreshTrigger, currentUser, uploaderFilt
                     <p className="pdf-info">Project: <strong>{pdf.uploaded_by_name || "N/A"}</strong></p>
 
                     <div className="pdf-buttons">
-                      <button onClick={() => selectPDF(pdf)} className="upload-button">🧾 View DTR</button>
-
-                      <button
-                        onClick={() => setSelectedVisualPDF(pdf)}
-                        className="upload-button"
-                        style={{ marginLeft: "0.5rem" }}
-                      >
+                      <button onClick={() => openTextModal(pdf)} className="upload-button">🧾 View DTR</button>
+                      <button onClick={() => openVisualModal(pdf)} className="upload-button" style={{ marginLeft: "0.5rem" }}>
                         👁️ View Visual
                       </button>
-
                       {currentUser?.role === "admin" && (
-                        <button
-                          onClick={() => handleDeletePDF(pdf.id)}
-                          className="upload-button delete-btn"
-                          style={{ background: "#e63946", color: "white", marginLeft: "0.5rem" }}
-                        >
+                        <button onClick={() => handleDeletePDF(pdf.id)} className="upload-button delete-btn" style={{ background: "#e63946", color: "white", marginLeft: "0.5rem" }}>
                           🗑️ Delete
                         </button>
                       )}
@@ -134,9 +123,8 @@ export default function UploadedPDFs({ refreshTrigger, currentUser, uploaderFilt
                     <p className="pdf-name">🗂 {dtr.employee_name} ({dtr.employee_no})</p>
                     <p className="pdf-info">Period: <strong>{dtr.period_from} → {dtr.period_to}</strong></p>
                     <p className="pdf-info">Project: <strong>{dtr.project || "N/A"}</strong></p>
-
                     <div className="pdf-buttons">
-                      <button onClick={() => selectParsedDTR(dtr)} className="upload-button">🧾 View Parsed DTR</button>
+                      <button onClick={() => openParsedModal(dtr)} className="upload-button">🧾 View Parsed DTR</button>
                     </div>
                   </motion.div>
                 ))}
@@ -146,27 +134,15 @@ export default function UploadedPDFs({ refreshTrigger, currentUser, uploaderFilt
         )}
       </motion.div>
 
-      {selectedPDF && (
-        <PDFTextModal
-          pdfData={selectedPDF}
-          currentUser={currentUser}
-          onClose={() => setSelectedPDF(null)}
-        />
+      {/* MODALS */}
+      {activeModal.type === "text" && (
+        <PDFTextModal pdfData={activeModal.data} currentUser={currentUser} onClose={closeModal} />
       )}
-
-      {selectedVisualPDF && (
-        <PDFVisualModal
-          pdfData={selectedVisualPDF}
-          onClose={() => setSelectedVisualPDF(null)}
-        />
+      {activeModal.type === "visual" && (
+        <PDFVisualModal pdfData={activeModal.data} onClose={closeModal} />
       )}
-      
-      {selectedParsedDTR && (
-        <ParsedDTRModal
-          dtrData={selectedParsedDTR}
-          currentUser={currentUser}
-          onClose={() => setSelectedParsedDTR(null)}
-        />
+      {activeModal.type === "parsed" && (
+        <ParsedDTRModal dtrData={activeModal.data} currentUser={currentUser} onClose={closeModal} />
       )}
     </div>
   );

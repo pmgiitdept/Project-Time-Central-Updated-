@@ -36,10 +36,9 @@ class User(AbstractUser):
     def save(self, *args, **kwargs):
         """Ensure role-based access consistency."""
         self.is_superuser = self.role == self.Roles.ADMIN
-        self.is_staff = True  # keep admin access consistent
+        self.is_staff = True  
         super().save(*args, **kwargs)
 
-    # Role helpers
     def is_viewer(self): return self.role == self.Roles.VIEWER
     def is_client(self): return self.role == self.Roles.CLIENT
     def is_admin(self): return self.role == self.Roles.ADMIN

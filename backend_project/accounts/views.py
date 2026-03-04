@@ -22,7 +22,6 @@ from .serializers import UserSerializer, RegisterSerializer
 from files.utils import log_action
 from files.utils import get_client_ip
 
-# Timeout used for determining online status
 ONLINE_TIMEOUT = timedelta(minutes=5)
 User = get_user_model()
 
@@ -37,7 +36,6 @@ class AdminUserDetailView(generics.RetrieveUpdateDestroyAPIView):
     def delete(self, request, *args, **kwargs):
         user = self.get_object()
 
-        # Prevent deleting yourself or the main superuser
         if user == request.user:
             return Response(
                 {"error": "You cannot delete your own account."},
@@ -77,13 +75,11 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         data = super().validate(attrs)
         user = self.user
 
-        # Update online state
         user.is_online = True
         user.last_seen = timezone.now()
         user.save(update_fields=["is_online", "last_seen"])
         update_last_login(None, user)
 
-        # ✅ AUDIT LOG HERE
         log_action(
             user,
             "login",
@@ -120,7 +116,6 @@ def custom_login(request):
     user.save(update_fields=["is_online", "last_seen"])
     update_last_login(None, user)
 
-    # ✅ AUDIT LOG HERE
     log_action(
         user,
         "login",

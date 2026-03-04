@@ -24,7 +24,6 @@ from .views import (
     ParsedDTRViewSet,
 )
 
-# DRF router setup
 router = DefaultRouter()
 router.register(r"files", FileViewSet, basename="file")
 router.register(r"audit-logs", AuditLogViewSet, basename="auditlog")
@@ -33,17 +32,14 @@ router.register(r"dtr/files", DTRFileViewSet, basename="dtrfile")
 router.register(r"dtr/entries", DTREntryViewSet, basename="dtrentry")
 router.register(r'pdfs', PDFFileViewSet, basename='pdffile')
 router.register(r"parsed-dtrs", ParsedDTRViewSet, basename="parseddtr")
-# URL patterns
 urlpatterns = [
     path("", include(router.urls)),
 
-    # Dashboard & reports
     path("dashboard-stats/", dashboard_stats, name="dashboard-stats"),
     path("files-report/", export_files_report, name="files-report"),
     path("file-stats/", file_stats, name="file-stats"),
     path("rejected/", rejected_files, name="rejected-files"),
 
-    # Employee management
     path("upload-employee-excel/", upload_employee_excel, name="upload-employee-excel"),
     path("employees/", list_employees, name="list-employees"),
     path("add-employee/", add_employee, name="add-employee"),

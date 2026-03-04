@@ -5,7 +5,7 @@ from django.core.management import call_command
 try:
     from celery import shared_task
 except ImportError:
-    shared_task = lambda f: f  # fallback if Celery is not installed
+    shared_task = lambda f: f 
 
 
 @shared_task

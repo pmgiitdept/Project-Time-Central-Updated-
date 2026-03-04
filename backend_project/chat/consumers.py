@@ -18,10 +18,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         self.room_name = self.scope["url_route"]["kwargs"]["room_name"]
         self.room_group_name = f"chat_{self.room_name}"
 
-        # Ensure room exists and the user is a participant
         await self.ensure_room_participation()
 
-        # Add user to WebSocket group
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
         print(f"✅ {self.user.username} connected to {self.room_name}")
@@ -40,10 +38,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         if not message:
             return
 
-        # Save message to DB
         chat_message = await self.save_message(message)
 
-        # Broadcast to all participants in the room
         await self.channel_layer.group_send(
             self.room_group_name,
             {
@@ -78,7 +74,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     name=f"room_{user_ids[0]}_{user_ids[1]}",
                     defaults={"created_by": User.objects.get(id=user_ids[0])}
                 )
-                # Always ensure both users are participants
                 for u in User.objects.filter(id__in=user_ids):
                     if not room.participants.filter(id=u.id).exists():
                         room.participants.add(u)
@@ -94,7 +89,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def save_message(self, message):
         """Persist message to database."""
-        # Determine room
         if self.room_name.startswith("room_"):
             parts = self.room_name.split("_")
             if len(parts) == 3:

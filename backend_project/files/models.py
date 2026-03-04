@@ -1,7 +1,7 @@
 # files/models.py
 from django.db import models
 from django.conf import settings
-from django.contrib.postgres.fields import JSONField  # if using Postgres
+from django.contrib.postgres.fields import JSONField  
 
 def user_directory_path(instance, filename):
     """Generate upload path: user_<id>/<filename>."""
@@ -60,7 +60,6 @@ class EmployeeDirectory(models.Model):
     tardiness = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     undertime = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
-    # OT and holidays
     ot_regular = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     nd_ot_reg = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     ot_restday = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
@@ -157,9 +156,8 @@ class PDFFile(models.Model):
     file = models.FileField(upload_to="pdfs/")
     uploaded_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, default="pending")
-    parsed_pages = models.JSONField(null=True, blank=True)  # store text per page
+    parsed_pages = models.JSONField(null=True, blank=True)  
 
-    # 🆕 Extracted DTR period fields
     start_date = models.CharField(max_length=20, blank=True, null=True)
     end_date = models.CharField(max_length=20, blank=True, null=True)
     readable_period = models.CharField(max_length=50, blank=True, null=True)
@@ -180,7 +178,6 @@ class ParsedDTR(models.Model):
         related_name="parsed_dtrs"
     )
 
-    # --- Employee / Header Info ---
     employee_name = models.CharField(max_length=255)
     employee_no = models.CharField(max_length=50, db_index=True)
     department = models.CharField(max_length=100, blank=True, null=True)
@@ -196,9 +193,8 @@ class ParsedDTR(models.Model):
 
     sheet_name = models.CharField(max_length=50)
 
-    # --- DTR Data ---
-    days = models.JSONField(default=list)      # rows 17–32
-    totals = models.JSONField(default=dict)    # summary cells
+    days = models.JSONField(default=list)     
+    totals = models.JSONField(default=dict)   
 
     status = models.CharField(
         max_length=20,

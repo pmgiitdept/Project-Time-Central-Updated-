@@ -150,7 +150,6 @@ class FileViewSet(viewsets.ModelViewSet):
 
         file_name = file_obj.file.name.lower()
         try:
-            # --- CSV ---
             if file_name.endswith(".csv"):
                 file_obj.file.seek(0) 
                 file_data = file_obj.file.read()
@@ -158,7 +157,6 @@ class FileViewSet(viewsets.ModelViewSet):
                 reader = csv.reader(decoded_data)
                 return Response({"pages": [{"page_number": 1, "content": list(reader)}]})
 
-            # --- XLSX ---
             elif file_name.endswith(".xlsx"):
                 file_obj.file.seek(0)
                 file_bytes = io.BytesIO(file_obj.file.read())
@@ -167,7 +165,6 @@ class FileViewSet(viewsets.ModelViewSet):
                 rows = [[str(cell) if cell is not None else "" for cell in row] for row in ws.iter_rows(values_only=True)]
                 return Response({"pages": [{"page_number": 1, "content": rows}]})
 
-            # --- PDF ---
             elif file_name.endswith(".pdf"):
                 import pdfplumber
                 pages_data = []
@@ -345,7 +342,6 @@ class FileViewSet(viewsets.ModelViewSet):
                 return str(val)
 
         try:
-            # --- CSV ---
             if file_name.endswith(".csv"):
                 from django.core.files.base import ContentFile
                 import csv, io
@@ -355,7 +351,6 @@ class FileViewSet(viewsets.ModelViewSet):
                     writer.writerow([format_numeric(cell) if isinstance(cell, (int, float, str)) else str(cell) for cell in row])
                 file_obj.file.save(file_obj.file.name, ContentFile(output.getvalue()), save=True)
 
-            # --- XLSX ---
             elif file_name.endswith(".xlsx"):
                 from openpyxl import Workbook
                 from django.core.files.base import ContentFile
@@ -375,7 +370,6 @@ class FileViewSet(viewsets.ModelViewSet):
                 wb.save(stream)
                 file_obj.file.save(file_obj.file.name, ContentFile(stream.getvalue()), save=True)
 
-            # --- PDF ---
             elif file_name.endswith(".pdf"):
                 from reportlab.lib.pagesizes import letter
                 from reportlab.pdfgen import canvas
@@ -429,7 +423,6 @@ class FileViewSet(viewsets.ModelViewSet):
 
                             x_offset, y_start = 50, y_offset
 
-                            # Main headers
                             x = x_offset
                             for j, h in enumerate(main_headers):
                                 span = len(sub_headers[j]) if j < len(sub_headers) else 1
@@ -442,7 +435,6 @@ class FileViewSet(viewsets.ModelViewSet):
                                 x += span_width
                             y_start -= row_height
 
-                            # Sub headers
                             x = x_offset
                             for group in sub_headers:
                                 for sh in (group if isinstance(group, list) else [group]):
@@ -453,7 +445,6 @@ class FileViewSet(viewsets.ModelViewSet):
                                     x += width
                             y_start -= row_height
 
-                            # Table rows
                             for row in rows:
                                 if y_start < 50:
                                     p.showPage()
@@ -479,7 +470,6 @@ class FileViewSet(viewsets.ModelViewSet):
                 buffer.seek(0)
                 file_obj.file.save(file_obj.file.name, ContentFile(buffer.read()), save=True)
 
-            # --- Images ---
             elif file_name.endswith((".jpg", ".jpeg", ".png")):
                 import cv2
                 import numpy as np
@@ -771,7 +761,6 @@ def delete_employee(request, employee_code):
         {"detail": "Employee deleted successfully."},
         status=status.HTTP_200_OK
     )
-
 
 @api_view(['PUT'])
 @permission_classes([IsAdminUser])
@@ -1750,7 +1739,6 @@ def compare_employees(request):
                 new_name = best_match["employee_name"]
 
                 if not dry_run:
-                    # Check for conflicts
                     conflict = EmployeeDirectory.objects.filter(employee_code=new_code).exclude(id=obj.id).exists()
                     if conflict:
                         skipped.append({
@@ -1931,7 +1919,6 @@ class PDFFileViewSet(viewsets.ModelViewSet):
         """Allow admins to edit and save parsed PDF data."""
         pdf = self.get_object()
 
-        # ✅ Only superusers (admin role) can modify
         if not request.user.is_superuser:
             return Response({"detail": "Forbidden"}, status=status.HTTP_403_FORBIDDEN)
 
@@ -1957,11 +1944,9 @@ class ParsedDTRViewSet(viewsets.ModelViewSet):
 
         queryset = ParsedDTR.objects.all()
 
-        # 🔐 Non-admin users only see their own uploads
         if not user.is_staff:
             queryset = queryset.filter(uploaded_by=user)
 
-        # 🔎 Optional filters
         employee_no = self.request.query_params.get("employee_no")
         period_from = self.request.query_params.get("period_from")
         period_to = self.request.query_params.get("period_to")

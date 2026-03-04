@@ -17,7 +17,6 @@ def get_client_ip(request) -> Optional[str]:
     """
     x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
     if x_forwarded_for:
-        # Take the first IP in case of multiple forwarded IPs
         return x_forwarded_for.split(",")[0].strip()
     return request.META.get("REMOTE_ADDR")
 
@@ -54,7 +53,6 @@ def send_rejection_sms(phone_number: str, file_name: str, use_mock: bool = True)
         print(f"[MOCK SMS] To: {phone_number} | Message: {message}")
         return True
 
-    # Twilio credentials from environment
     account_sid = os.getenv("TWILIO_SID")
     auth_token = os.getenv("TWILIO_AUTH_TOKEN")
     from_number = os.getenv("TWILIO_FROM")
@@ -88,12 +86,10 @@ def extract_pdf_pages(file_path):
             for i, page in enumerate(pdf.pages, start=1):
                 page_data = {"header_text": [], "tables": []}
 
-                # Extract all text lines
                 text = page.extract_text() or ""
                 lines = [line.strip() for line in text.split("\n") if line.strip()]
 
                 for line in lines:
-                    # ✅ Match "Daily Time Record for the period of ..."
                     match = re.search(
                         r"(daily\s*time\s*record\s*for\s*the\s*period\s*of\s*\d{1,2}\s*/\s*\d{1,2}\s*/\s*\d{4}\s*to\s*\d{1,2}\s*/\s*\d{1,2}\s*/\s*\d{4})",
                         line,
@@ -102,7 +98,6 @@ def extract_pdf_pages(file_path):
                     if match:
                         clean_line = match.group(1).strip()
 
-                        # ✅ Extract start and end date
                         date_match = re.search(
                             r"(\d{1,2}\s*/\s*\d{1,2}\s*/\s*\d{4})\s*to\s*(\d{1,2}\s*/\s*\d{1,2}\s*/\s*\d{4})",
                             clean_line,
@@ -111,7 +106,6 @@ def extract_pdf_pages(file_path):
                             start_date_str = date_match.group(1).replace(" ", "")
                             end_date_str = date_match.group(2).replace(" ", "")
 
-                            # Convert to strings right away
                             page_data["start_date"] = start_date_str
                             page_data["end_date"] = end_date_str
 
@@ -126,7 +120,6 @@ def extract_pdf_pages(file_path):
                         page_data["header_text"].append(line.strip())
                         continue
 
-                # ✅ Extract tables
                 tables = page.extract_tables()
                 if tables:
                     for t in tables:

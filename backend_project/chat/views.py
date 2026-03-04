@@ -31,7 +31,6 @@ def get_messages(request, room_name):
 
 class IsCreatorOrReadOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        # Only allow creator to delete
         if request.method in permissions.SAFE_METHODS:
             return True
         return obj.created_by == request.user
@@ -43,10 +42,9 @@ class RoomViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        # Include only public or joined rooms
         return (
             Room.objects.filter(participants=user)
-            .exclude(name__startswith="room_")  # hide private rooms
+            .exclude(name__startswith="room_")
             .distinct()
         )
     

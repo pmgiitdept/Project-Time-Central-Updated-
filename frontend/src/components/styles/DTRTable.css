@@ -584,3 +584,12 @@
 .clear-btn:hover {
   background: #e04343;
 }
+
+.mismatch-row {
+  background-color: #fff1f1;
+  border-left: 4px solid #e60000;
+}
+
+.mismatch-row td {
+  background-color: #fff1f1;
+}

@@ -4,7 +4,7 @@ import api from "../api";
 import { toast } from "react-toastify";
 import "./styles/DTRTable.css";
 
-export default function DTRTable({ role , fileId}) {
+export default function DTRTable({ role , fileId, flaggedEmployees = []}) {
   const [dtrFiles, setDtrFiles] = useState([]);
   const [selectedFile, setSelectedFile] = useState("");
   const [fileContents, setFileContents] = useState([]);
@@ -119,7 +119,10 @@ export default function DTRTable({ role , fileId}) {
       await api.post(`/files/dtr/files/${selectedFile}/update-rows/`, { rows: fileContents });
       toast.success("DTR updated successfully!");
       await handleViewFile();
-
+      
+      if (window.refreshValidation) {
+        window.refreshValidation();
+      }
       await api.post(`/files/dtr/files/${selectedFile}/log-update/`, {
         message: `Updated entire DTR file (${fileContents.length} rows)`,
       });
@@ -350,7 +353,13 @@ export default function DTRTable({ role , fileId}) {
                 {filteredContents
                   ?.filter((row) => row) 
                   .map((row, rIdx) => (
-                    <tr key={row?.id ?? `row-${rIdx}`}>
+                    <tr key={row?.id ?? `row-${rIdx}`}
+                      className={
+                      flaggedEmployees.includes(row?.employee_no?.trim())
+                        ? "mismatch-row"
+                        : ""
+                      }
+                    >
                       {!hiddenColumns.includes("full_name") && (
                         <td className="sticky-col sticky-1">
                           {editableRow === rIdx ? (
@@ -565,7 +574,13 @@ export default function DTRTable({ role , fileId}) {
 
                 <tbody>
                   {filteredContents.map((row, rIdx) => (
-                    <tr key={rIdx}>
+                    <tr key={rIdx}
+                      className={
+                        flaggedEmployees.includes(row?.employee_no?.trim())
+                          ? "mismatch-row"
+                          : ""
+                      }
+                    >
                       {staticColumns.map(
                         (col) =>
                           !hiddenColumns.includes(col.key) && (

@@ -28,6 +28,28 @@ export default function FileContent({ fileId, role }) {
   const uploadedAt = fileInfo?.uploaded_at || "";
   const status = fileInfo?.status || "pending";
 
+  const [flaggedEmployees, setFlaggedEmployees] = useState([]);
+
+  const fetchValidation = async () => {
+    try {
+      const token = localStorage.getItem("access_token");
+
+      const res = await api.get(
+        `/files/dtr/files/${fileId}/validate/`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const flagged = res.data
+        .filter(r => r.has_mismatch)
+        .map(r => r.employee_no);
+
+      setFlaggedEmployees(flagged);
+
+    } catch (err) {
+      console.error("Validation fetch failed:", err);
+    }
+  };
+
   const getColumnTotals = () => {
     const totals = [];
     if (!mergedRows.length) return totals;
@@ -298,6 +320,7 @@ export default function FileContent({ fileId, role }) {
 
   useEffect(() => {
     if (fileId) fetchContent();
+    fetchValidation();
   }, [fileId]);
 
   const handleTextEdit = (value) => {
@@ -636,7 +659,11 @@ export default function FileContent({ fileId, role }) {
                 width: "100%",
               }}
             >
-               <DTRTable role={role} fileId={fileId} />
+               <DTRTable 
+                role={role} 
+                fileId={fileId} 
+                flaggedEmployees={flaggedEmployees}
+              />
             </div>
           </div>
         </div>

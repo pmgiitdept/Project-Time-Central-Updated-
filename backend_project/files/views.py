@@ -1571,6 +1571,45 @@ class DTRFileViewSet(viewsets.ModelViewSet):
         wb.save(response)
         return response
 
+    @action(detail=True, methods=["get"], url_path="validate")
+    def validate_file(self, request, pk=None):
+        dtr = self.get_object()
+        results = []
+
+        def is_number(val):
+            try:
+                float(val)
+                return True
+            except (TypeError, ValueError):
+                return False
+
+        for entry in dtr.entries.all():
+            daily_vals = entry.daily_data.values()
+
+            numeric_vals = [float(v) for v in daily_vals if is_number(v)]
+
+            computed_total_days = len(numeric_vals)
+            computed_total_hours = sum(numeric_vals)
+            computed_regular_ot = sum(max(v - 8, 0) for v in numeric_vals)
+
+            mismatch = {
+                "employee_no": entry.employee_no,
+                "full_name": entry.full_name,
+                "total_days_match": computed_total_days == (entry.total_days or 0),
+                "total_hours_match": round(computed_total_hours, 2) == round(entry.total_hours or 0, 2),
+                "regular_ot_match": round(computed_regular_ot, 2) == round(entry.regular_ot or 0, 2),
+            }
+
+            mismatch["has_mismatch"] = not all([
+                mismatch["total_days_match"],
+                mismatch["total_hours_match"],
+                mismatch["regular_ot_match"],
+            ])
+
+            results.append(mismatch)
+
+        return Response(results)
+
 class DTREntryViewSet(viewsets.ModelViewSet):
     queryset = DTREntry.objects.all().order_by("full_name")
     serializer_class = DTREntrySerializer

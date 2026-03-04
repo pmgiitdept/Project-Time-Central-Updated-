@@ -12,12 +12,13 @@ export default function UploadedPDFs({ refreshTrigger, currentUser, uploaderFilt
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Unified modal selection
-  const [activeModal, setActiveModal] = useState({
-    type: null, // 'text', 'visual', 'parsed'
-    data: null,
-  });
+  // Collapse state for sidebar
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
+  // Unified modal selection
+  const [activeModal, setActiveModal] = useState({ type: null, data: null });
+
+  // Fetch PDFs
   const fetchPDFs = async () => {
     try {
       const res = await api.get("/files/pdfs/");
@@ -31,6 +32,7 @@ export default function UploadedPDFs({ refreshTrigger, currentUser, uploaderFilt
     }
   };
 
+  // Fetch Parsed DTRs
   const fetchParsedDTRs = async () => {
     try {
       const res = await api.get("/files/parsed-dtrs/");

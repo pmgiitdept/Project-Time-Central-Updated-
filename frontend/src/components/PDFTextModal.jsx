@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import api from "../api";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable"; 
@@ -6,9 +6,15 @@ import "./styles/PDFModal.css";
 
 export default function PDFTextModal({ pdfData, currentUser }) {
   const [currentPage, setCurrentPage] = useState(1);
-  const [editableData, setEditableData] = useState(pdfData?.parsed_pages || {});
+  const [editableData, setEditableData] = useState({});
   const [changes, setChanges] = useState({});
   const isAdmin = currentUser?.role === "admin";
+
+  useEffect(() => {
+    setEditableData(pdfData?.parsed_pages || {});
+    setChanges({});
+    setCurrentPage(1);
+  }, [pdfData]);
 
   if (!pdfData) return null;
 

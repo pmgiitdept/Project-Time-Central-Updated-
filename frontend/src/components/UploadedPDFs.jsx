@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import "./styles/ClientDashboard.css";
 import PDFTextModal from "./PDFTextModal";
 import ParsedDTRModal from "./ParsedDTRModal";
+import PDFVisualModal from "./PDFVIsualModal";
 
 export default function UploadedPDFs({ refreshTrigger, currentUser, uploaderFilter }) {
   const [pdfFiles, setPdfFiles] = useState([]);

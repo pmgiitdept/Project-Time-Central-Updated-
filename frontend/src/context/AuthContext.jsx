@@ -1,22 +1,20 @@
 // src/context/AuthContext.jsx
 import { createContext, useEffect, useState } from "react";
 import api from "../api";
-import { jwtDecode } from "jwt-decode"; // ✅ correct import
+import { jwtDecode } from "jwt-decode"; 
 
 export const AuthContext = createContext();
 
 let authInitialized = false;
 
 export function AuthProvider({ children }) {
-  // 🔹 Pre-fill currentUser from localStorage for instant render
   const [currentUser, setCurrentUser] = useState(() => {
     const userStr = localStorage.getItem("user");
     return userStr ? JSON.parse(userStr) : null;
   });
 
-  const [loading, setLoading] = useState(false); // start as false to avoid flash
+  const [loading, setLoading] = useState(false); 
 
-  // 🔍 Decode expiry timestamp
   const getTokenExpiry = () => {
     const token = localStorage.getItem("access_token");
     if (!token) return null;
@@ -29,7 +27,6 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // ♻️ Try silent refresh
   const silentRefresh = async () => {
     const refresh = localStorage.getItem("refresh_token");
     if (!refresh) {
@@ -38,10 +35,9 @@ export function AuthProvider({ children }) {
     }
 
     try {
-      const res = await api.post("auth/token/refresh/", { refresh }); // ✅ remove leading slash
+      const res = await api.post("auth/token/refresh/", { refresh }); 
       localStorage.setItem("access_token", res.data.access);
 
-      // 🧩 Also update axios header instantly
       api.defaults.headers.common["Authorization"] = `Bearer ${res.data.access}`;
 
       console.log("✅ Token silently refreshed (AuthContext)");
@@ -88,7 +84,6 @@ export function AuthProvider({ children }) {
         //console.log("✅ Auth verified, user:", res.data);
         if (isMounted) {
           setCurrentUser(res.data);
-          // 🔹 Persist user for instant next load
           localStorage.setItem("user", JSON.stringify(res.data));
         }
       } catch (err) {

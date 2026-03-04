@@ -25,6 +25,7 @@ from datetime import datetime
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from openpyxl.drawing.image import Image
 from openpyxl.utils import get_column_letter
+from rest_framework.pagination import PageNumberPagination
 
 def log_action(user, action, status="success", ip_address=None):
     AuditLog.objects.create(
@@ -831,6 +832,7 @@ def safe_string(val):
 class DTRFileViewSet(viewsets.ModelViewSet):
     queryset = DTRFile.objects.all().order_by("-uploaded_at")
     serializer_class = DTRFileSerializer
+    pagination_class = None
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):

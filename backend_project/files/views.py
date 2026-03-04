@@ -512,38 +512,6 @@ class FileViewSet(viewsets.ModelViewSet):
 
         except Exception as e:
             return Response({"detail": f"Failed to save content: {str(e)}"}, status=400)
-        
-    @action(detail=True, methods=["get"], url_path="visual-content")
-    def get_visual_content(self, request, pk=None):
-        """
-        Return PDF pages as base64 images so frontend can display them exactly as uploaded.
-        Only for PDFs.
-        """
-        file_obj = self.get_object()
-        file_name = file_obj.file.name.lower()
-
-        if not file_name.endswith(".pdf"):
-            return Response({"detail": "Visual content only supported for PDFs"}, status=400)
-
-        try:
-            file_obj.file.seek(0)
-            pdf_bytes = file_obj.file.read()
-            pages = convert_from_bytes(pdf_bytes)
-
-            pages_data = []
-            for i, page in enumerate(pages, start=1):
-                from io import BytesIO
-                buffer = BytesIO()
-                page.save(buffer, format="PNG")
-                img_str = base64.b64encode(buffer.getvalue()).decode("utf-8")
-                pages_data.append({"page_number": i, "image_base64": img_str})
-
-            return Response({"pages": pages_data})
-
-        except Exception as e:
-            import traceback
-            traceback.print_exc()
-            return Response({"detail": f"Failed to render PDF visually: {str(e)}"}, status=400)
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -1963,7 +1931,38 @@ class PDFFileViewSet(viewsets.ModelViewSet):
         pdf.save()
         return Response({"message": "✅ Parsed data updated successfully!"})
 
+    @action(detail=True, methods=["get"], url_path="visual-content")
+    def get_visual_content(self, request, pk=None):
+        """
+        Return PDF pages as base64 images so frontend can display them exactly as uploaded.
+        Only for PDFs.
+        """
+        file_obj = self.get_object()
+        file_name = file_obj.file.name.lower()
 
+        if not file_name.endswith(".pdf"):
+            return Response({"detail": "Visual content only supported for PDFs"}, status=400)
+
+        try:
+            file_obj.file.seek(0)
+            pdf_bytes = file_obj.file.read()
+            pages = convert_from_bytes(pdf_bytes)
+
+            pages_data = []
+            for i, page in enumerate(pages, start=1):
+                from io import BytesIO
+                buffer = BytesIO()
+                page.save(buffer, format="PNG")
+                img_str = base64.b64encode(buffer.getvalue()).decode("utf-8")
+                pages_data.append({"page_number": i, "image_base64": img_str})
+
+            return Response({"pages": pages_data})
+
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return Response({"detail": f"Failed to render PDF visually: {str(e)}"}, status=400)
+        
 class ParsedDTRViewSet(viewsets.ModelViewSet):
     """
     Handles frontend-parsed Excel DTRs (fixed template, multi-sheet)

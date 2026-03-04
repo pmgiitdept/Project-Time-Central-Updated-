@@ -11,8 +11,8 @@ export default function PDFVisualModal({ pdfData, onClose }) {
     const fetchVisualContent = async () => {
       try {
         setLoading(true);
-        const res = await api.get(
-          `/files/files/${pdfData.id}/visual-content/`
+       const res = await api.get(
+        `/files/pdfs/${pdfData.id}/visual-content/`
         );
         setPages(res.data.pages || []);
         setCurrentPageIndex(0); // reset to first page

@@ -1,21 +1,24 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import api from "../api";
 import { motion } from "framer-motion";
+import "./styles/PDFModal.css";
 
 export default function PDFVisualModal({ pdfData, onClose }) {
   const [pages, setPages] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [currentPageIndex, setCurrentPageIndex] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
+    if (!pdfData) return;
+
     const fetchVisualContent = async () => {
       try {
         setLoading(true);
-       const res = await api.get(
-        `/files/pdfs/${pdfData.id}/visual-content/`
+        const res = await api.get(
+          `/files/pdfs/${pdfData.id}/visual-content/`
         );
         setPages(res.data.pages || []);
-        setCurrentPageIndex(0); // reset to first page
+        setCurrentPage(1);
       } catch (err) {
         console.error("Failed to fetch visual content:", err);
       } finally {
@@ -26,19 +29,27 @@ export default function PDFVisualModal({ pdfData, onClose }) {
     fetchVisualContent();
   }, [pdfData]);
 
-  const nextPage = () => {
-    if (currentPageIndex < pages.length - 1) {
-      setCurrentPageIndex(prev => prev + 1);
-    }
-  };
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (e.key === "ArrowRight") goNext();
+      if (e.key === "ArrowLeft") goPrev();
+      if (e.key === "Escape") onClose();
+    };
 
-  const prevPage = () => {
-    if (currentPageIndex > 0) {
-      setCurrentPageIndex(prev => prev - 1);
-    }
-  };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [currentPage, pages.length]);
 
-  const currentPage = pages[currentPageIndex];
+  if (!pdfData) return null;
+
+  const totalPages = pages.length;
+  const pageData = pages[currentPage - 1];
+
+  const goNext = () =>
+    currentPage < totalPages && setCurrentPage(currentPage + 1);
+
+  const goPrev = () =>
+    currentPage > 1 && setCurrentPage(currentPage - 1);
 
   return (
     <motion.div
@@ -46,65 +57,83 @@ export default function PDFVisualModal({ pdfData, onClose }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      style={{ overflowY: "auto" }}
+      onClick={onClose}
+      style={{
+        position: "fixed",
+        inset: 0,
+        backgroundColor: "rgba(0,0,0,0.6)",
+        zIndex: 9999,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
     >
-      <div className="modal-content" style={{ maxWidth: "900px" }}>
-        <button onClick={onClose} className="close-btn">
-          ❌ Close
-        </button>
+      <div
+        className="pdf-card-container"
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: "95%",
+          maxWidth: "1000px",
+          maxHeight: "95vh",
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        <div className="pdf-card-header">
+          <h3>
+            PROJECT:{" "}
+            <strong>{pdfData.uploaded_by_name || "Unknown Project"}</strong>
+          </h3>
 
-        {loading ? (
-          <p>Loading PDF pages...</p>
-        ) : pages.length === 0 ? (
-          <p>No pages found.</p>
-        ) : (
-          <>
-            {/* Pagination Controls */}
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                marginBottom: "1rem",
-                gap: "1rem",
-              }}
-            >
-              <button
-                onClick={prevPage}
-                disabled={currentPageIndex === 0}
-                className="upload-button"
-              >
-                ⬅ Previous
-              </button>
+          <button className="export-button" onClick={onClose}>
+            ❌ Close
+          </button>
+        </div>
 
-              <span>
-                Page <strong>{currentPageIndex + 1}</strong> of{" "}
-                <strong>{pages.length}</strong>
-              </span>
-
-              <button
-                onClick={nextPage}
-                disabled={currentPageIndex === pages.length - 1}
-                className="upload-button"
-              >
-                Next ➡
-              </button>
-            </div>
-
-            {/* Current Page Image */}
-            <div style={{ textAlign: "center" }}>
+        <div
+          className="pdf-card-body"
+          style={{
+            overflowY: "auto",
+            textAlign: "center",
+          }}
+        >
+          {loading ? (
+            <p>Loading PDF pages...</p>
+          ) : totalPages === 0 ? (
+            <p>No pages found.</p>
+          ) : (
+            <>
               <img
-                src={`data:image/png;base64,${currentPage.image_base64}`}
-                alt={`Page ${currentPage.page_number}`}
+                src={`data:image/png;base64,${pageData?.image_base64}`}
+                alt={`Page ${pageData?.page_number}`}
                 style={{
                   width: "100%",
                   border: "1px solid #ccc",
-                  borderRadius: "6px",
+                  borderRadius: "8px",
+                  marginBottom: "20px",
                 }}
               />
-            </div>
-          </>
-        )}
+
+              <div className="pagination-controls1">
+                <button onClick={goPrev} disabled={currentPage === 1}>
+                  ◀ Prev
+                </button>
+
+                <span>
+                  Page {currentPage} of {totalPages}
+                </span>
+
+                <button
+                  onClick={goNext}
+                  disabled={currentPage === totalPages}
+                >
+                  Next ▶
+                </button>
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </motion.div>
   );

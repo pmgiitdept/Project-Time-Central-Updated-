@@ -1935,33 +1935,55 @@ class PDFFileViewSet(viewsets.ModelViewSet):
     def get_visual_content(self, request, pk=None):
         """
         Return PDF pages as base64 images so frontend can display them exactly as uploaded.
-        Only for PDFs.
+        Supports pagination via ?page=<n>&page_size=<m>
         """
         file_obj = self.get_object()
         file_name = file_obj.file.name.lower()
 
         if not file_name.endswith(".pdf"):
-            return Response({"detail": "Visual content only supported for PDFs"}, status=400)
+            return Response(
+                {"detail": "Visual content only supported for PDFs"}, 
+                status=400
+            )
+
+        # Get pagination query params
+        page_num = int(request.query_params.get("page", 1))
+        page_size = int(request.query_params.get("page_size", 5))  # default 5 pages per request
 
         try:
             file_obj.file.seek(0)
             pdf_bytes = file_obj.file.read()
             pages = convert_from_bytes(pdf_bytes)
 
+            total_pages = len(pages)
+            start_idx = (page_num - 1) * page_size
+            end_idx = min(start_idx + page_size, total_pages)
+
+            if start_idx >= total_pages or start_idx < 0:
+                return Response({"detail": "Page number out of range"}, status=400)
+
             pages_data = []
-            for i, page in enumerate(pages, start=1):
+            for i, page in enumerate(pages[start_idx:end_idx], start=start_idx + 1):
                 from io import BytesIO
                 buffer = BytesIO()
                 page.save(buffer, format="PNG")
                 img_str = base64.b64encode(buffer.getvalue()).decode("utf-8")
                 pages_data.append({"page_number": i, "image_base64": img_str})
 
-            return Response({"pages": pages_data})
+            return Response({
+                "pages": pages_data,
+                "page": page_num,
+                "page_size": page_size,
+                "total_pages": total_pages
+            })
 
         except Exception as e:
             import traceback
             traceback.print_exc()
-            return Response({"detail": f"Failed to render PDF visually: {str(e)}"}, status=400)
+            return Response(
+                {"detail": f"Failed to render PDF visually: {str(e)}"}, 
+                status=400
+            )
         
 class ParsedDTRViewSet(viewsets.ModelViewSet):
     """

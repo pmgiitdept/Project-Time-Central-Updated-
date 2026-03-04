@@ -358,7 +358,6 @@ export default function FileTable({ role, setSelectedFile, uploaderFilter = null
                   <table className="file-table">
                     <thead>
                       <tr>
-                        {role === "admin" && <th></th>}
                         <th>Uploader</th>
                         <th>Uploaded At</th>
                         <th>Status</th>

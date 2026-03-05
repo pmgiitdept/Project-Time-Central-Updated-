@@ -334,27 +334,27 @@ export default function DTRTable({ role , fileId}) {
                   .map((row, rIdx) => (
                     <tr key={row?.id ?? `row-${rIdx}`}>
                       {staticColumns.map(
-  (col, idx) =>
-    !hiddenColumns.includes(col.key) && (
-      <td
-        key={col.key}
-        className={idx === 0 ? "sticky-col sticky-1" : ""}
-      >
-        {editableRow === rIdx ? (
-          <input
-            type="text"
-            value={row?.[col.key] ?? ""}
-            onChange={(e) =>
-              handleEditChange(rIdx, col.key, e.target.value)
-            }
-            className="editable-input"
-          />
-        ) : (
-          row?.[col.key] ?? "-"
-        )}
-      </td>
-    )
-)}
+                        (col, idx) =>
+                          !hiddenColumns.includes(col.key) && (
+                            <td
+                              key={col.key}
+                              className={idx === 0 ? "sticky-col sticky-1" : ""}
+                            >
+                              {editableRow === rIdx ? (
+                                <input
+                                  type="text"
+                                  value={row?.[col.key] ?? ""}
+                                  onChange={(e) =>
+                                    handleEditChange(rIdx, col.key, e.target.value)
+                                  }
+                                  className="editable-input"
+                                />
+                              ) : (
+                                row?.[col.key] ?? "-"
+                              )}
+                            </td>
+                          )
+                      )}
 
                       {dateColumns.map(
                         (date) =>

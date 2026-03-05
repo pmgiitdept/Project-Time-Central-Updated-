@@ -305,7 +305,7 @@ export default function DTRTable({ role , fileId}) {
                       !hiddenColumns.includes(col.key) && (
                         <th
                           key={col.key}
-                          className={`sticky-col sticky-${idx + 1}`}
+                          className={idx === 0 ? "sticky-col sticky-1" : ""}
                         >
                           {col.label}
                         </th>

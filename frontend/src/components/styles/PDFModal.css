@@ -412,3 +412,16 @@
   outline: none;
   box-shadow: none; 
 }
+
+.pdf-zoom-controls{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:12px;
+  margin-bottom:10px;
+}
+
+.pdf-zoom-controls button{
+  padding:6px 10px;
+  cursor:pointer;
+}

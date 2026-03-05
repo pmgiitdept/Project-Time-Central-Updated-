@@ -1,73 +1,94 @@
-.file-vertical-wrapper{
-  display:flex;
-  flex-direction:column;
-  gap:20px;
-  padding:20px;
+.file-vertical-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 15px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 /* TOP FILE TABLE */
-
-.file-vertical-top{
-  background:white;
-  border-radius:12px;
-  padding:20px;
-  box-shadow:0 6px 18px rgba(0,0,0,0.08);
+.file-vertical-top {
+  background: #fff;
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
 }
 
 /* HEADER */
+.vertical-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
 
-.vertical-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:15px;
+.vertical-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
 }
 
 /* FILTERS */
-
-.vertical-filters{
-  display:flex;
-  gap:10px;
-  margin-bottom:15px;
+.vertical-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 15px;
 }
 
-.vertical-filters input{
-  padding:6px;
+.vertical-filters input,
+.vertical-filters select {
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.9rem;
 }
 
 /* TABLE */
-
-.vertical-table-container{
-  max-height:350px;
-  overflow:auto;
+.vertical-table-container {
+  max-height: 350px;
+  overflow: auto;
 }
 
-.vertical-file-table{
-  width:100%;
-  border-collapse:collapse;
+.vertical-file-table {
+  width: 100%;
+  border-collapse: collapse;
 }
 
 .vertical-file-table th,
-.vertical-file-table td{
-  padding:10px;
-  border-bottom:1px solid #eee;
-  text-align:left;
+.vertical-file-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+  font-size: 0.9rem;
 }
 
-.vertical-file-table tr:hover{
-  background:#f5f7fa;
-  cursor:pointer;
+.vertical-file-table th {
+  background: #f9f9f9;
+  font-weight: 600;
 }
 
-.selected-row{
-  background:#e8f1ff;
+.vertical-file-table tr:hover {
+  background: #f0f4f8;
+  cursor: pointer;
+}
+
+.selected-row {
+  background: #e6f0ff;
+}
+
+/* STATUS SELECT */
+.status-select {
+  padding: 3px 6px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 0.85rem;
 }
 
 /* BOTTOM DTR TABLE */
-
-.file-vertical-bottom{
-  background:white;
-  border-radius:12px;
-  padding:20px;
-  box-shadow:0 6px 18px rgba(0,0,0,0.08);
+.file-vertical-bottom {
+  background: #fff;
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
 }

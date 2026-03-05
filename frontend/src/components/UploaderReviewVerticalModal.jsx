@@ -6,8 +6,13 @@ import UploadedPDFVertical from "./UploadedPDFVertical";
 import "./styles/ClientDashboard.css";
 import "./styles/UploaderReviewModal.css";
 
-export default function UploaderReviewVerticalModal({ uploaders = [], currentUser, onClose }) {
-  const [selectedUploader, setSelectedUploader] = useState(null);
+export default function UploaderReviewVerticalModal({
+  uploaders = [],
+  currentUser,
+  selectedUploader: initialUploader = null,
+  onClose,
+}) {
+  const [selectedUploader, setSelectedUploader] = useState(initialUploader);
   const [refresh, setRefresh] = useState(false);
 
   // Close modal on ESC
@@ -19,7 +24,7 @@ export default function UploaderReviewVerticalModal({ uploaders = [], currentUse
     return () => window.removeEventListener("keydown", handleEsc);
   }, [onClose]);
 
-  // Prevent rendering if currentUser is undefined
+  // Do not render if no currentUser
   if (!currentUser) return null;
 
   return (
@@ -33,18 +38,35 @@ export default function UploaderReviewVerticalModal({ uploaders = [], currentUse
         transition={{ duration: 0.25 }}
       >
         {/* HEADER */}
-        <div className="uploader-modal-header" style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
+        <div
+          className="uploader-modal-header"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "1rem",
+            flexWrap: "wrap",
+          }}
+        >
           <h2 style={{ margin: 0, flex: "1 1 auto" }}>Project Overview</h2>
 
           {/* Project Selector */}
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flex: "0 0 auto" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem",
+              flex: "0 0 auto",
+            }}
+          >
             <label style={{ fontWeight: "bold" }}>Select Project:</label>
             <select
               className="upload-button"
               style={{ minWidth: "220px" }}
               value={selectedUploader?.id || ""}
               onChange={(e) => {
-                const uploader = uploaders.find((u) => u.id === Number(e.target.value));
+                const uploader = uploaders.find(
+                  (u) => u.id === Number(e.target.value)
+                );
                 setSelectedUploader(uploader || null);
               }}
             >
@@ -59,7 +81,7 @@ export default function UploaderReviewVerticalModal({ uploaders = [], currentUse
 
           {/* Refresh Button */}
           <button
-            onClick={() => setRefresh(!refresh)}
+            onClick={() => setRefresh((prev) => !prev)}
             className="upload-button"
             style={{ marginLeft: "auto", flex: "0 0 auto" }}
           >
@@ -68,11 +90,14 @@ export default function UploaderReviewVerticalModal({ uploaders = [], currentUse
         </div>
 
         {/* BODY */}
-        <div className="uploader-modal-body vertical-layout" style={{ display: "flex", gap: "1rem" }}>
+        <div
+          className="uploader-modal-body vertical-layout"
+          style={{ display: "flex", gap: "1rem" }}
+        >
           {/* LEFT COLUMN: File Table */}
           <div className="left-column" style={{ flex: 3, minWidth: "0" }}>
             <FileTableVertical
-              role={currentUser.role}
+              role={currentUser?.role || "user"}
               uploaderFilter={selectedUploader?.username || null}
             />
           </div>

@@ -187,17 +187,22 @@ export default function DTRTable({ role , fileId}) {
     );
   };
 
+  const getDayNumber = (dateStr) => {
+    const d = new Date(dateStr);
+    return d.getDate(); 
+  };
+
   const staticColumns = [
     { key: "full_name", label: "Full Name" },
-    { key: "employee_no", label: "Employee #" },
+    { key: "employee_no", label: "Emp #" },
+    { key: "total_days", label: "Days" },
+    { key: "total_hours", label: "Hours" },
   ];
 
   const extraColumns = [
     { key: "position", label: "Position" },
     { key: "shift", label: "Shift" },
     { key: "time", label: "Time" },
-    { key: "total_days", label: "Total Days" },
-    { key: "total_hours", label: "Total Hours" },
     { key: "regular_ot", label: "OT" },
     { key: "legal_holiday", label: "Legal Holiday" },
     { key: "unworked_reg_holiday", label: "Unworked Reg Holiday" },
@@ -250,31 +255,20 @@ export default function DTRTable({ role , fileId}) {
         Summary Forms - PROJECT: {selectedFileObj?.uploaded_by?.username || "Unknown"}
       </h2>
 
-      {/* File Selector 
-      <div className="file-selector">
-        <label htmlFor="fileDropdown" className="file-label">
-          Choose a DTR File:
-        </label>
-        <div className="file-actions">
-          <select
-            id="fileDropdown"
-            value={selectedFile}
-            onChange={(e) => {
-              const id = e.target.value;
-              setSelectedFile(id);
-              handleViewFile(id);
-            }}
-            className="file-dropdown"
-          >
-            <option value="">-- Select a file --</option>
-            {dtrFiles.map((file) => (
-              <option key={file.id} value={file.id}>
-                {file.filename} ({formatDate(file.start_date)} → {formatDate(file.end_date)})
-              </option>
-            ))}
-          </select>
+      {selectedFileObj && (
+        <div className="date-covered">
+          📅 Date Covered:{" "}
+          <strong>
+            {selectedFileObj.start_date
+              ? new Date(selectedFileObj.start_date).toLocaleDateString()
+              : "N/A"}
+            {"  →  "}
+            {selectedFileObj.end_date
+              ? new Date(selectedFileObj.end_date).toLocaleDateString()
+              : "N/A"}
+          </strong>
         </div>
-      </div> */}
+      )}
 
       {selectedFile && fileContents.length > 0 && (
         <div className="table-controls">
@@ -302,20 +296,6 @@ export default function DTRTable({ role , fileId}) {
             </span>
           </h3>
 
-          {/* 🔍 Search Bar 
-          <div className="search-bar">
-            <input
-              type="text"
-              placeholder="Search employee, position, or date..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input"
-            />
-            {searchTerm && (
-              <button onClick={() => setSearchTerm("")} className="clear-btn">✖</button>
-            )}
-          </div> */}
-
           <div className="table-container">
             <table className="dtr-table">
               <thead>
@@ -334,7 +314,9 @@ export default function DTRTable({ role , fileId}) {
                   {dateColumns.map(
                     (date) =>
                       !hiddenColumns.includes(date) && (
-                        <th key={date}>{formatDate(date)}</th>
+                        <th key={date} className="date-col">
+                          {getDayNumber(date)}
+                        </th>
                       )
                   )}
                   {extraColumns.map(

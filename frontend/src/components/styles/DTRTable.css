@@ -593,3 +593,16 @@
 .mismatch-row td {
   background-color: #fff1f1;
 }
+
+.date-col {
+  width: 40px;
+  min-width: 40px;
+  text-align: center;
+}
+
+.date-covered {
+  margin-top: 6px;
+  margin-bottom: 15px;
+  font-size: 14px;
+  color: #444;
+}

@@ -1058,203 +1058,128 @@ export default function AdminDashboard() {
             </motion.div>
           )}
 
-          {activeSection === "files" && 
-            (
-              currentUser?.username === "itdept.pmgi" ||
-              currentUser?.username === "payroll.pmgi" ||
-              currentUser?.username === "hr_staff.pmgi" ||
-              currentUser?.username === "eas_finance.pmgi" ||
-              currentUser?.username === "operations.pmgi" ||
-              currentUser?.username === "operations.hk" ||
-              currentUser?.username === "operations.gl" ||
-              currentUser?.username === "operations_manager.pmgi"
-            ) && (
-            <div className="tables-wrapper">
-              <div
-                style={{
-                  position: "fixed",
-                  top: "100px",
-                  right: "40px",
-                  zIndex: 500,
-                }}
-              >
-                <button
-                  onClick={() => setRefresh(!refresh)}
-                  className="upload-button"
-                >
-                  🔄 Refresh DTR Data
-                </button>
-              </div>
+          {/* Admin Dashboard Sections */}
+{["itdept.pmgi", "payroll.pmgi", "hr_staff.pmgi", "eas_finance.pmgi", "operations.pmgi", "operations.hk", "operations.gl", "operations_manager.pmgi"].includes(currentUser?.username) && (
+  <>
+    {/* Files Section */}
+    {activeSection === "files" && (
+      <div className="tables-wrapper">
+        <div style={{ position: "fixed", top: "100px", right: "40px", zIndex: 500 }}>
+          <button onClick={() => setRefresh(!refresh)} className="upload-button">
+            🔄 Refresh DTR Data
+          </button>
+        </div>
 
-              <div className="divider-hybrid">
-                <span>PROJECT OVERVIEW</span>
-              </div>
+        <div className="divider-hybrid"><span>PROJECT OVERVIEW</span></div>
 
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "1rem",
-                  marginBottom: "1.5rem",
-                }}
-              >
-                <label style={{ fontWeight: "bold" }}>
-                  Select Project:
-                </label>
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1.5rem" }}>
+          <label style={{ fontWeight: "bold" }}>Select Project:</label>
 
-                <select
-                  className="upload-button"
-                  style={{ minWidth: "250px" }}
-                  value={selectedUploader?.id || ""}
-                  onChange={(e) => {
-                    const uploader = uploaders.find(
-                      (u) => u.id === Number(e.target.value)
-                    );
-                    setSelectedUploader(uploader);
-                    setShowUploaderModal(true);
-                  }}
-                >
-                  <option value="">Select Project</option>
+          <select
+            className="upload-button"
+            style={{ minWidth: "250px" }}
+            value={selectedUploader?.id || ""}
+            onChange={(e) => {
+              const uploader = uploaders.find((u) => u.id === Number(e.target.value));
+              setSelectedUploader(uploader);
+              setShowUploaderModal(true);
+            }}
+          >
+            <option value="">Select Project</option>
+            {uploaders.map((uploader) => (
+              <option key={uploader.id} value={uploader.id}>{uploader.username}</option>
+            ))}
+          </select>
 
-                  {uploaders.map((uploader) => (
-                    <option key={uploader.id} value={uploader.id}>
-                      {uploader.username}
-                    </option>
-                  ))}
-                </select>
+          <span style={{ fontSize: "0.9rem", opacity: 0.7 }}>Select Project to View</span>
+        </div>
 
-                <span style={{ fontSize: "0.9rem", opacity: 0.7 }}>
-                  Select Project to View
-                </span>
-              </div>
+        {!showUploaderModal && (
+          <>
+            <FileTable role={role} setSelectedFile={setSelectedFile} />
+            {selectedFile && <FileContent fileId={selectedFile.id} role={role} />}
+            <div className="divider-hybrid"><span>DTR REPORTS</span></div>
+            <UploadedPDFs refreshTrigger={refresh} currentUser={currentUser} />
+          </>
+        )}
 
-              {!showUploaderModal && (
-                <>
-                  <FileTable role={role} setSelectedFile={setSelectedFile} />
+        {showUploaderModal && (
+          <UploaderReviewModal
+            uploader={selectedUploader}
+            onClose={() => { setShowUploaderModal(false); setSelectedUploader(null); }}
+          />
+        )}
+      </div>
+    )}
 
-                  {selectedFile && (
-                    <FileContent
-                      fileId={selectedFile.id}
-                      role={role}
-                    />
-                  )}
+    {/* Files Vertical Section */}
+    {activeSection === "filesVertical" && (
+      <div className="tables-wrapper">
+        <div style={{ position: "fixed", top: "100px", right: "40px", zIndex: 500 }}>
+          <button onClick={() => setRefresh(!refresh)} className="upload-button">
+            🔄 Refresh DTR Data
+          </button>
+        </div>
 
-                  <div className="divider-hybrid">
-                    <span>DTR REPORTS</span>
-                  </div>
+        <div className="divider-hybrid"><span>PROJECT OVERVIEW</span></div>
 
-                  <UploadedPDFs
-                    refreshTrigger={refresh}
-                    currentUser={currentUser}
-                  />
-                </>
-              )}
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1.5rem" }}>
+          <label style={{ fontWeight: "bold" }}>Select Project:</label>
 
-              {activeSection === "filesVertical" &&
-                (currentUser?.username === "itdept.pmgi" ||
-                currentUser?.username === "payroll.pmgi" ||
-                currentUser?.username === "hr_staff.pmgi" ||
-                currentUser?.username === "eas_finance.pmgi" ||
-                currentUser?.username === "operations.pmgi" ||
-                currentUser?.username === "operations.hk" ||
-                currentUser?.username === "operations.gl" ||
-                currentUser?.username === "operations_manager.pmgi") && (
-                  <div className="tables-wrapper">
-                    <div style={{ position: "fixed", top: "100px", right: "40px", zIndex: 500 }}>
-                      <button
-                        onClick={() => setRefresh(!refresh)}
-                        className="upload-button"
-                      >
-                        🔄 Refresh DTR Data
-                      </button>
-                    </div>
+          <select
+            className="upload-button"
+            style={{ minWidth: "250px" }}
+            value={selectedUploader?.id || ""}
+            onChange={(e) => {
+              const uploader = uploaders.find((u) => u.id === Number(e.target.value));
+              setSelectedUploader(uploader);
+              setShowUploaderModal(true);
+            }}
+          >
+            <option value="">Select Project</option>
+            {uploaders.map((uploader) => (
+              <option key={uploader.id} value={uploader.id}>{uploader.username}</option>
+            ))}
+          </select>
 
-                    <div className="divider-hybrid">
-                      <span>PROJECT OVERVIEW</span>
-                    </div>
+          <span style={{ fontSize: "0.9rem", opacity: 0.7 }}>Select Project to View</span>
+        </div>
 
-                    <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1.5rem" }}>
-                      <label style={{ fontWeight: "bold" }}>Select Project:</label>
+        {!showUploaderModal && (
+          <>
+            {/* Render vertical layout table */}
+            <FileTableVertical role={role} />
 
-                      <select
-                        className="upload-button"
-                        style={{ minWidth: "250px" }}
-                        value={selectedUploader?.id || ""}
-                        onChange={(e) => {
-                          const uploader = uploaders.find((u) => u.id === Number(e.target.value));
-                          setSelectedUploader(uploader);
-                          setShowUploaderModal(true);
-                        }}
-                      >
-                        <option value="">Select Project</option>
-                        {uploaders.map((uploader) => (
-                          <option key={uploader.id} value={uploader.id}>
-                            {uploader.username}
-                          </option>
-                        ))}
-                      </select>
+            <div className="divider-hybrid"><span>DTR REPORTS</span></div>
+            <UploadedPDFs refreshTrigger={refresh} currentUser={currentUser} />
+          </>
+        )}
 
-                      <span style={{ fontSize: "0.9rem", opacity: 0.7 }}>Select Project to View</span>
-                    </div>
+        {showUploaderModal && (
+          <UploaderReviewModal
+            uploader={selectedUploader}
+            onClose={() => { setShowUploaderModal(false); setSelectedUploader(null); }}
+          />
+        )}
+      </div>
+    )}
+  </>
+)}
 
-                    {!showUploaderModal && (
-                      <>
-                        {/* Use the vertical layout version */}
-                        <FileTableVertical role={role} />
+{/* DTR Status Section */}
+{activeSection === "dtrStatus" && (
+  <div className="tables-wrapper">
+    <DTRStatusDashboard />
+  </div>
+)}
 
-                        <div className="divider-hybrid">
-                          <span>DTR REPORTS</span>
-                        </div>
-
-                        <UploadedPDFs refreshTrigger={refresh} currentUser={currentUser} />
-                      </>
-                    )}
-
-                    {showUploaderModal && (
-                      <UploaderReviewModal
-                        uploader={selectedUploader}
-                        onClose={() => {
-                          setShowUploaderModal(false);
-                          setSelectedUploader(null);
-                        }}
-                      />
-                    )}
-                  </div>
-              )}
-
-              {showUploaderModal && (
-                <UploaderReviewModal
-                  uploader={selectedUploader}
-                  onClose={() => {
-                    setShowUploaderModal(false);
-                    setSelectedUploader(null);
-                  }}
-                />
-              )}
-            </div>
-          )}
-
-          {activeSection === "dtrStatus" && (
-            <div className="tables-wrapper">
-              <DTRStatusDashboard />
-            </div>
-          )}
-
-          {activeSection === "usageSummary" &&
-            (
-              currentUser?.username === "itdept.pmgi" ||
-              currentUser?.username === "payroll.pmgi" ||
-              currentUser?.username === "hr_staff.pmgi" ||
-              currentUser?.username === "eas_finance.pmgi" ||
-              currentUser?.username === "safetyofc.pmgi" ||
-              currentUser?.username === "operations.gl" ||
-              currentUser?.username === "operations.hk" ||
-              currentUser?.username === "operations_manager.pmgi"
-            ) && (
-              <div className="tables-wrapper">
-                <UsageSummary role={role} currentUser={currentUser} />
-              </div>
-          )}
+{/* Usage Summary Section */}
+{activeSection === "usageSummary" &&
+  ["itdept.pmgi", "payroll.pmgi", "hr_staff.pmgi", "eas_finance.pmgi", "safetyofc.pmgi", "operations.gl", "operations.hk", "operations_manager.pmgi"].includes(currentUser?.username) && (
+    <div className="tables-wrapper">
+      <UsageSummary role={role} currentUser={currentUser} />
+    </div>
+)}
 
           {activeSection === "users" && currentUser?.username === "itdept.pmgi" && (
             <motion.div

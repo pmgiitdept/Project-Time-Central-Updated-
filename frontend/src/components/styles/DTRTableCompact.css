@@ -27,7 +27,8 @@
 
 .dtr-table.dtr-compact {
   border-collapse: collapse;
-  width: 100%;
+  width: max-content;
+  min-width: 100%;
   font-size: 11px;
   color: #333333;
   min-width: 700px;
@@ -42,6 +43,16 @@
   position: sticky;
   top: 0;
   z-index: 10; 
+}
+
+.dtr-table.dtr-compact th,
+.dtr-table.dtr-compact td {
+  padding: 2px 4px;   /* smaller padding */
+  text-align: center;
+  border-bottom: 1px solid #eee;
+  vertical-align: middle;
+  white-space: pre;   /* allow content to shrink */
+  font-size: 10px;    /* slightly smaller text */
 }
 
 .dtr-table.dtr-compact td.sticky-col {
@@ -63,6 +74,9 @@
   border-bottom: 1px solid #eee;
   vertical-align: middle;
   white-space: nowrap;
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-size: 10.5px;
 }
 

@@ -1,96 +1,102 @@
-/* DTRTableCompact.css */
-
 /* Container for the compact table */
 .dtr-compact-wrapper {
   width: 100%;
-  overflow-x: auto;
-  padding: 0.5rem 1rem;
+  max-height: 500px; /* Adjust height as needed */
+  padding: 0.25rem 0.5rem;
   background-color: #ffffff;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
   font-family: "Inter", "Segoe UI", sans-serif;
-  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* prevents overflow outside container */
 }
 
 /* Title above table */
 .dtr-compact-title {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
   color: #1a1a1a;
 }
 
-/* Table container for horizontal scrolling */
+/* Table container with vertical scroll */
 .dtr-compact-table-container {
   width: 100%;
+  flex: 1;
+  overflow-y: auto;
   overflow-x: auto;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
 }
 
 /* Base table styling */
 .dtr-table.dtr-compact {
   border-collapse: collapse;
   width: 100%;
-  font-size: 12px;
+  font-size: 11px;
   color: #333333;
-  min-width: 800px; /* ensures proper spacing */
+  min-width: 700px;
 }
 
 /* Table header */
 .dtr-table.dtr-compact th {
-  background-color: #f4f4f7;
+  background-color: #f8f8f8;
   font-weight: 600;
   color: #222;
-  padding: 6px 12px;
+  padding: 4px 8px;
   text-align: center;
-  border-bottom: 2px solid #d9d9d9;
+  border-bottom: 2px solid #d0d0d0;
   position: sticky;
   top: 0;
-  z-index: 2;
+  z-index: 3;
 }
 
 /* Table cells */
 .dtr-table.dtr-compact td {
-  padding: 6px 10px;
+  padding: 3px 6px;
   text-align: center;
   border-bottom: 1px solid #eee;
   vertical-align: middle;
   white-space: nowrap;
+  font-size: 10.5px;
 }
 
-/* Alternating row colors for readability */
+/* Alternating row colors */
 .dtr-table.dtr-compact tbody tr:nth-child(even) {
   background-color: #fafafa;
 }
 
-/* Hover effect for rows */
+/* Hover effect */
 .dtr-table.dtr-compact tbody tr:hover {
   background-color: #e6f7ff;
   transition: background-color 0.2s ease;
 }
 
-/* Sticky first column for employee names */
+/* Sticky first column (employee names) */
 .dtr-table.dtr-compact .sticky-col {
   position: sticky;
   left: 0;
-  background-color: #f4f4f7;
-  z-index: 1;
+  background-color: #f8f8f8;
+  z-index: 2;
   font-weight: 500;
 }
 
-/* Small responsive adjustments */
+/* Compact header for small screens */
 @media (max-width: 1024px) {
   .dtr-table.dtr-compact th,
   .dtr-table.dtr-compact td {
-    padding: 4px 8px;
-    font-size: 11px;
+    padding: 2px 4px;
+    font-size: 9.5px;
   }
 }
 
+/* Very small screens adjustments */
 @media (max-width: 768px) {
   .dtr-compact-wrapper {
-    padding: 0.25rem 0.5rem;
+    max-height: 400px;
   }
   .dtr-compact-title {
-    font-size: 14px;
+    font-size: 12px;
   }
 }

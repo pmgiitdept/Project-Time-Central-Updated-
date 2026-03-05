@@ -57,7 +57,7 @@ export default function DTRTableCompact({ fileId }) {
   };
 
   const staticColumns = [
-    { key: "full_name", label: "Full Name" },
+    { key: "full_name", label: "Name" },
     { key: "employee_no", label: "Emp #" },
     { key: "total_days", label: "Days" },
     { key: "total_hours", label: "Hours" },
@@ -65,17 +65,17 @@ export default function DTRTableCompact({ fileId }) {
 
   const summaryColumns = [
     { key: "regular_ot", label: "OT" },
-    { key: "legal_holiday", label: "Legal Holiday" },
-    { key: "special_holiday", label: "Special Holiday" },
-    { key: "night_diff", label: "Night Diff" },
-    { key: "undertime_minutes", label: "Undertime" },
+    { key: "legal_holiday", label: "LH" },
+    { key: "special_holiday", label: "SH" },
+    { key: "night_diff", label: "ND" },
+    { key: "undertime_minutes", label: "UT" },
   ];
 
   const extraColumns = [
     { key: "position", label: "Position" },
     { key: "shift", label: "Shift" },
     { key: "time", label: "Time" },
-    { key: "unworked_reg_holiday", label: "Unworked Reg Holiday" },
+    { key: "unworked_reg_holiday", label: "Unworked RH" },
   ];
 
   const integerColumns = new Set([

@@ -207,7 +207,8 @@ export default function UsageSummary() {
       const projEnd = new Date(proj.end_date);
 
       proj.employees.forEach((emp) => {
-        if (!map[emp.employee_no]) map[emp.employee_no] = { relieverConflict: false, missingDays: false, fileMismatch: false };
+        if (!map[emp.employee_no]) 
+          map[emp.employee_no] = { relieverConflict: false, missingDays: false, fileMismatch: false, fileMismatchType: [] };
 
         const empCross = map[emp.employee_no];
 
@@ -218,20 +219,38 @@ export default function UsageSummary() {
 
             const oStart = new Date(otherProj.start_date);
             const oEnd = new Date(otherProj.end_date);
-            return !(projEnd < oStart || projStart > oEnd); 
+            return !(projEnd < oStart || projStart > oEnd);
           });
           if (overlappingFiles.length > 0) empCross.relieverConflict = true;
         }
 
-        const expectedDays = Math.ceil((projEnd - projStart) / (1000*60*60*24)) + 1;
         const summary = calculateEmployeeSummary(emp, proj.start_date, proj.end_date);
-        if (summary.logged < expectedDays) empCross.missingDays = true;
+        const missingDaysCount = summary.expected - summary.logged;
+        if (missingDaysCount > 2) empCross.missingDays = true;
 
-        const fileTotalHours = emp.rows.reduce((acc, row) => {
-          const val = Number(row.total_hours);
-          return acc + (isNaN(val) ? 0 : val);
-        }, 0);
-        if (Math.round(fileTotalHours) !== Math.round(summary.totalHours)) empCross.fileMismatch = true;
+        emp.rows.forEach((row) => {
+          const totalHours = Number(row.total_hours) || 0;
+          const ot = Number(row.ot) || 0;
+          const legalHoliday = Number(row.legal_holiday) || 0;
+          const specialHoliday = Number(row.special_holiday) || 0;
+
+          let dailySum = 0;
+          if (row.daily_data) {
+            dailySum = Object.values(row.daily_data).reduce((acc, val) => {
+              const n = Number(val);
+              return acc + (isNaN(n) ? 0 : n);
+            }, 0);
+          }
+
+          const diff = totalHours - (dailySum + ot + legalHoliday + specialHoliday);
+
+          if (diff !== 0) {
+            empCross.fileMismatch = true;
+            if (!empCross.fileMismatchType) empCross.fileMismatchType = [];
+            if (diff > 0) empCross.fileMismatchType.push(`Summary too low by ${diff} hrs`);
+            else empCross.fileMismatchType.push(`Summary too high by ${Math.abs(diff)} hrs`);
+          }
+        });
       });
     });
 
@@ -446,7 +465,7 @@ export default function UsageSummary() {
                       <th>Attendance</th>
                       <th>Total Hours</th>
                       <th>Presence</th>
-                      <th>Reliever</th>
+                      <th>Status</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -475,7 +494,12 @@ export default function UsageSummary() {
                               <span className="badge missing-days" title="Missing attendance days">⚠ Missing Days</span>
                             )}
                             {crossValidationMap[emp.employee_no]?.fileMismatch && (
-                              <span className="badge file-mismatch" title="File totals mismatch">⚠ Mismatch</span>
+                              <span
+                                className="badge file-mismatch"
+                                title={crossValidationMap[emp.employee_no]?.fileMismatchType?.join("; ")}
+                              >
+                                ⚠ Mismatch
+                              </span>
                             )}
                           </td>
                         </tr>

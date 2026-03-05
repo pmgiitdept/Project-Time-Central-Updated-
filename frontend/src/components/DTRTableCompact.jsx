@@ -32,7 +32,7 @@ export default function DTRTableCompact({ fileId }) {
         setDateColumns(Object.keys(res.data.rows[0].daily_data || {}));
         }
 
-        setSelectedFileObj(res.data.uploaded_by || {});
+        setSelectedFileObj(res.data || {});
         setDateCovered({
         start: res.data.start_date || null,
         end: res.data.end_date || null,
@@ -82,7 +82,7 @@ export default function DTRTableCompact({ fileId }) {
   return (
     <div className="dtr-compact-wrapper">
       <h3 className="dtr-compact-title">
-       Project: {selectedFileObj?.username || selectedFileObj?.full_name || "Unknown"} | Employees: {totalEmployees}
+       Project: {selectedFileObj?.uploaded_by?.username || "Unknown"} | Employees: {totalEmployees}
        </h3>
        {dateCovered.start && dateCovered.end && (
        <div className="dtr-compact-date">

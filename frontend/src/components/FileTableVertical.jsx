@@ -6,7 +6,6 @@ import { toast } from "react-toastify";
 import { motion } from "framer-motion";
 import "./styles/FileTableVertical.css";
 
-// Modal for rejection reason
 function RejectionModal({ isOpen, onClose, onSubmit }) {
   const [reason, setReason] = useState("");
 
@@ -45,7 +44,7 @@ export default function FileTableVertical({ role, uploaderFilter = null }) {
 
   const [rejectionModalOpen, setRejectionModalOpen] = useState(false);
   const [currentRejectFile, setCurrentRejectFile] = useState(null);
-
+  const [pendingStatusChange, setPendingStatusChange] = useState(null);
   const hasFetchedRef = useRef(false);
 
   useEffect(() => {
@@ -70,11 +69,12 @@ export default function FileTableVertical({ role, uploaderFilter = null }) {
 
   const handleStatusChange = (fileId, newStatus) => {
     if (newStatus === "rejected") {
-      const file = files.find(f => f.id === fileId);
-      setCurrentRejectFile(file);
-      setRejectionModalOpen(true);
+        const file = files.find(f => f.id === fileId);
+        setCurrentRejectFile(file);
+        setPendingStatusChange(file.status); 
+        setRejectionModalOpen(true);
     } else {
-      updateStatus(fileId, newStatus);
+        updateStatus(fileId, newStatus);
     }
   };
 
@@ -98,7 +98,8 @@ export default function FileTableVertical({ role, uploaderFilter = null }) {
 
   const handleRejectionSubmit = (reason) => {
     if (currentRejectFile) {
-      updateStatus(currentRejectFile.id, "rejected", reason);
+        updateStatus(currentRejectFile.id, "rejected", reason);
+        setPendingStatusChange(null); // clear temporary value
     }
   };
 
@@ -195,7 +196,11 @@ export default function FileTableVertical({ role, uploaderFilter = null }) {
                   <td>{new Date(file.uploaded_at).toLocaleString()}</td>
                   <td>
                     {(role === "admin" || role === "viewer") ? (
-                      <select value={file.status} onChange={(e) => handleStatusChange(file.id, e.target.value)} onClick={(e) => e.stopPropagation()} className={`status-select ${file.status}`}>
+                      <select
+                        value={pendingStatusChange?.id === file.id ? "rejected" : file.status}
+                        onChange={(e) => handleStatusChange(file.id, e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <option value="pending">Pending</option>
                         <option value="verified">Verified</option>
                         <option value="rejected">Rejected</option>
@@ -217,9 +222,13 @@ export default function FileTableVertical({ role, uploaderFilter = null }) {
       {/* REJECTION MODAL */}
       <RejectionModal
         isOpen={rejectionModalOpen}
-        onClose={() => setRejectionModalOpen(false)}
+        onClose={() => {
+            setRejectionModalOpen(false);
+            setCurrentRejectFile(null);
+            setPendingStatusChange(null); 
+        }}
         onSubmit={handleRejectionSubmit}
-      />
+       />
 
       {/* BOTTOM DTR TABLE */}
       <div className="file-vertical-bottom">

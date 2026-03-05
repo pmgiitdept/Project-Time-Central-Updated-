@@ -333,39 +333,28 @@ export default function DTRTable({ role , fileId}) {
                   ?.filter((row) => row) 
                   .map((row, rIdx) => (
                     <tr key={row?.id ?? `row-${rIdx}`}>
-                      {!hiddenColumns.includes("full_name") && (
-                        <td className="sticky-col sticky-1">
-                          {editableRow === rIdx ? (
-                            <input
-                              type="text"
-                              value={row?.full_name ?? ""}
-                              onChange={(e) =>
-                                handleEditChange(rIdx, "full_name", e.target.value)
-                              }
-                              className="editable-input"
-                            />
-                          ) : (
-                            row?.full_name ?? "-"
-                          )}
-                        </td>
-                      )}
-
-                      {!hiddenColumns.includes("employee_no") && (
-                        <td>
-                          {editableRow === rIdx ? (
-                            <input
-                              type="text"
-                              value={row?.employee_no ?? ""}
-                              onChange={(e) =>
-                                handleEditChange(rIdx, "employee_no", e.target.value)
-                              }
-                              className="editable-input"
-                            />
-                          ) : (
-                            row?.employee_no ?? "-"
-                          )}
-                        </td>
-                      )}
+                      {staticColumns.map(
+  (col, idx) =>
+    !hiddenColumns.includes(col.key) && (
+      <td
+        key={col.key}
+        className={idx === 0 ? "sticky-col sticky-1" : ""}
+      >
+        {editableRow === rIdx ? (
+          <input
+            type="text"
+            value={row?.[col.key] ?? ""}
+            onChange={(e) =>
+              handleEditChange(rIdx, col.key, e.target.value)
+            }
+            className="editable-input"
+          />
+        ) : (
+          row?.[col.key] ?? "-"
+        )}
+      </td>
+    )
+)}
 
                       {dateColumns.map(
                         (date) =>

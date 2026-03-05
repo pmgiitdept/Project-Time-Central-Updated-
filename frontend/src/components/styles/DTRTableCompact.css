@@ -47,12 +47,12 @@
 
 .dtr-table.dtr-compact th,
 .dtr-table.dtr-compact td {
-  padding: 2px 4px;   /* smaller padding */
+  padding: 2px 4px;   
   text-align: center;
   border-bottom: 1px solid #eee;
   vertical-align: middle;
-  white-space: pre;   /* allow content to shrink */
-  font-size: 10px;    /* slightly smaller text */
+  white-space: pre;  
+  font-size: 10px;    
 }
 
 .dtr-table.dtr-compact td.sticky-col {

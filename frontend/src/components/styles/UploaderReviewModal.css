@@ -5,13 +5,13 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0,0,0,0.5);
   display: flex;
-  justify-content: flex-start;
-  align-items: center;
+  justify-content: center;  /* center horizontally */
+  align-items: center;      /* center vertically */
   z-index: 9999;
-  overflow: auto;   
-  padding: 1rem;
+  overflow: auto;
+  padding: 0.5rem;
 }
 
 .uploader-modal {
@@ -29,12 +29,13 @@
 }
 
 .uploader-modal.expanded.vertical {
-  width: 95%;       /* wider, almost full screen */
-  max-width: 1600px; /* slightly larger max width */
-  height: 90vh;     /* taller */
+  width: 95%;       /* almost full width */
+  max-width: 1800px; 
+  height: 95vh;     /* almost full height */
+  border-radius: 1rem;
   display: flex;
   flex-direction: column;
-  padding: 15px;   /* a bit smaller padding */
+  padding: 20px;
 }
 
 .uploader-modal-header {
@@ -220,4 +221,20 @@
 .right-content-scroll {
   flex: 1;
   overflow: auto; 
+}
+
+.uploader-modal-body.vertical-layout {
+  display: flex;
+  gap: 1rem;
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
+}
+
+.left-column,
+.right-column {
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  height: 100%;   /* fill the vertical space */
 }

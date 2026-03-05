@@ -9,6 +9,14 @@ export default function DTRTableCompact({ fileId }) {
   const [dateColumns, setDateColumns] = useState([]);
   const [selectedFileObj, setSelectedFileObj] = useState(null);
   const [dateCovered, setDateCovered] = useState({ start: null, end: null });
+  
+  const sortedContents = [...fileContents].sort((a, b) => {
+    const nameA = (a.full_name || "").toLowerCase();
+    const nameB = (b.full_name || "").toLowerCase();
+    if (nameA < nameB) return -1;
+    if (nameA > nameB) return 1;
+    return 0;
+  });
 
   const [hiddenColumns, setHiddenColumns] = useState(() => {
     const saved = localStorage.getItem("hiddenColumns");
@@ -130,7 +138,7 @@ export default function DTRTableCompact({ fileId }) {
             </thead>
 
             <tbody>
-            {fileContents.map((row, rIdx) => (
+            {sortedContents.map((row, rIdx) => (
                 <tr key={row?.id ?? `row-${rIdx}`}>
                 {staticColumns.map((col, idx) =>
                     !hiddenColumns.includes(col.key) ? (

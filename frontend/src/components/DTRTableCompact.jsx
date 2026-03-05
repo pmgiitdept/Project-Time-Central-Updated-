@@ -8,6 +8,7 @@ export default function DTRTableCompact({ fileId }) {
   const [fileContents, setFileContents] = useState([]);
   const [dateColumns, setDateColumns] = useState([]);
   const [selectedFileObj, setSelectedFileObj] = useState(null);
+  const [dateCovered, setDateCovered] = useState({ start: null, end: null });
 
   const [hiddenColumns, setHiddenColumns] = useState(() => {
     const saved = localStorage.getItem("hiddenColumns");
@@ -25,15 +26,20 @@ export default function DTRTableCompact({ fileId }) {
     if (!normalizedId) return;
 
     try {
-      const res = await api.get(`/files/dtr/files/${normalizedId}/content/`);
-      setFileContents(res.data.rows || []);
-      if (res.data.rows?.length > 0) {
+        const res = await api.get(`/files/dtr/files/${normalizedId}/content/`);
+        setFileContents(res.data.rows || []);
+        if (res.data.rows?.length > 0) {
         setDateColumns(Object.keys(res.data.rows[0].daily_data || {}));
-      }
-      setSelectedFileObj(res.data.uploaded_by?.username || {});
+        }
+
+        setSelectedFileObj(res.data.uploaded_by || {});
+        setDateCovered({
+        start: res.data.start_date || null,
+        end: res.data.end_date || null,
+        });
     } catch (err) {
-      console.error(err);
-      toast.error("Failed to load file content.");
+        console.error(err);
+        toast.error("Failed to load file content.");
     }
   };
 
@@ -76,8 +82,13 @@ export default function DTRTableCompact({ fileId }) {
   return (
     <div className="dtr-compact-wrapper">
       <h3 className="dtr-compact-title">
-        Project: {selectedFileObj?.uploaded_by?.username || "Unknown"} | Employees: {totalEmployees}
-      </h3>
+       Project: {selectedFileObj?.username || selectedFileObj?.full_name || "Unknown"} | Employees: {totalEmployees}
+       </h3>
+       {dateCovered.start && dateCovered.end && (
+       <div className="dtr-compact-date">
+        📅 Date Covered: {new Date(dateCovered.start).toLocaleDateString()} → {new Date(dateCovered.end).toLocaleDateString()}
+       </div>
+       )}
 
       <div className="dtr-compact-table-container">
         <table className="dtr-table dtr-compact">

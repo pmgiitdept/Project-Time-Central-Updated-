@@ -67,6 +67,25 @@ export default function DTRTableCompact({ fileId }) {
     { key: "undertime_minutes", label: "Undertime" },
   ];
 
+  const integerColumns = new Set([
+    "total_days",
+    "total_hours",
+    "regular_ot",
+    "legal_holiday",
+    "unworked_reg_holiday",
+    "special_holiday",
+    "night_diff",
+    "undertime_minutes",
+    ]);
+
+    const formatCellValue = (colKey, value) => {
+    if (integerColumns.has(colKey)) {
+        const num = parseFloat(value);
+        return Number.isNaN(num) ? "-" : Math.round(num); 
+    }
+    return value ?? "-";
+    };
+
   const totalEmployees = (() => {
     const uniqueEmployees = new Set();
     fileContents.forEach((row) => {
@@ -116,15 +135,15 @@ export default function DTRTableCompact({ fileId }) {
                 {staticColumns.map((col, idx) =>
                     !hiddenColumns.includes(col.key) ? (
                     <td key={col.key} className={idx === 0 ? "sticky-col" : ""}>
-                        {row[col.key] ?? "-"}
+                        {formatCellValue(col.key, row[col.key])}
                     </td>
                     ) : null
                 )}
                 {dateColumns.map((date) =>
-                    !hiddenColumns.includes(date) ? <td key={date}>{row.daily_data?.[date] ?? "-"}</td> : null
+                    !hiddenColumns.includes(date) ? <td key={date}>{formatCellValue(date, row.daily_data?.[date])}</td> : null
                 )}
                 {extraColumns.map((col) =>
-                    !hiddenColumns.includes(col.key) ? <td key={col.key}>{row[col.key] ?? "-"}</td> : null
+                    !hiddenColumns.includes(col.key) ? <td key={col.key}>{formatCellValue(col.key, row[col.key])}</td> : null
                 )}
                 </tr>
             ))}

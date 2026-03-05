@@ -73,7 +73,6 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
   return (
     <motion.div className="file-vertical-wrapper" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
 
-      {/* TOP SECTION: FILE TABLE */}
       <div className="file-vertical-top">
         <div className="vertical-header">
           <h3>Uploaded DTR Files</h3>

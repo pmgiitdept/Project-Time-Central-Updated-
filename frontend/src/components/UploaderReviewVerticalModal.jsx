@@ -10,6 +10,7 @@ export default function UploaderReviewVerticalModal({ uploaders = [], currentUse
   const [selectedUploader, setSelectedUploader] = useState(null);
   const [refresh, setRefresh] = useState(false);
 
+  // Close modal on ESC
   useEffect(() => {
     const handleEsc = (e) => {
       if (e.key === "Escape") onClose();
@@ -17,6 +18,9 @@ export default function UploaderReviewVerticalModal({ uploaders = [], currentUse
     window.addEventListener("keydown", handleEsc);
     return () => window.removeEventListener("keydown", handleEsc);
   }, [onClose]);
+
+  // Prevent rendering if currentUser is undefined
+  if (!currentUser) return null;
 
   return (
     <div className="uploader-modal-overlay" onClick={onClose}>
@@ -29,14 +33,15 @@ export default function UploaderReviewVerticalModal({ uploaders = [], currentUse
         transition={{ duration: 0.25 }}
       >
         {/* HEADER */}
-        <div className="uploader-modal-header">
-          <h2>Project Overview</h2>
+        <div className="uploader-modal-header" style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
+          <h2 style={{ margin: 0, flex: "1 1 auto" }}>Project Overview</h2>
 
-          <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+          {/* Project Selector */}
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flex: "0 0 auto" }}>
             <label style={{ fontWeight: "bold" }}>Select Project:</label>
             <select
               className="upload-button"
-              style={{ minWidth: "250px" }}
+              style={{ minWidth: "220px" }}
               value={selectedUploader?.id || ""}
               onChange={(e) => {
                 const uploader = uploaders.find((u) => u.id === Number(e.target.value));
@@ -52,29 +57,33 @@ export default function UploaderReviewVerticalModal({ uploaders = [], currentUse
             </select>
           </div>
 
-          <button onClick={() => setRefresh(!refresh)} className="upload-button" style={{ marginLeft: "auto" }}>
+          {/* Refresh Button */}
+          <button
+            onClick={() => setRefresh(!refresh)}
+            className="upload-button"
+            style={{ marginLeft: "auto", flex: "0 0 auto" }}
+          >
             🔄 Refresh Data
           </button>
         </div>
 
         {/* BODY */}
-        <div className="uploader-modal-body vertical-layout">
+        <div className="uploader-modal-body vertical-layout" style={{ display: "flex", gap: "1rem" }}>
           {/* LEFT COLUMN: File Table */}
-          <div className="left-column">
-            {selectedUploader ? (
-              <FileTableVertical role={currentUser.role} uploaderFilter={selectedUploader.username} />
-            ) : (
-              <FileTableVertical role={currentUser.role} />
-            )}
+          <div className="left-column" style={{ flex: 3, minWidth: "0" }}>
+            <FileTableVertical
+              role={currentUser.role}
+              uploaderFilter={selectedUploader?.username || null}
+            />
           </div>
 
           {/* RIGHT COLUMN: Uploaded PDFs */}
-          <div className="right-column">
-            {selectedUploader ? (
-              <UploadedPDFVertical refreshTrigger={refresh} currentUser={currentUser} uploaderFilter={selectedUploader.username} />
-            ) : (
-              <UploadedPDFVertical refreshTrigger={refresh} currentUser={currentUser} />
-            )}
+          <div className="right-column" style={{ flex: 2, minWidth: "0" }}>
+            <UploadedPDFVertical
+              refreshTrigger={refresh}
+              currentUser={currentUser}
+              uploaderFilter={selectedUploader?.username || null}
+            />
           </div>
         </div>
       </motion.div>

@@ -1,6 +1,5 @@
 .dtr-compact-wrapper {
-  width: 100%;
-  max-height: 500px; /* Adjust height as needed */
+  max-height: 500px; 
   padding: 0.25rem 0.5rem;
   background-color: #ffffff;
   border-radius: 8px;
@@ -8,10 +7,8 @@
   font-family: "Inter", "Segoe UI", sans-serif;
   display: flex;
   flex-direction: column;
-  overflow: auto;
 }
 
-/* Title above table */
 .dtr-compact-title {
   font-size: 14px;
   font-weight: 600;
@@ -19,7 +16,6 @@
   color: #1a1a1a;
 }
 
-/* Table container with vertical and horizontal scroll */
 .dtr-compact-table-container {
   width: 100%;
   flex: 1;
@@ -29,7 +25,6 @@
   border-radius: 6px;
 }
 
-/* Base table styling */
 .dtr-table.dtr-compact {
   border-collapse: collapse;
   width: 100%;
@@ -38,35 +33,30 @@
   min-width: 700px;
 }
 
-/* Table header */
 .dtr-table.dtr-compact th {
   background-color: #f8f8f8;
   font-weight: 600;
-  color: #222;
   padding: 4px 8px;
   text-align: center;
   border-bottom: 2px solid #d0d0d0;
   position: sticky;
   top: 0;
-  z-index: 10; /* header always on top */
+  z-index: 10; 
 }
 
-/* Sticky first column for data cells */
 .dtr-table.dtr-compact td.sticky-col {
   position: sticky;
   left: 0;
   background-color: #f8f8f8;
-  z-index: 1; /* below header */
+  z-index: 1; 
   font-weight: 500;
 }
 
-/* Sticky first column for header cell (optional) */
 .dtr-table.dtr-compact th.sticky-col {
   left: 0;
-  z-index: 11; /* stays above first column cells but below other header cells if needed */
+  z-index: 11; 
 }
 
-/* Table cells */
 .dtr-table.dtr-compact td {
   padding: 3px 6px;
   text-align: center;
@@ -76,7 +66,6 @@
   font-size: 10.5px;
 }
 
-/* Sticky first column for data cells */
 .dtr-table.dtr-compact td.sticky-col {
   position: sticky;
   left: 0;
@@ -85,18 +74,15 @@
   font-weight: 500;
 }
 
-/* Alternating row colors */
 .dtr-table.dtr-compact tbody tr:nth-child(even) {
   background-color: #fafafa;
 }
 
-/* Hover effect */
 .dtr-table.dtr-compact tbody tr:hover {
   background-color: #e6f7ff;
   transition: background-color 0.2s ease;
 }
 
-/* Sticky first column (employee names) */
 .dtr-table.dtr-compact .sticky-col {
   position: sticky;
   left: 0;
@@ -105,7 +91,6 @@
   font-weight: 500;
 }
 
-/* Compact header for small screens */
 @media (max-width: 1024px) {
   .dtr-table.dtr-compact th,
   .dtr-table.dtr-compact td {
@@ -114,7 +99,6 @@
   }
 }
 
-/* Very small screens adjustments */
 @media (max-width: 768px) {
   .dtr-compact-wrapper {
     max-height: 400px;

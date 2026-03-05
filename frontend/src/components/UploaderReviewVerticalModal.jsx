@@ -92,7 +92,7 @@ export default function UploaderReviewVerticalModal({
         {/* BODY */}
         <div className="uploader-modal-body vertical-layout" style={{ display: "flex", gap: "1rem", height: "100%" }}>
             {/* LEFT COLUMN: File Table (wider) */}
-            <div className="left-column" style={{ flex: 4, minWidth: "0", maxWidth: "80%" }}>
+            <div className="left-column" style={{ flex: 3, minWidth: "0", maxWidth: "80%" }}>
                 <FileTableVertical
                 role={currentUser?.role || "user"}
                 uploaderFilter={selectedUploader?.username || null}
@@ -100,7 +100,7 @@ export default function UploaderReviewVerticalModal({
             </div>
 
             {/* RIGHT COLUMN: Uploaded PDFs / Summary (smaller) */}
-            <div className="right-column" style={{ flex: 1.5, minWidth: "0", maxWidth: "35%" }}>
+            <div className="right-column" style={{ flex: 1.5, minWidth: "0", maxWidth: "40%" }}>
                 <UploadedPDFVertical
                 refreshTrigger={refresh}
                 currentUser={currentUser}

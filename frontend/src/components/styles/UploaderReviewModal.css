@@ -29,12 +29,12 @@
 }
 
 .uploader-modal.expanded.vertical {
-  width: 90%;
-  max-width: 1400px;
-  height: 85vh;
+  width: 95%;       /* wider, almost full screen */
+  max-width: 1600px; /* slightly larger max width */
+  height: 90vh;     /* taller */
   display: flex;
   flex-direction: column;
-  padding: 20px;
+  padding: 15px;   /* a bit smaller padding */
 }
 
 .uploader-modal-header {
@@ -96,7 +96,7 @@
 
 /* LEFT COLUMN: wider */
 .left-column {
-  flex: 2.5;
+  flex: 3.5;
   background: #fff;
   border-radius: 12px;
   padding: 15px;
@@ -104,12 +104,13 @@
   overflow: auto;
 }
 
-/* RIGHT COLUMN: slimmer */
 .right-column {
-  flex: 1;
+  flex: 1.2; /* matches JSX */
+  max-width: 400px;  /* keeps summary compact */
   background: #fff;
   border-radius: 12px;
-  padding: 15px;
+  padding: 10px;
+  font-size: 0.75rem;  /* slightly smaller text */
   box-shadow: 0 4px 12px rgba(0,0,0,0.06);
   overflow: auto;
 }

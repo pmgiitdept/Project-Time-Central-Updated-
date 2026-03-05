@@ -1115,56 +1115,66 @@ export default function AdminDashboard() {
               )}
 
               {/* Files Vertical Section */}
-              {activeSection === "filesVertical" && (
-                <div className="tables-wrapper">
-                  <div style={{ position: "fixed", top: "100px", right: "40px", zIndex: 500 }}>
-                    <button onClick={() => setRefresh(!refresh)} className="upload-button">
-                      🔄 Refresh DTR Data
-                    </button>
-                  </div>
+{activeSection === "filesVertical" && (
+  <div className="tables-wrapper">
+    <div style={{ position: "fixed", top: "100px", right: "40px", zIndex: 500 }}>
+      <button onClick={() => setRefresh(!refresh)} className="upload-button">
+        🔄 Refresh DTR Data
+      </button>
+    </div>
 
-                  <div className="divider-hybrid"><span>PROJECT OVERVIEW</span></div>
+    <div className="divider-hybrid"><span>PROJECT OVERVIEW</span></div>
 
-                  <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1.5rem" }}>
-                    <label style={{ fontWeight: "bold" }}>Select Project:</label>
+    <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1.5rem" }}>
+      <label style={{ fontWeight: "bold" }}>Select Project:</label>
 
-                    <select
-                      className="upload-button"
-                      style={{ minWidth: "250px" }}
-                      value={selectedUploader?.id || ""}
-                      onChange={(e) => {
-                        const uploader = uploaders.find((u) => u.id === Number(e.target.value));
-                        setSelectedUploader(uploader);
-                        setShowUploaderModal(true);
-                      }}
-                    >
-                      <option value="">Select Project</option>
-                      {uploaders.map((uploader) => (
-                        <option key={uploader.id} value={uploader.id}>{uploader.username}</option>
-                      ))}
-                    </select>
+      <select
+        className="upload-button"
+        style={{ minWidth: "250px" }}
+        value={selectedUploader?.id || ""}
+        onChange={(e) => {
+          const uploader = uploaders.find((u) => u.id === Number(e.target.value));
+          setSelectedUploader(uploader || null);
+          setShowUploaderModal(true);
+        }}
+      >
+        <option value="">All Projects</option>
+        {uploaders.map((uploader) => (
+          <option key={uploader.id} value={uploader.id}>
+            {uploader.username}
+          </option>
+        ))}
+      </select>
 
-                    <span style={{ fontSize: "0.9rem", opacity: 0.7 }}>Select Project to View</span>
-                  </div>
+      <span style={{ fontSize: "0.9rem", opacity: 0.7 }}>Select Project to View</span>
+    </div>
 
-                  {!showUploaderModal && (
-                    <>
-                      {/* Render vertical layout table */}
-                      <FileTableVertical role={role} />
+    {!showUploaderModal && (
+      <>
+        {/* Vertical layout tables */}
+        <FileTableVertical role={currentUser?.role} uploaderFilter={selectedUploader?.username} />
 
-                      <div className="divider-hybrid"><span>DTR REPORTS</span></div>
-                      <UploadedPDFVertical refreshTrigger={refresh} currentUser={currentUser} />
-                    </>
-                  )}
+        <div className="divider-hybrid"><span>DTR REPORTS</span></div>
+        <UploadedPDFVertical
+          refreshTrigger={refresh}
+          currentUser={currentUser}
+          uploaderFilter={selectedUploader?.username}
+        />
+      </>
+    )}
 
-                  {showUploaderModal && (
-                    <UploaderReviewVerticalModal
-                      uploader={selectedUploader}
-                      onClose={() => { setShowUploaderModal(false); setSelectedUploader(null); }}
-                    />
-                  )}
-                </div>
-              )}
+    {showUploaderModal && (
+      <UploaderReviewVerticalModal
+        uploaders={uploaders}
+        currentUser={currentUser}
+        onClose={() => {
+          setShowUploaderModal(false);
+          setSelectedUploader(null);
+        }}
+      />
+    )}
+  </div>
+)}
             </>
           )}
 

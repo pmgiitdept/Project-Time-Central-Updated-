@@ -6,6 +6,30 @@ import { toast } from "react-toastify";
 import { motion } from "framer-motion";
 import "./styles/FileTableVertical.css";
 
+// Modal for rejection reason
+function RejectionModal({ isOpen, onClose, onSubmit }) {
+  const [reason, setReason] = useState("");
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <h4>Enter Rejection Reason</h4>
+        <textarea
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          placeholder="Reason for rejecting this file"
+        />
+        <div className="modal-actions">
+          <button className="btn-cancel" onClick={onClose}>Cancel</button>
+          <button className="btn-submit" onClick={() => onSubmit(reason)}>Submit</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function FileTableVertical({ role, uploaderFilter = null }) {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -18,6 +42,9 @@ export default function FileTableVertical({ role, uploaderFilter = null }) {
   const [uploadEndDate, setUploadEndDate] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+
+  const [rejectionModalOpen, setRejectionModalOpen] = useState(false);
+  const [currentRejectFile, setCurrentRejectFile] = useState(null);
 
   const hasFetchedRef = useRef(false);
 
@@ -41,22 +68,37 @@ export default function FileTableVertical({ role, uploaderFilter = null }) {
     }
   };
 
-  const handleStatusChange = async (fileId, newStatus) => {
+  const handleStatusChange = (fileId, newStatus) => {
+    if (newStatus === "rejected") {
+      const file = files.find(f => f.id === fileId);
+      setCurrentRejectFile(file);
+      setRejectionModalOpen(true);
+    } else {
+      updateStatus(fileId, newStatus);
+    }
+  };
+
+  const updateStatus = async (fileId, newStatus, reason = "") => {
     const token = localStorage.getItem("access_token");
     try {
       await api.patch(
         `/files/dtr/files/${fileId}/status/`,
-        { status: newStatus },
+        { status: newStatus, rejection_reason: reason },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setFiles((prev) =>
-        prev.map((file) =>
-          file.id === fileId ? { ...file, status: newStatus } : file
-        )
-      );
+      setFiles(prev => prev.map(file => file.id === fileId ? { ...file, status: newStatus, rejection_reason: reason } : file));
       toast.success(`Status updated to ${newStatus}`);
     } catch {
       toast.error("Failed to update status");
+    } finally {
+      setRejectionModalOpen(false);
+      setCurrentRejectFile(null);
+    }
+  };
+
+  const handleRejectionSubmit = (reason) => {
+    if (currentRejectFile) {
+      updateStatus(currentRejectFile.id, "rejected", reason);
     }
   };
 
@@ -98,26 +140,39 @@ export default function FileTableVertical({ role, uploaderFilter = null }) {
           <button className="refresh-btn" onClick={fetchFiles}><FaSyncAlt /></button>
         </div>
 
-        {/* FILTERS */}
+        {/* FILTERS WITH LABELS */}
         <div className="vertical-filters">
-          <input type="text" placeholder="Search uploader or filename" value={search} onChange={(e) => setSearch(e.target.value)} />
-          
-          <select value={uploaderFilterLocal} onChange={(e) => setUploaderFilterLocal(e.target.value)}>
-            <option value="">All Uploaders</option>
-            {uniqueUploaders.map((u) => <option key={u} value={u}>{u}</option>)}
-          </select>
-
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-            <option value="">All Status</option>
-            <option value="pending">Pending</option>
-            <option value="verified">Verified</option>
-            <option value="rejected">Rejected</option>
-          </select>
-
-          <input type="date" value={uploadStartDate} onChange={(e)=>setUploadStartDate(e.target.value)} placeholder="Upload Start" />
-          <input type="date" value={uploadEndDate} onChange={(e)=>setUploadEndDate(e.target.value)} placeholder="Upload End" />
-          <input type="date" value={startDate} onChange={(e)=>setStartDate(e.target.value)} placeholder="Start Covered" />
-          <input type="date" value={endDate} onChange={(e)=>setEndDate(e.target.value)} placeholder="End Covered" />
+          <label>
+            Search: <input type="text" placeholder="Uploader or filename" value={search} onChange={(e) => setSearch(e.target.value)} />
+          </label>
+          <label>
+            Uploader: 
+            <select value={uploaderFilterLocal} onChange={(e) => setUploaderFilterLocal(e.target.value)}>
+              <option value="">All</option>
+              {uniqueUploaders.map(u => <option key={u} value={u}>{u}</option>)}
+            </select>
+          </label>
+          <label>
+            Status: 
+            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+              <option value="">All</option>
+              <option value="pending">Pending</option>
+              <option value="verified">Verified</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </label>
+          <label>
+            Upload Start: <input type="date" value={uploadStartDate} onChange={(e)=>setUploadStartDate(e.target.value)} />
+          </label>
+          <label>
+            Upload End: <input type="date" value={uploadEndDate} onChange={(e)=>setUploadEndDate(e.target.value)} />
+          </label>
+          <label>
+            Start Covered: <input type="date" value={startDate} onChange={(e)=>setStartDate(e.target.value)} />
+          </label>
+          <label>
+            End Covered: <input type="date" value={endDate} onChange={(e)=>setEndDate(e.target.value)} />
+          </label>
         </div>
 
         {/* TABLE */}
@@ -128,6 +183,7 @@ export default function FileTableVertical({ role, uploaderFilter = null }) {
                 <th>Uploader</th>
                 <th>Uploaded</th>
                 <th>Status</th>
+                <th>Rejection Reason</th>
                 <th>Start</th>
                 <th>End</th>
               </tr>
@@ -148,6 +204,7 @@ export default function FileTableVertical({ role, uploaderFilter = null }) {
                       <span className={`status-badge status-${file.status}`}>{file.status}</span>
                     )}
                   </td>
+                  <td>{file.rejection_reason || "-"}</td>
                   <td>{file.start_date ? new Date(file.start_date).toLocaleDateString() : "-"}</td>
                   <td>{file.end_date ? new Date(file.end_date).toLocaleDateString() : "-"}</td>
                 </tr>
@@ -157,7 +214,14 @@ export default function FileTableVertical({ role, uploaderFilter = null }) {
         </div>
       </div>
 
-      {/* BOTTOM SECTION (DTR Table) */}
+      {/* REJECTION MODAL */}
+      <RejectionModal
+        isOpen={rejectionModalOpen}
+        onClose={() => setRejectionModalOpen(false)}
+        onSubmit={handleRejectionSubmit}
+      />
+
+      {/* BOTTOM DTR TABLE */}
       <div className="file-vertical-bottom">
         <DTRTable role={role} fileId={selectedFileId} />
       </div>

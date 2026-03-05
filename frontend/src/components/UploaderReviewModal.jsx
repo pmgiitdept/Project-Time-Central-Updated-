@@ -1,5 +1,5 @@
 /* components/UploaderReviewModal.jsx */
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import FileTable from "./FileTable";
 import FileContent from "./FileContent";
@@ -8,33 +8,14 @@ import "./styles/ClientDashboard.css";
 import "./styles/UploaderReviewModal.css";
 
 export default function UploaderReviewModal({ uploader, uploaders = [], onClose }) {
-  const [selectedUploader, setSelectedUploader] = useState(uploader); 
+  const [selectedUploader, setSelectedUploader] = useState(uploader);
   const [selectedFile, setSelectedFile] = useState(null);
-
-  const rightContentRef = useRef(null);
-  const topScrollRef = useRef(null);
-
-  useEffect(() => {
-    const topScroll = topScrollRef.current;
-    const content = rightContentRef.current;
-    if (!topScroll || !content) return;
-
-    const syncTop = () => (content.scrollLeft = topScroll.scrollLeft);
-    const syncContent = () => (topScroll.scrollLeft = content.scrollLeft);
-
-    topScroll.addEventListener("scroll", syncTop);
-    content.addEventListener("scroll", syncContent);
-
-    return () => {
-      topScroll.removeEventListener("scroll", syncTop);
-      content.removeEventListener("scroll", syncContent);
-    };
-  }, []);
 
   useEffect(() => {
     const handleEsc = (e) => {
       if (e.key === "Escape") onClose();
     };
+
     window.addEventListener("keydown", handleEsc);
     return () => window.removeEventListener("keydown", handleEsc);
   }, [onClose]);
@@ -51,41 +32,56 @@ export default function UploaderReviewModal({ uploader, uploaders = [], onClose 
         exit={{ opacity: 0, scale: 0.95 }}
         transition={{ duration: 0.25 }}
       >
+
+        {/* HEADER */}
         <div className="uploader-modal-header">
           <h2>Uploader Review: {selectedUploader.username}</h2>
         </div>
 
-        <div className="uploader-modal-body full-util">
-          <div className="uploader-column left full-height">
-            <div className="file-table-wrapper full-height">
-              <div className="file-table-left">
-                <FileTable
-                  role="admin"
-                  uploaderFilter={selectedUploader.id}
-                  setSelectedFile={setSelectedFile}
-                  embedded
-                />
-              </div>
-              {selectedFile && (
-                <div className="file-content-right">
-                  <FileContent fileId={selectedFile.id} role="admin" />
-                </div>
-              )}
-            </div>
-          </div>
+        {/* BODY */}
+        <div className="uploader-modal-body review-layout">
 
-          <div className="uploader-column right full-height">
-            <div className="right-top-scrollbar" ref={topScrollRef}>
-              <div className="scroll-inner" />
-            </div>
-            <div className="right-content-scroll" ref={rightContentRef}>
-              <UploadedPDFs
+          {/* LEFT SIDE (DTR DATA) */}
+          <div className="review-left">
+
+            {/* FileTable */}
+            <div className="review-table">
+              <FileTable
+                role="admin"
                 uploaderFilter={selectedUploader.id}
-                currentUser={{ role: "admin" }}
+                setSelectedFile={setSelectedFile}
                 embedded
               />
             </div>
+
+            {/* FileContent */}
+            <div className="review-content">
+              {selectedFile ? (
+                <FileContent
+                  fileId={selectedFile.id}
+                  role="admin"
+                />
+              ) : (
+                <div className="empty-content">
+                  <p>Select a file to view its contents.</p>
+                </div>
+              )}
+            </div>
+
           </div>
+
+          {/* RIGHT SIDE (PDF REVIEW) */}
+          <div className="review-right">
+
+            <UploadedPDFs
+              uploaderFilter={selectedUploader.id}
+              currentUser={{ role: "admin" }}
+              embedded
+              viewerMode
+            />
+
+          </div>
+
         </div>
       </motion.div>
     </div>

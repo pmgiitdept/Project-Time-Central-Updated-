@@ -183,3 +183,58 @@
   flex: 1;
   overflow: auto; 
 }
+
+.vertical-layout{
+  display:flex;
+  flex-direction:column;
+  height:100%;
+}
+
+.file-table-top{
+  flex:0 0 300px;
+  overflow:auto;
+}
+
+.file-content-bottom{
+  flex:1;
+  overflow:auto;
+}
+
+.review-layout{
+  display:flex;
+  height:100%;
+  gap:10px;
+}
+
+.review-left{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+
+.review-table{
+  height:280px;
+  overflow:auto;
+  border-bottom:1px solid #ddd;
+}
+
+.review-content{
+  flex:1;
+  overflow:auto;
+}
+
+.review-right{
+  width:40%;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+
+.empty-content{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100%;
+  color:#777;
+}

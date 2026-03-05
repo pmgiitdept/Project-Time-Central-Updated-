@@ -30,7 +30,7 @@ export default function DTRTableCompact({ fileId }) {
       if (res.data.rows?.length > 0) {
         setDateColumns(Object.keys(res.data.rows[0].daily_data || {}));
       }
-      setSelectedFileObj(res.data.uploaded_by || {});
+      setSelectedFileObj(res.data.uploaded_by?.username || {});
     } catch (err) {
       console.error(err);
       toast.error("Failed to load file content.");
@@ -76,7 +76,7 @@ export default function DTRTableCompact({ fileId }) {
   return (
     <div className="dtr-compact-wrapper">
       <h3 className="dtr-compact-title">
-        Project: {selectedFileObj?.uploaded_by || "Unknown"} | Employees: {totalEmployees}
+        Project: {selectedFileObj?.uploaded_by?.username || "Unknown"} | Employees: {totalEmployees}
       </h3>
 
       <div className="dtr-compact-table-container">

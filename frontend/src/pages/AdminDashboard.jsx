@@ -101,7 +101,6 @@ export default function AdminDashboard() {
   let sidebarItems = [
     { key: "dashboard", label: "Dashboard", icon: <FaTachometerAlt /> },
     { key: "dtrStatus", label: "DTR Status Archives ", icon: <FaTable /> },
-    { key: "filesVertical", label: "DTR Files", icon: <FaFileAlt /> },
     { key: "audit", label: "Audit Logs", icon: <FaClipboardList /> },
     { key: "settings", label: "Settings", icon: <FaCog /> },
   ];
@@ -115,18 +114,24 @@ export default function AdminDashboard() {
     });
 
     sidebarItems.splice(2, 0, {
+      key: "filesVertical",
+      label: "DTR Files (Vertical)",
+      icon: <FaFileAlt />
+    });
+
+    sidebarItems.splice(3, 0, {
       key: "employeeDirectory",
       label: "Record Holdings",
       icon: <FaUsers />
     });
 
-    sidebarItems.splice(3, 0, {
+    sidebarItems.splice(4, 0, {
       key: "users",
       label: "Users",
       icon: <FaUsers />
     });
 
-    sidebarItems.splice(4, 0, {
+    sidebarItems.splice(5, 0, {
       key: "usageSummary",
       label: "Usage Summary",
       icon: <FaChartBar />

@@ -28,6 +28,15 @@
   font-size: 0.7rem;
 }
 
+.uploader-modal.expanded.vertical {
+  width: 90%;
+  max-width: 1400px;
+  height: 85vh;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
 .uploader-modal-header {
   display: flex;
   justify-content: flex-start;
@@ -76,6 +85,33 @@
   gap: 0.5rem;
   height: 100%;
   min-width: 0;
+}
+
+.uploader-modal-body.vertical-layout {
+  display: flex;
+  gap: 15px;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* LEFT COLUMN: wider */
+.left-column {
+  flex: 2.5;
+  background: #fff;
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  overflow: auto;
+}
+
+/* RIGHT COLUMN: slimmer */
+.right-column {
+  flex: 1;
+  background: #fff;
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  overflow: auto;
 }
 
 .file-table-left {

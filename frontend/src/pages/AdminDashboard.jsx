@@ -36,6 +36,7 @@ import "jspdf-autotable";
 import UploadedPDFs from "../components/UploadedPDFs";
 import { motion, AnimatePresence } from "framer-motion";
 import { UserPlus, UserMinus, PlusCircle, MinusCircle } from "lucide-react";
+import UploaderReviewVerticalModal from "../components/UploaderReviewVerticalModal";
 
 export default function AdminDashboard() {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -1157,7 +1158,7 @@ export default function AdminDashboard() {
                   )}
 
                   {showUploaderModal && (
-                    <UploaderReviewModal
+                    <UploaderReviewVerticalModal
                       uploader={selectedUploader}
                       onClose={() => { setShowUploaderModal(false); setSelectedUploader(null); }}
                     />

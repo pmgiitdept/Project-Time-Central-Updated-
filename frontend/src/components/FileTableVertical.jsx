@@ -100,24 +100,77 @@ export default function FileTableVertical({ role, uploaderFilter = null }) {
 
         {/* FILTERS */}
         <div className="vertical-filters">
-          <input type="text" placeholder="Search uploader or filename" value={search} onChange={(e) => setSearch(e.target.value)} />
-          
-          <select value={uploaderFilterLocal} onChange={(e) => setUploaderFilterLocal(e.target.value)}>
-            <option value="">All Uploaders</option>
-            {uniqueUploaders.map((u) => <option key={u} value={u}>{u}</option>)}
-          </select>
+            <label className="filter-label">
+                Search:
+                <input
+                type="text"
+                placeholder="Uploader or filename"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                />
+            </label>
 
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-            <option value="">All Status</option>
-            <option value="pending">Pending</option>
-            <option value="verified">Verified</option>
-            <option value="rejected">Rejected</option>
-          </select>
+            <label className="filter-label">
+                Uploader:
+                <select
+                value={uploaderFilterLocal}
+                onChange={(e) => setUploaderFilterLocal(e.target.value)}
+                >
+                <option value="">All Uploaders</option>
+                {uniqueUploaders.map((u) => (
+                    <option key={u} value={u}>{u}</option>
+                ))}
+                </select>
+            </label>
 
-          <input type="date" value={uploadStartDate} onChange={(e)=>setUploadStartDate(e.target.value)} placeholder="Upload Start" />
-          <input type="date" value={uploadEndDate} onChange={(e)=>setUploadEndDate(e.target.value)} placeholder="Upload End" />
-          <input type="date" value={startDate} onChange={(e)=>setStartDate(e.target.value)} placeholder="Start Covered" />
-          <input type="date" value={endDate} onChange={(e)=>setEndDate(e.target.value)} placeholder="End Covered" />
+            <label className="filter-label">
+                Status:
+                <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                >
+                <option value="">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="verified">Verified</option>
+                <option value="rejected">Rejected</option>
+                </select>
+            </label>
+
+            <label className="filter-label">
+                Upload Start:
+                <input
+                type="date"
+                value={uploadStartDate}
+                onChange={(e) => setUploadStartDate(e.target.value)}
+                />
+            </label>
+
+            <label className="filter-label">
+                Upload End:
+                <input
+                type="date"
+                value={uploadEndDate}
+                onChange={(e) => setUploadEndDate(e.target.value)}
+                />
+            </label>
+
+            <label className="filter-label">
+                Start Covered:
+                <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                />
+            </label>
+
+            <label className="filter-label">
+                End Covered:
+                <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                />
+            </label>
         </div>
 
         {/* TABLE */}

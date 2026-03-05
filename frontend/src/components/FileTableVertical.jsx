@@ -195,7 +195,7 @@ export default function FileTableVertical({ role, uploaderFilter = null }) {
                   <td>{new Date(file.uploaded_at).toLocaleString()}</td>
                   <td>
                     {(role === "admin" || role === "viewer") ? (
-                      <select value={file.status} onChange={(e) => handleStatusChange(file.id, e.target.value)} className={`status-select ${file.status}`}>
+                      <select value={file.status} onChange={(e) => handleStatusChange(file.id, e.target.value)} onClick={(e) => e.stopPropagation()} className={`status-select ${file.status}`}>
                         <option value="pending">Pending</option>
                         <option value="verified">Verified</option>
                         <option value="rejected">Rejected</option>

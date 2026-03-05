@@ -27,6 +27,7 @@ import EmployeeDirectory from '../components/EmployeeDirectory';
 import "../components/styles/AdminDashboard.css";
 import DTRStatusDashboard from "../components/DTRStatusDashboard";
 import UploaderReviewModal from "../components/UploaderReviewModal";
+import FileTableVertical from "../components/FileTableVertical";
 import UsageSummary from "../components/UsageSummary";
 import api from "../api";
 import jsPDF from "jspdf";
@@ -100,6 +101,7 @@ export default function AdminDashboard() {
   let sidebarItems = [
     { key: "dashboard", label: "Dashboard", icon: <FaTachometerAlt /> },
     { key: "dtrStatus", label: "DTR Status Archives ", icon: <FaTable /> },
+    { key: "filesVertical", label: "DTR Files", icon: <FaFileAt /> },
     { key: "audit", label: "Audit Logs", icon: <FaClipboardList /> },
     { key: "settings", label: "Settings", icon: <FaCog /> },
   ];
@@ -1141,6 +1143,78 @@ export default function AdminDashboard() {
                     currentUser={currentUser}
                   />
                 </>
+              )}
+
+              {activeSection === "filesVertical" &&
+                (currentUser?.username === "itdept.pmgi" ||
+                currentUser?.username === "payroll.pmgi" ||
+                currentUser?.username === "hr_staff.pmgi" ||
+                currentUser?.username === "eas_finance.pmgi" ||
+                currentUser?.username === "operations.pmgi" ||
+                currentUser?.username === "operations.hk" ||
+                currentUser?.username === "operations.gl" ||
+                currentUser?.username === "operations_manager.pmgi") && (
+                  <div className="tables-wrapper">
+                    <div style={{ position: "fixed", top: "100px", right: "40px", zIndex: 500 }}>
+                      <button
+                        onClick={() => setRefresh(!refresh)}
+                        className="upload-button"
+                      >
+                        🔄 Refresh DTR Data
+                      </button>
+                    </div>
+
+                    <div className="divider-hybrid">
+                      <span>PROJECT OVERVIEW</span>
+                    </div>
+
+                    <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1.5rem" }}>
+                      <label style={{ fontWeight: "bold" }}>Select Project:</label>
+
+                      <select
+                        className="upload-button"
+                        style={{ minWidth: "250px" }}
+                        value={selectedUploader?.id || ""}
+                        onChange={(e) => {
+                          const uploader = uploaders.find((u) => u.id === Number(e.target.value));
+                          setSelectedUploader(uploader);
+                          setShowUploaderModal(true);
+                        }}
+                      >
+                        <option value="">Select Project</option>
+                        {uploaders.map((uploader) => (
+                          <option key={uploader.id} value={uploader.id}>
+                            {uploader.username}
+                          </option>
+                        ))}
+                      </select>
+
+                      <span style={{ fontSize: "0.9rem", opacity: 0.7 }}>Select Project to View</span>
+                    </div>
+
+                    {!showUploaderModal && (
+                      <>
+                        {/* Use the vertical layout version */}
+                        <FileTableVertical role={role} />
+
+                        <div className="divider-hybrid">
+                          <span>DTR REPORTS</span>
+                        </div>
+
+                        <UploadedPDFs refreshTrigger={refresh} currentUser={currentUser} />
+                      </>
+                    )}
+
+                    {showUploaderModal && (
+                      <UploaderReviewModal
+                        uploader={selectedUploader}
+                        onClose={() => {
+                          setShowUploaderModal(false);
+                          setSelectedUploader(null);
+                        }}
+                      />
+                    )}
+                  </div>
               )}
 
               {showUploaderModal && (

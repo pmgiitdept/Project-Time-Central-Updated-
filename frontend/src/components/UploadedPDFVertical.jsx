@@ -81,43 +81,43 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
         </div>
 
         <div className="vertical-filters">
-            <label>
-                Search:
+            <div className="filter-label">
+                <span>Search</span>
                 <input
                 type="text"
                 placeholder="Filename / Employee Name"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 />
-            </label>
+            </div>
 
-            <label>
-                Upload Start:
+            <div className="filter-label">
+                <span>Upload Start</span>
                 <input
                 type="date"
                 value={uploadStartDate}
                 onChange={e => setUploadStartDate(e.target.value)}
                 />
-            </label>
+            </div>
 
-            <label>
-                Upload End:
+            <div className="filter-label">
+                <span>Upload End</span>
                 <input
                 type="date"
                 value={uploadEndDate}
                 onChange={e => setUploadEndDate(e.target.value)}
                 />
-            </label>
+            </div>
 
-            <label>
-                Uploader / Project:
+            <div className="filter-label">
+                <span>Uploader / Project</span>
                 <input
                 type="text"
                 placeholder="Uploader or Project Name"
                 value={uploaderFilterLocal}
                 onChange={e => setUploaderFilterLocal(e.target.value)}
                 />
-            </label>
+            </div>
         </div>
 
         {loading ? <p>Loading...</p> : (

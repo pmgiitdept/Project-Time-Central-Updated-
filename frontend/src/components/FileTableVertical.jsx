@@ -1,10 +1,10 @@
 import { FaSyncAlt } from "react-icons/fa";
 import { useEffect, useState, useRef } from "react";
 import api from "../api";
-import DTRTable from "./DTRTable";
 import { toast } from "react-toastify";
 import { motion } from "framer-motion";
 import "./styles/FileTableVertical.css";
+import DTRTableCompact from "./DTRTableCompact";
 
 export default function FileTableVertical({ role, uploaderFilter = null }) {
   const [files, setFiles] = useState([]);
@@ -21,7 +21,6 @@ export default function FileTableVertical({ role, uploaderFilter = null }) {
 
   const hasFetchedRef = useRef(false);
 
-  // Sync uploader filter whenever the parent prop changes
   useEffect(() => {
     setUploaderFilterLocal(uploaderFilter || "");
     // Optional: reset other filters when switching projects
@@ -224,7 +223,7 @@ export default function FileTableVertical({ role, uploaderFilter = null }) {
 
       {/* BOTTOM SECTION (DTR Table) */}
       <div className="file-vertical-bottom">
-        <DTRTable role={role} fileId={selectedFileId} />
+        <DTRTableCompact role={role} fileId={selectedFileId} />
       </div>
 
     </motion.div>

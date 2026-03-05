@@ -1,0 +1,96 @@
+/* DTRTableCompact.css */
+
+/* Container for the compact table */
+.dtr-compact-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  padding: 0.5rem 1rem;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  font-family: "Inter", "Segoe UI", sans-serif;
+  margin-bottom: 1rem;
+}
+
+/* Title above table */
+.dtr-compact-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: #1a1a1a;
+}
+
+/* Table container for horizontal scrolling */
+.dtr-compact-table-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+/* Base table styling */
+.dtr-table.dtr-compact {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 12px;
+  color: #333333;
+  min-width: 800px; /* ensures proper spacing */
+}
+
+/* Table header */
+.dtr-table.dtr-compact th {
+  background-color: #f4f4f7;
+  font-weight: 600;
+  color: #222;
+  padding: 6px 12px;
+  text-align: center;
+  border-bottom: 2px solid #d9d9d9;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+/* Table cells */
+.dtr-table.dtr-compact td {
+  padding: 6px 10px;
+  text-align: center;
+  border-bottom: 1px solid #eee;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+/* Alternating row colors for readability */
+.dtr-table.dtr-compact tbody tr:nth-child(even) {
+  background-color: #fafafa;
+}
+
+/* Hover effect for rows */
+.dtr-table.dtr-compact tbody tr:hover {
+  background-color: #e6f7ff;
+  transition: background-color 0.2s ease;
+}
+
+/* Sticky first column for employee names */
+.dtr-table.dtr-compact .sticky-col {
+  position: sticky;
+  left: 0;
+  background-color: #f4f4f7;
+  z-index: 1;
+  font-weight: 500;
+}
+
+/* Small responsive adjustments */
+@media (max-width: 1024px) {
+  .dtr-table.dtr-compact th,
+  .dtr-table.dtr-compact td {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 768px) {
+  .dtr-compact-wrapper {
+    padding: 0.25rem 0.5rem;
+  }
+  .dtr-compact-title {
+    font-size: 14px;
+  }
+}

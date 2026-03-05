@@ -63,16 +63,19 @@ export default function DTRTableCompact({ fileId }) {
     { key: "total_hours", label: "Hours" },
   ];
 
+  const summaryColumns = [
+    { key: "regular_ot", label: "OT" },
+    { key: "legal_holiday", label: "Legal Holiday" },
+    { key: "special_holiday", label: "Special Holiday" },
+    { key: "night_diff", label: "Night Diff" },
+    { key: "undertime_minutes", label: "Undertime" },
+  ];
+
   const extraColumns = [
     { key: "position", label: "Position" },
     { key: "shift", label: "Shift" },
     { key: "time", label: "Time" },
-    { key: "regular_ot", label: "OT" },
-    { key: "legal_holiday", label: "Legal Holiday" },
     { key: "unworked_reg_holiday", label: "Unworked Reg Holiday" },
-    { key: "special_holiday", label: "Special Holiday" },
-    { key: "night_diff", label: "Night Diff" },
-    { key: "undertime_minutes", label: "Undertime" },
   ];
 
   const integerColumns = new Set([
@@ -118,24 +121,33 @@ export default function DTRTableCompact({ fileId }) {
         <table className="dtr-table dtr-compact">
           <thead>
             <tr>
-                {staticColumns.map((col, idx) =>
+            {staticColumns.map((col, idx) =>
                 !hiddenColumns.includes(col.key) ? (
-                    <th
-                    key={col.key}
-                    className={idx === 0 ? "sticky-col" : ""}
-                    >
+                <th key={col.key} className={idx === 0 ? "sticky-col" : ""}>
                     {col.label}
-                    </th>
+                </th>
                 ) : null
-                )}
-                {dateColumns.map((date) =>
-                !hiddenColumns.includes(date) ? <th key={date}>{getDayNumber(date)}</th> : null
-                )}
-                {extraColumns.map((col) =>
-                !hiddenColumns.includes(col.key) ? <th key={col.key}>{col.label}</th> : null
-                )}
+            )}
+
+            {summaryColumns.map((col) =>
+                !hiddenColumns.includes(col.key) ? (
+                <th key={col.key}>{col.label}</th>
+                ) : null
+            )}
+
+            {dateColumns.map((date) =>
+                !hiddenColumns.includes(date) ? (
+                <th key={date}>{getDayNumber(date)}</th>
+                ) : null
+            )}
+
+            {extraColumns.map((col) =>
+                !hiddenColumns.includes(col.key) ? (
+                <th key={col.key}>{col.label}</th>
+                ) : null
+            )}
             </tr>
-            </thead>
+          </thead>
 
             <tbody>
             {sortedContents.map((row, rIdx) => (
@@ -147,11 +159,23 @@ export default function DTRTableCompact({ fileId }) {
                     </td>
                     ) : null
                 )}
-                {dateColumns.map((date) =>
-                    !hiddenColumns.includes(date) ? <td key={date}>{formatCellValue(date, row.daily_data?.[date])}</td> : null
+
+                {summaryColumns.map((col) =>
+                    !hiddenColumns.includes(col.key) ? (
+                    <td key={col.key}>{formatCellValue(col.key, row[col.key])}</td>
+                    ) : null
                 )}
+
+                {dateColumns.map((date) =>
+                    !hiddenColumns.includes(date) ? (
+                    <td key={date}>{formatCellValue(date, row.daily_data?.[date])}</td>
+                    ) : null
+                )}
+
                 {extraColumns.map((col) =>
-                    !hiddenColumns.includes(col.key) ? <td key={col.key}>{formatCellValue(col.key, row[col.key])}</td> : null
+                    !hiddenColumns.includes(col.key) ? (
+                    <td key={col.key}>{formatCellValue(col.key, row[col.key])}</td>
+                    ) : null
                 )}
                 </tr>
             ))}

@@ -23,7 +23,6 @@ export default function FileTableVertical({ role, uploaderFilter = null }) {
 
   useEffect(() => {
     setUploaderFilterLocal(uploaderFilter || "");
-    // Optional: reset other filters when switching projects
     setSearch("");
     setStatusFilter("");
     setUploadStartDate("");

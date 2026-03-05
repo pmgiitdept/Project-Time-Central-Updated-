@@ -33,10 +33,6 @@ export default function DTRTableCompact({ fileId }) {
         }
 
         setSelectedFileObj(res.data || {});
-        setDateCovered({
-        start: res.data.start_date || null,
-        end: res.data.end_date || null,
-        });
     } catch (err) {
         console.error(err);
         toast.error("Failed to load file content.");
@@ -82,13 +78,14 @@ export default function DTRTableCompact({ fileId }) {
   return (
     <div className="dtr-compact-wrapper">
       <h3 className="dtr-compact-title">
-       Project: {selectedFileObj?.uploaded_by?.username || "Unknown"} | Employees: {totalEmployees}
-       </h3>
-       {dateCovered.start && dateCovered.end && (
-       <div className="dtr-compact-date">
-        📅 Date Covered: {new Date(dateCovered.start).toLocaleDateString()} → {new Date(dateCovered.end).toLocaleDateString()}
-       </div>
-       )}
+        Project: {selectedFileObj?.uploaded_by?.username || selectedFileObj?.uploaded_by?.full_name || "Unknown"} | Employees: {totalEmployees}
+      </h3>
+
+      {selectedFileObj?.start_date && selectedFileObj?.end_date && (
+        <div className="dtr-compact-date">
+            📅 Date Covered: {new Date(selectedFileObj.start_date).toLocaleDateString()} → {new Date(selectedFileObj.end_date).toLocaleDateString()}
+        </div>
+      )}
 
       <div className="dtr-compact-table-container">
         <table className="dtr-table dtr-compact">

@@ -83,41 +83,44 @@ export default function DTRTableCompact({ fileId }) {
         <table className="dtr-table dtr-compact">
           <thead>
             <tr>
-              {staticColumns.map(
-                (col) =>
-                  !hiddenColumns.includes(col.key) && (
-                    <th key={col.key}>{col.label}</th>
-                  )
-              )}
-              {dateColumns.map(
-                (date) =>
-                  !hiddenColumns.includes(date) && <th key={date}>{getDayNumber(date)}</th>
-              )}
-              {extraColumns.map(
-                (col) =>
-                  !hiddenColumns.includes(col.key) && <th key={col.key}>{col.label}</th>
-              )}
+                {staticColumns.map((col, idx) =>
+                !hiddenColumns.includes(col.key) ? (
+                    <th
+                    key={col.key}
+                    className={idx === 0 ? "sticky-col" : ""}
+                    >
+                    {col.label}
+                    </th>
+                ) : null
+                )}
+                {dateColumns.map((date) =>
+                !hiddenColumns.includes(date) ? <th key={date}>{getDayNumber(date)}</th> : null
+                )}
+                {extraColumns.map((col) =>
+                !hiddenColumns.includes(col.key) ? <th key={col.key}>{col.label}</th> : null
+                )}
             </tr>
-          </thead>
+            </thead>
 
-          <tbody>
+            <tbody>
             {fileContents.map((row, rIdx) => (
-              <tr key={row?.id ?? `row-${rIdx}`}>
-                {staticColumns.map(
-                  (col) =>
-                    !hiddenColumns.includes(col.key) && <td key={col.key}>{row[col.key] ?? "-"}</td>
+                <tr key={row?.id ?? `row-${rIdx}`}>
+                {staticColumns.map((col, idx) =>
+                    !hiddenColumns.includes(col.key) ? (
+                    <td key={col.key} className={idx === 0 ? "sticky-col" : ""}>
+                        {row[col.key] ?? "-"}
+                    </td>
+                    ) : null
                 )}
-                {dateColumns.map(
-                  (date) =>
-                    !hiddenColumns.includes(date) && <td key={date}>{row.daily_data?.[date] ?? "-"}</td>
+                {dateColumns.map((date) =>
+                    !hiddenColumns.includes(date) ? <td key={date}>{row.daily_data?.[date] ?? "-"}</td> : null
                 )}
-                {extraColumns.map(
-                  (col) =>
-                    !hiddenColumns.includes(col.key) && <td key={col.key}>{row[col.key] ?? "-"}</td>
+                {extraColumns.map((col) =>
+                    !hiddenColumns.includes(col.key) ? <td key={col.key}>{row[col.key] ?? "-"}</td> : null
                 )}
-              </tr>
+                </tr>
             ))}
-          </tbody>
+            </tbody>
         </table>
       </div>
     </div>

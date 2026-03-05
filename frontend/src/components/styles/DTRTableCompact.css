@@ -8,7 +8,7 @@
   font-family: "Inter", "Segoe UI", sans-serif;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: auto;
 }
 
 /* Title above table */
@@ -42,18 +42,28 @@
 .dtr-table.dtr-compact th {
   background-color: #f8f8f8;
   font-weight: 600;
+  color: #222;
   padding: 4px 8px;
   text-align: center;
   border-bottom: 2px solid #d0d0d0;
   position: sticky;
   top: 0;
-  z-index: 3;
+  z-index: 10; /* header always on top */
 }
 
-/* Sticky first column for header */
+/* Sticky first column for data cells */
+.dtr-table.dtr-compact td.sticky-col {
+  position: sticky;
+  left: 0;
+  background-color: #f8f8f8;
+  z-index: 1; /* below header */
+  font-weight: 500;
+}
+
+/* Sticky first column for header cell (optional) */
 .dtr-table.dtr-compact th.sticky-col {
   left: 0;
-  z-index: 4; /* higher than header row to stay on top */
+  z-index: 11; /* stays above first column cells but below other header cells if needed */
 }
 
 /* Table cells */

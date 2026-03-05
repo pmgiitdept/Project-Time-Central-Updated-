@@ -155,17 +155,17 @@ export default function UsageSummary() {
 
   const loggedDays = dateHourMap.size;
 
-  let totalHours = 0;
-  dateHourMap.forEach((val) => {
-    totalHours += val;
-  });
+    let totalHours = 0;
+    dateHourMap.forEach((val) => {
+      totalHours += val;
+    });
 
-  return {
-    logged: loggedDays,
-    expected: expectedDays,
-    totalHours,
+    return {
+      logged: loggedDays,
+      expected: expectedDays,
+      totalHours,
+    };
   };
-};
   
   const isReliever = (emp) => {
     return emp.rows.some(row => {
@@ -198,6 +198,45 @@ export default function UsageSummary() {
 
     return map;
   }, [projects]);
+
+  const crossValidationMap = useMemo(() => {
+    const map = {};
+
+    projects.forEach((proj) => {
+      const projStart = new Date(proj.start_date);
+      const projEnd = new Date(proj.end_date);
+
+      proj.employees.forEach((emp) => {
+        if (!map[emp.employee_no]) map[emp.employee_no] = { relieverConflict: false, missingDays: false, fileMismatch: false };
+
+        const empCross = map[emp.employee_no];
+
+        if (isReliever(emp)) {
+          const overlappingFiles = Array.from(employeePresenceMap[emp.employee_no]?.files || []).filter(fid => {
+            const otherProj = projects.find(p => p.file_id === fid);
+            if (!otherProj || otherProj.file_id === proj.file_id) return false;
+
+            const oStart = new Date(otherProj.start_date);
+            const oEnd = new Date(otherProj.end_date);
+            return !(projEnd < oStart || projStart > oEnd); 
+          });
+          if (overlappingFiles.length > 0) empCross.relieverConflict = true;
+        }
+
+        const expectedDays = Math.ceil((projEnd - projStart) / (1000*60*60*24)) + 1;
+        const summary = calculateEmployeeSummary(emp, proj.start_date, proj.end_date);
+        if (summary.logged < expectedDays) empCross.missingDays = true;
+
+        const fileTotalHours = emp.rows.reduce((acc, row) => {
+          const val = Number(row.total_hours);
+          return acc + (isNaN(val) ? 0 : val);
+        }, 0);
+        if (Math.round(fileTotalHours) !== Math.round(summary.totalHours)) empCross.fileMismatch = true;
+      });
+    });
+
+    return map;
+  }, [projects, employeePresenceMap]);
 
   const exportToCSV = (projects) => {
     const rows = [];
@@ -428,7 +467,17 @@ export default function UsageSummary() {
                           <td>{summary.logged} / {summary.expected} {summary.logged < summary.expected && <span className="missing-days">⚠</span>}</td>
                           <td>{summary.totalHours.toFixed(2).replace(/\.00$/, "")} hrs</td>
                           <td>{presence ? `${presence.projects.size} project(s) / ${presence.files.size} file(s)` : "—"}</td>
-                          <td>{isReliever(emp) ? "Yes" : "No"}</td>
+                          <td className="cross-validation">
+                            {crossValidationMap[emp.employee_no]?.relieverConflict && (
+                              <span className="badge reliever-conflict" title="Reliever overlapping projects">⚠ Reliever</span>
+                            )}
+                            {crossValidationMap[emp.employee_no]?.missingDays && (
+                              <span className="badge missing-days" title="Missing attendance days">⚠ Missing Days</span>
+                            )}
+                            {crossValidationMap[emp.employee_no]?.fileMismatch && (
+                              <span className="badge file-mismatch" title="File totals mismatch">⚠ Mismatch</span>
+                            )}
+                          </td>
                         </tr>
                       );
                     })}

@@ -71,6 +71,14 @@
   font-size: 0.9rem;
 }
 
+/* Make table header sticky */
+.vertical-file-table thead th {
+  position: sticky;
+  top: 0; /* Sticks at the top of the table container */
+  background: #f9f9f9; /* Keep same as header background */
+  z-index: 2; /* Ensures it stays above table rows */
+}
+
 .vertical-file-table th {
   background: #f9f9f9;
   font-weight: 600;

@@ -92,7 +92,7 @@ export default function UploaderReviewVerticalModal({
         {/* BODY */}
         <div className="uploader-modal-body vertical-layout" style={{ display: "flex", gap: "1rem", height: "100%" }}>
             {/* LEFT COLUMN: File Table (wider) */}
-            <div className="left-column" style={{ flex: 3, minWidth: "0", maxWidth: "80%" }}>
+            <div className="left-column" style={{ flex: 2, minWidth: "0", maxWidth: "80%" }}>
                 <FileTableVertical
                 role={currentUser?.role || "user"}
                 uploaderFilter={selectedUploader?.username || null}

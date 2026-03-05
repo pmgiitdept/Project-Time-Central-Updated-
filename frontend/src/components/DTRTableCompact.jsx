@@ -76,7 +76,7 @@ export default function DTRTableCompact({ fileId }) {
   return (
     <div className="dtr-compact-wrapper">
       <h3 className="dtr-compact-title">
-        Project: {selectedFileObj?.username || "Unknown"} | Employees: {totalEmployees}
+        Project: {selectedFileObj?.uploaded_by || "Unknown"} | Employees: {totalEmployees}
       </h3>
 
       <div className="dtr-compact-table-container">

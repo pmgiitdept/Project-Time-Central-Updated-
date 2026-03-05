@@ -13,13 +13,25 @@ export default function FileTableVertical({ role, uploaderFilter = null }) {
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
-  const [uploaderFilterLocal, setUploaderFilterLocal] = useState("");
+  const [uploaderFilterLocal, setUploaderFilterLocal] = useState(uploaderFilter || "");
   const [uploadStartDate, setUploadStartDate] = useState("");
   const [uploadEndDate, setUploadEndDate] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
   const hasFetchedRef = useRef(false);
+
+  // Sync uploader filter whenever the parent prop changes
+  useEffect(() => {
+    setUploaderFilterLocal(uploaderFilter || "");
+    // Optional: reset other filters when switching projects
+    setSearch("");
+    setStatusFilter("");
+    setUploadStartDate("");
+    setUploadEndDate("");
+    setStartDate("");
+    setEndDate("");
+  }, [uploaderFilter]);
 
   useEffect(() => {
     if (hasFetchedRef.current) return;

@@ -29,26 +29,38 @@ export default function DTRTableCompact({ fileId }) {
     return id.toString();
   };
 
-  const handleViewFile = async (id = fileId) => {
+  const handleParseAndViewFile = async (id = fileId) => {
     const normalizedId = normalizeId(id);
     if (!normalizedId) return;
 
     try {
-        const res = await api.get(`/files/dtr/files/${normalizedId}/content/`);
-        setFileContents(res.data.rows || []);
-        if (res.data.rows?.length > 0) {
-        setDateColumns(Object.keys(res.data.rows[0].daily_data || {}));
-        }
+      // 1️⃣ Call the parse endpoint which runs the comparison
+      const parseRes = await api.post(`/dtr-files/${normalizedId}/parse/`);
+      
+      // Log debug messages in browser console
+      if (parseRes.data.debug && parseRes.data.debug.length > 0) {
+        console.log("⚡ DTR Comparison Debug Logs:");
+        parseRes.data.debug.forEach((msg) => console.log(msg));
+      }
 
-        setSelectedFileObj(res.data || {});
+      // 2️⃣ Fetch the updated content for the table
+      const res = await api.get(`/files/dtr/files/${normalizedId}/content/`);
+      setFileContents(res.data.rows || []);
+      if (res.data.rows?.length > 0) {
+        setDateColumns(Object.keys(res.data.rows[0].daily_data || {}));
+      }
+      setSelectedFileObj(res.data || {});
+      
+      toast.success(parseRes.data.message || "DTR parsed and loaded successfully.");
+
     } catch (err) {
-        console.error(err);
-        toast.error("Failed to load file content.");
+      console.error(err);
+      toast.error("Failed to parse or load DTR file.");
     }
   };
 
   useEffect(() => {
-    if (fileId) handleViewFile(fileId);
+    if (fileId) handleParseAndViewFile(fileId);
   }, [fileId]);
 
   const getDayNumber = (dateStr) => {

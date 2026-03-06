@@ -27,11 +27,8 @@ def compare_dtr_with_payroll_pdf(dtr_file):
 
     for entry in entries:
         issues = []
-
-        emp_no_normalized = "".join(filter(str.isdigit, str(entry.employee_no)))
-
-        print("DTR:", emp_no_normalized, "PDF keys:", list(pdf_map.keys()))
         
+        emp_no_normalized = "".join(filter(str.isdigit, str(entry.employee_no)))
         pdf_emp = pdf_map.get(emp_no_normalized)
 
         if not pdf_emp:

@@ -25,17 +25,17 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
     debug(f"Comparing DTR for owner: {owner.username if owner else 'Unknown'}")
 
     # -------------------------------------------------
-    # Find latest payroll PDF
+    # Find latest payroll PDF robustly
     # -------------------------------------------------
-    pdf_file = File.objects.filter(
-        owner=owner,
-        file__iendswith=".pdf"
-    ).order_by("-uploaded_at").first()
+    all_files = File.objects.filter(owner=owner)
+    debug(f"All files for owner: {[f.file.name for f in all_files]}")
+
+    pdf_file = all_files.filter(file__iregex=r'\.pdf$').order_by("-uploaded_at").first()
 
     pdf_map = {}
 
     if not pdf_file:
-        debug("No payroll PDF found for this owner")
+        debug("No payroll PDF found for this owner (check filename or field mismatch!)")
     else:
         debug(f"Found Payroll PDF: {pdf_file.file.name}")
         pdf_employees = parse_payroll_pdf(pdf_file.file, log_debug=log_debug)
@@ -45,13 +45,16 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
             emp_no_norm = normalize_emp_no(emp.get("employee_no"))
             if not emp_no_norm:
                 continue
-            pdf_map[emp_no_norm] = {
-                "wrk_days": float(emp.get("wrk_days") or 0),
-                "reg_hours": float(emp.get("reg_hours") or 0),
-                "ot_hours": float(emp.get("ot_hours") or 0),
-                "nd_hours": float(emp.get("nd_hours") or 0),
-                "raw": emp
-            }
+            try:
+                pdf_map[emp_no_norm] = {
+                    "wrk_days": float(emp.get("wrk_days") or 0),
+                    "reg_hours": float(emp.get("reg_hours") or 0),
+                    "ot_hours": float(emp.get("ot_hours") or 0),
+                    "nd_hours": float(emp.get("nd_hours") or 0),
+                    "raw": emp
+                }
+            except Exception as e:
+                debug(f"Failed to parse numeric fields for PDF emp {emp_no_norm}: {e}")
 
         debug(f"PDF employee numbers detected: {list(pdf_map.keys())}")
 
@@ -72,7 +75,7 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
             debug(f" → {entry.full_name} ({emp_no_normalized}) missing in Payroll PDF. PDF keys: {list(pdf_map.keys())}")
             issues.append("Missing in Payroll PDF")
         else:
-            # Compare DTR totals
+            # Compare totals individually
             if float(entry.total_days or 0) != float(pdf_emp["wrk_days"]):
                 issues.append(f"Days mismatch (PDF {pdf_emp['wrk_days']} vs DTR {entry.total_days})")
             if float(entry.total_hours or 0) != float(pdf_emp["reg_hours"]):

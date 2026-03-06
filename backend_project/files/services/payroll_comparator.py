@@ -24,6 +24,7 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
     def normalize_emp_no(emp_no):
         if not emp_no:
             return None
+        # Remove non-digit characters
         emp_no_str = re.sub(r"\D", "", str(emp_no)).strip()
         return emp_no_str.zfill(5) if emp_no_str else None
 
@@ -47,9 +48,16 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
         pdf_employees = parse_payroll_pdf(pdf_file.file, log_debug=log_debug)
 
         debug(f"PDF employees parsed: {len(pdf_employees)}")
+
         for emp in pdf_employees:
+            # Show raw PDF data
+            debug(f"PDF raw employee data: {emp}")
+
             emp_no_norm = normalize_emp_no(emp.get("employee_no"))
+            debug(f"Normalized PDF emp_no: {emp_no_norm}")
+
             if not emp_no_norm:
+                debug(" → Skipping employee with empty/invalid employee number")
                 continue
             try:
                 pdf_map[emp_no_norm] = {

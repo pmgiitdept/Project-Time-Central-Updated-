@@ -1,6 +1,6 @@
 from .payroll_parser import parse_payroll_pdf
 from files.models import File
-from models import DTREntry
+from files.models import DTREntry
 
 
 def compare_dtr_with_payroll_pdf(dtr_file):

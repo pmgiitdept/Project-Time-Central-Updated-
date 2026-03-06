@@ -151,11 +151,15 @@ export default function DTRTableCompact({ fileId }) {
 
             <tbody>
             {sortedContents.map((row, rIdx) => (
-                <tr key={row?.id ?? `row-${rIdx}`}>
+                <tr
+                    key={row?.id ?? `row-${rIdx}`}
+                    className={row.mismatch_flag ? "mismatch-row" : ""}
+                >
                 {staticColumns.map((col, idx) =>
                     !hiddenColumns.includes(col.key) ? (
                     <td key={col.key} className={idx === 0 ? "sticky-col" : ""}>
-                        {formatCellValue(col.key, row[col.key])}
+                      {col.key === "full_name" && row.mismatch_flag && "⚠️ "}
+                      {formatCellValue(col.key, row[col.key])}
                     </td>
                     ) : null
                 )}

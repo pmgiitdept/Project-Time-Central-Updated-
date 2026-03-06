@@ -133,3 +133,12 @@
     font-size: 12px;
   }
 }
+
+.mismatch-row {
+  background-color: #ffe5e5;
+}
+
+.mismatch-row td {
+  color: #b30000;
+  font-weight: 600;
+}

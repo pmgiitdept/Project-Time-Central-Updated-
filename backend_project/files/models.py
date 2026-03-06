@@ -137,6 +137,7 @@ class DTREntry(models.Model):
     special_holiday = models.DecimalField(max_digits=6, decimal_places=2, default=0)
     night_diff = models.DecimalField(max_digits=6, decimal_places=2, default=0)
 
+    mismatch_flag = models.TextField(blank=True, null=True)
     def __str__(self):
         return f"{self.employee_no} - {self.full_name}"
 

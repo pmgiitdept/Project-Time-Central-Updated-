@@ -27,6 +27,7 @@ from openpyxl.drawing.image import Image
 from openpyxl.utils import get_column_letter
 from rest_framework.pagination import PageNumberPagination
 from pdf2image import convert_from_bytes
+from services.payroll_comparator import compare_dtr_with_payroll_pdf
 
 def log_action(user, action, status="success", ip_address=None):
     AuditLog.objects.create(
@@ -936,7 +937,12 @@ class DTRFileViewSet(viewsets.ModelViewSet):
                         night_diff=safe_number(row[30]) if len(row) > 30 else 0,
                     )
 
-            return Response({"message": "DTR file parsed successfully."})
+            # Run payroll comparison after all entries are created
+            compare_dtr_with_payroll_pdf(dtr_file)
+
+            return Response({
+                "message": "DTR file parsed successfully and compared with payroll PDF."
+            })
 
         except Exception as e:
             traceback.print_exc()

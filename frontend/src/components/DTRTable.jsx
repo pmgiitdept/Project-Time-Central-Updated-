@@ -332,7 +332,7 @@ export default function DTRTable({ role , fileId}) {
                 {filteredContents
                   ?.filter((row) => row) 
                   .map((row, rIdx) => (
-                    <tr key={row?.id ?? `row-${rIdx}`}>
+                    <tr key={row?.id ?? `row-${rIdx}`} className={row.mismatch_flag ? "dtr-error-row" : ""}>
                       {staticColumns.map(
                         (col, idx) =>
                           !hiddenColumns.includes(col.key) && (

@@ -606,3 +606,7 @@
   font-size: 14px;
   color: #444;
 }
+
+.dtr-error-row{
+  background:#ffe6e6;
+}

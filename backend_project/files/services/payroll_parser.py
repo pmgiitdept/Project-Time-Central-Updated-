@@ -80,12 +80,14 @@ def parse_payroll_pdf(file_path_or_obj, log_debug=None):
                     ot_per_row = []
 
                     for row in data_rows:
-                        if not row or len(row) < 17:
+                        if not row or len(row) < 15:  # minimum columns to have ND1 + ND2
                             continue
                         try:
                             low = float(row[8] or 0)      # worked hours
                             ot = float(row[9] or 0)       # OT
-                            nd = float(row[13] or 0)      # night diff
+                            nd1 = float(row[13] or 0)     # ND part 1
+                            nd2 = float(row[14] or 0)     # ND part 2
+                            nd = nd1 + nd2                # sum both columns
                             holiday = (row[16] or "").strip().upper()
                         except Exception:
                             debug(f"Page {page_num}: Failed to parse row {row}, skipping")

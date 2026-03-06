@@ -72,9 +72,14 @@ def parse_payroll_pdf(file_path_or_obj, log_debug=None):
                     debug(f"Page {page_num}: No tables found, skipping")
                     continue
 
+                # collect all tables first
+                employee_tables = []
+
                 for table in tables:
                     data_rows = table[2:] if len(table) > 2 else table
+                    employee_tables.append(table)  # keep raw table for SHP/LHP OT calculation
 
+                    # calculate totals
                     total_days = 0
                     reg_hours = 0
                     ot_hours = 0
@@ -97,18 +102,19 @@ def parse_payroll_pdf(file_path_or_obj, log_debug=None):
                         ot_hours += ot
                         nd_hours += nd
 
-                    employees.append({
-                        "employee_no": emp_no,
-                        "full_name": full_name or "Unknown",
-                        "wrk_days": total_days,
-                        "reg_hours": reg_hours,
-                        "ot_hours": ot_hours,
-                        "nd_hours": nd_hours,
-                        "tables": tables
-                    })
+                # append **one employee dict per PDF page/employee**
+                employees.append({
+                    "employee_no": emp_no,
+                    "full_name": full_name or "Unknown",
+                    "wrk_days": total_days,
+                    "reg_hours": reg_hours,
+                    "ot_hours": ot_hours,
+                    "nd_hours": nd_hours,
+                    "tables": employee_tables  # <-- include all tables for this employee
+                })
 
-                    debug(f"Page {page_num}: Parsed {emp_no} - {full_name}, "
-                          f"Days: {total_days}, REG: {reg_hours}, OT: {ot_hours}, ND: {nd_hours}")
+                debug(f"Page {page_num}: Parsed {emp_no} - {full_name}, "
+                    f"Days: {total_days}, REG: {reg_hours}, OT: {ot_hours}, ND: {nd_hours}")
 
     except Exception as e:
         debug(f"Failed to open/parse PDF: {e}")

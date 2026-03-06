@@ -1,5 +1,6 @@
 from .payroll_parser import parse_payroll_pdf
 from files.models import File, DTREntry
+import re
 
 def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
     """
@@ -30,8 +31,8 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
         pdf_employees = parse_payroll_pdf(pdf_file.file)
 
         for emp in pdf_employees:
-            # Normalize PDF employee number: digits only + strip leading zeros
-            emp_no_norm = "".join(filter(str.isdigit, str(emp.get("employee_no", "")))).lstrip("0")
+            # Normalize: remove all non-digit characters, strip leading zeros
+            emp_no_norm = re.sub(r"\D", "", str(emp.get("employee_no", ""))).lstrip("0")
             try:
                 pdf_map[emp_no_norm] = {
                     "wrk_days": float(emp.get("wrk_days") or 0),
@@ -51,8 +52,8 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
     for entry in entries:
         issues = []
 
-        # Normalize DTR employee number the same way
-        emp_no_normalized = "".join(filter(str.isdigit, str(entry.employee_no))).lstrip("0")
+        # Normalize DTR emp_no the same way
+        emp_no_normalized = re.sub(r"\D", "", str(entry.employee_no)).lstrip("0")
         debug(f"Checking DTR emp: {emp_no_normalized}")
 
         pdf_emp = pdf_map.get(emp_no_normalized)

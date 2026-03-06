@@ -274,66 +274,64 @@ export default function PDFTextModal({ pdfData, currentUser }) {
             )}
 
             {pageData.tables?.length > 0 ? (
-              pageData.tables.map((table, tIdx) => {
-                if (!table || table.length === 0) return null;
-                const headerRows = table.slice(0, 2);
-                const bodyRows = table.slice(2);
+  pageData.tables.map((table, tIdx) => {
+    if (!table || table.length === 0) return null;
+    const headerRows = table.slice(0, 2);
+    const bodyRows = table.slice(2);
 
-                return (
-                  <div key={tIdx} className="table-container">
-                    <table
-                      className={`pdf-table ${isAdmin ? "editable-table" : ""}`}
-                    >
-                      <thead>
-                        {headerRows.map((row, rIdx) => (
-                          <tr key={rIdx}>
-                            {row.map((cell, cIdx) => (
-                              <th key={cIdx}>
-                                {typeof cell === "object" ? cell?.text : cell}
-                              </th>
-                            ))}
-                          </tr>
-                        ))}
-                      </thead>
-                      <tbody>
-                        {bodyRows.map((row, rIdx) => (
-                          <tr key={rIdx}>
-                            {row.map((cell, cIdx) => (
-                              <td key={cIdx}>
-                                {isAdmin ? (
-                                  <input
-                                    type="text"
-                                    value={
-                                      typeof cell === "object"
-                                        ? cell?.text
-                                        : cell
-                                    }
-                                    onChange={(e) =>
-                                      handleEditCell(
-                                        tIdx,
-                                        rIdx + 2,
-                                        cIdx,
-                                        e.target.value
-                                      )
-                                    }
-                                  />
-                                ) : typeof cell === "object" ? (
-                                  cell?.text
-                                ) : (
-                                  cell
-                                )}
-                              </td>
-                            ))}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                );
-              })
-            ) : (
-              <p>No tables found on this page.</p>
-            )}
+    return (
+      <div key={tIdx} className="table-container">
+        <table className={`pdf-table ${isAdmin ? "editable-table" : ""}`}>
+          <thead>
+            {headerRows.map((row, rIdx) => (
+              <tr key={rIdx}>
+                {row.map((cell, cIdx) => (
+                  <th key={cIdx}>
+                    {typeof cell === "object" ? cell?.text : cell}
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </thead>
+          <tbody>
+            {bodyRows.map((row, rIdx) => (
+              <tr key={rIdx}>
+                {row.map((cell, cIdx) => (
+                  <td key={cIdx}>
+                    {isAdmin ? (
+                      <input
+                        type="text"
+                        value={typeof cell === "object" ? cell?.text : cell}
+                        onChange={(e) =>
+                          handleEditCell(tIdx, rIdx + 2, cIdx, e.target.value)
+                        }
+                      />
+                    ) : typeof cell === "object" ? (
+                      cell?.text
+                    ) : (
+                      cell
+                    )}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {/* --- NEW SECTION: Other Texts Below Table --- */}
+        {pageData.other_texts?.length > 0 && (
+          <div className="other-texts-below-table">
+            {pageData.other_texts.map((line, i) => (
+              <p key={i}>{line}</p>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  })
+) : (
+  <p>No tables found on this page.</p>
+)}
 
             <div className="pagination-controls1">
               <button onClick={goPrev} disabled={currentPage === 1}>

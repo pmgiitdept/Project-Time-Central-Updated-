@@ -4,15 +4,15 @@ import re
 def parse_payroll_pdf(file_obj, log_debug=None):
     """
     Extract employee rows from payroll PDF.
-    Returns list of dictionaries.
-    Works with PDFs where employee info is in header_text.
+    Returns list of dictionaries with normalized employee numbers, name,
+    work days, regular hours, OT hours, and ND hours.
     """
 
     def debug(msg):
         if log_debug:
-            log_debug(msg)
+            log_debug(f"[PAYROLL-PARSER DEBUG] {msg}")
         else:
-            print(msg)
+            print(f"[PAYROLL-PARSER DEBUG] {msg}")
 
     def normalize_emp_no(emp_no):
         """Normalize employee number: keep digits only, strip spaces, pad to 5 digits."""
@@ -22,16 +22,16 @@ def parse_payroll_pdf(file_obj, log_debug=None):
         return emp_no_str.zfill(5) if emp_no_str else None
 
     def extract_employee_info_from_header(header_lines):
-        """Extract employee number and full name from header_text."""
+        """Extract employee number and full name from header lines."""
         emp_no = None
         full_name = None
         for line in header_lines:
-            m = re.search(r"Employee No\. ?: ?(PM?\d+).*Name ?: ?(.+)", line)
+            # Matches lines like "Employee No. : PM03508 Name : Abad, Jonmark Caballero"
+            m = re.search(r"Employee No\. ?: ?(PM?\d+).*Name ?: ?(.+)", line, re.I)
             if m:
-                emp_no = m.group(1)
+                emp_no = normalize_emp_no(m.group(1))
                 full_name = m.group(2).strip()
                 break
-        emp_no = normalize_emp_no(emp_no)
         return emp_no, full_name
 
     employees = []
@@ -44,7 +44,6 @@ def parse_payroll_pdf(file_obj, log_debug=None):
                 debug(f"Page {page_num} has no text, skipping")
                 continue
 
-            # Extract header_text (lines starting with Employee No)
             lines = text.splitlines()
             header_lines = [l for l in lines if "Employee No" in l or "Daily Time Record" in l]
 
@@ -60,8 +59,8 @@ def parse_payroll_pdf(file_obj, log_debug=None):
                 continue
 
             for table in tables:
-                # Skip first 2 header rows
-                data_rows = table[2:] if len(table) > 2 else []
+                # Skip first 2 header rows if they exist
+                data_rows = table[2:] if len(table) > 2 else table
 
                 total_days = 0
                 reg_hours = 0
@@ -69,11 +68,14 @@ def parse_payroll_pdf(file_obj, log_debug=None):
                 nd_hours = 0
 
                 for row in data_rows:
+                    if not row or len(row) < 14:
+                        continue
                     try:
-                        low = float(row[8] or 0)    # LOW
+                        low = float(row[8] or 0)    # LOW → counts as worked hours
                         ot = float(row[9] or 0)     # OT
                         nd = float(row[13] or 0)    # ND
                     except Exception:
+                        debug(f"Page {page_num}: Failed to parse numeric row {row}, skipping")
                         continue
 
                     if low > 0:
@@ -92,7 +94,8 @@ def parse_payroll_pdf(file_obj, log_debug=None):
                     "nd_hours": nd_hours,
                 })
 
-                debug(f"Page {page_num}: Parsed employee {emp_no} - {full_name}")
+                debug(f"Page {page_num}: Parsed employee {emp_no} - {full_name}, "
+                      f"Days: {total_days}, REG: {reg_hours}, OT: {ot_hours}, ND: {nd_hours}")
 
     debug(f"Parsed {len(employees)} employees from PDF")
     return employees

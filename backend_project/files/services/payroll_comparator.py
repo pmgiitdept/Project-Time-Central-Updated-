@@ -7,7 +7,7 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
     """
     Compare DTREntry rows with the latest payroll PDF for the same owner.
     Updates DTREntry.mismatch_flag and DTREntry.status_flag.
-    Skips OT on Special Holiday / Legal Holiday from total OT comparison.
+    Skips OT on Special Holiday / Legal Holiday (SHP / LHP) from total OT comparison.
     """
 
     def debug(msg):
@@ -43,16 +43,18 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
                 debug(f"Skipping invalid PDF employee: {emp}")
                 continue
             try:
-                # Calculate OT ignoring SH / LH
+                # Start with raw OT from PDF
                 total_ot = float(emp.get("ot_hours") or 0)
+
+                # If tables exist, subtract OT on SHP / LHP days
                 tables = emp.get("tables") or []
                 for table in tables:
                     for row in table:
-                        if not row:
+                        if not row or len(row) < 17:
                             continue
-                        holiday_type = (row[16] if len(row) > 16 else "").upper()  # Adjust index if necessary
-                        ot_hours = float(row[9] or 0)  # Assuming OT column index
-                        if holiday_type in ["SHP","LHP", "LEGAL HOLIDAY", "SPECIAL HOLIDAY"]:
+                        holiday_code = (row[16] or "").strip().upper()  # Last column is holiday code
+                        ot_hours = float(row[9] or 0)  # Column 9 is OT
+                        if holiday_code in ["SHP", "LHP"]:
                             total_ot -= ot_hours
                 total_ot = max(total_ot, 0)
 

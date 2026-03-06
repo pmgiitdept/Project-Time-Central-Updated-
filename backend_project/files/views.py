@@ -1170,6 +1170,8 @@ class DTRFileViewSet(viewsets.ModelViewSet):
 
             entry.save()
 
+        compare_dtr_with_payroll_pdf(dtr_file)
+        
         return Response({"message": "DTR entries updated successfully!"}, status=status.HTTP_200_OK)
     
     @action(detail=False, methods=["post"], url_path="manual")
@@ -1214,6 +1216,8 @@ class DTRFileViewSet(viewsets.ModelViewSet):
                 special_holiday=row.get("special_holiday"),
                 night_diff=row.get("night_diff"),
             )
+
+        compare_dtr_with_payroll_pdf(dtr_file)
 
         return Response(
             {"message": "Manual DTR created successfully", "id": dtr_file.id},

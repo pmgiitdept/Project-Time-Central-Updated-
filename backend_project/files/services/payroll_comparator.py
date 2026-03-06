@@ -1,10 +1,11 @@
 from .payroll_parser import parse_payroll_pdf
 from files.models import File, DTREntry
 import re
+import traceback
 
 def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
     """
-    Compare DTREntry rows with latest payroll PDF for the same owner.
+    Compare DTREntry rows with the latest payroll PDF for the same owner.
     Updates DTREntry.mismatch_flag and DTREntry.status_flag.
     """
 
@@ -22,70 +23,84 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
         emp_no_str = re.sub(r"\D", "", str(emp_no)).strip()
         return emp_no_str.zfill(5) if emp_no_str else None
 
-    owner = dtr_file.uploaded_by
-    debug(f"Comparing DTR for owner: {owner.username if owner else 'Unknown'}")
+    try:
+        owner = dtr_file.uploaded_by
+        debug(f"Comparing DTR for owner: {owner.username if owner else 'Unknown'}")
 
-    # Get latest payroll PDF
-    all_files = File.objects.filter(owner=owner)
-    pdf_file = all_files.filter(file__iregex=r'\.pdf$').order_by("-uploaded_at").first()
+        # Get all PDFs in system for debugging
+        all_pdfs = File.objects.filter(file__iendswith=".pdf").order_by("-uploaded_at")
+        debug(f"Total PDFs in system: {all_pdfs.count()}")
+        for f in all_pdfs:
+            debug(f"PDF: {f.file.name}, owner: {f.owner.username if f.owner else 'Unknown'}")
 
-    if not pdf_file:
-        debug("No payroll PDF found for this owner")
-        return
+        # Try to get latest PDF by this owner
+        pdf_file = all_pdfs.filter(owner=owner).first()
+        if not pdf_file:
+            debug("No payroll PDF found for this owner, falling back to latest PDF")
+            pdf_file = all_pdfs.first()
+            if not pdf_file:
+                debug("No PDFs available in system to compare with")
+                return
 
-    debug(f"Found payroll PDF: {pdf_file.file.name}")
+        debug(f"Using payroll PDF: {pdf_file.file.name} (owner: {pdf_file.owner.username if pdf_file.owner else 'Unknown'})")
 
-    # Parse PDF
-    pdf_employees = parse_payroll_pdf(pdf_file.file.path, log_debug=log_debug)
-    pdf_map = {}
-    for emp in pdf_employees:
-        emp_no_norm = normalize_emp_no(emp.get("employee_no"))
-        if not emp_no_norm:
-            debug(f"Skipping invalid PDF employee: {emp}")
-            continue
-        try:
-            pdf_map[emp_no_norm] = {
-                "wrk_days": float(emp.get("wrk_days") or 0),
-                "reg_hours": float(emp.get("reg_hours") or 0),
-                "ot_hours": float(emp.get("ot_hours") or 0),
-                "nd_hours": float(emp.get("nd_hours") or 0),
-                "raw": emp
-            }
-        except Exception as e:
-            debug(f"Failed numeric parse for PDF emp {emp_no_norm}: {e}")
+        # Parse PDF
+        pdf_employees = parse_payroll_pdf(pdf_file.file.path, log_debug=log_debug)
+        pdf_map = {}
+        for emp in pdf_employees:
+            emp_no_norm = normalize_emp_no(emp.get("employee_no"))
+            if not emp_no_norm:
+                debug(f"Skipping invalid PDF employee: {emp}")
+                continue
+            try:
+                pdf_map[emp_no_norm] = {
+                    "wrk_days": float(emp.get("wrk_days") or 0),
+                    "reg_hours": float(emp.get("reg_hours") or 0),
+                    "ot_hours": float(emp.get("ot_hours") or 0),
+                    "nd_hours": float(emp.get("nd_hours") or 0),
+                    "raw": emp
+                }
+            except Exception as e:
+                debug(f"Failed numeric parse for PDF emp {emp_no_norm}: {e}")
 
-    debug(f"PDF employee numbers: {list(pdf_map.keys())}")
+        debug(f"PDF employee numbers: {list(pdf_map.keys())}")
 
-    # Compare DTR entries
-    entries = DTREntry.objects.filter(dtr_file=dtr_file)
-    debug(f"Found {entries.count()} DTR entries")
+        # Compare DTR entries
+        entries = DTREntry.objects.filter(dtr_file=dtr_file)
+        debug(f"Found {entries.count()} DTR entries")
 
-    for entry in entries:
-        issues = []
-        emp_no_normalized = normalize_emp_no(entry.employee_no)
-        debug(f"Checking DTR emp: {emp_no_normalized} ({entry.full_name})")
+        for entry in entries:
+            issues = []
+            emp_no_normalized = normalize_emp_no(entry.employee_no)
+            debug(f"Checking DTR emp: {emp_no_normalized} ({entry.full_name})")
 
-        pdf_emp = pdf_map.get(emp_no_normalized)
+            pdf_emp = pdf_map.get(emp_no_normalized)
 
-        if not pdf_emp:
-            debug(f" → {entry.full_name} ({emp_no_normalized}) missing in Payroll PDF")
-            issues.append("Missing in Payroll PDF")
-        else:
-            if float(entry.total_days or 0) != float(pdf_emp["wrk_days"]):
-                issues.append(f"Days mismatch (PDF {pdf_emp['wrk_days']} vs DTR {entry.total_days})")
-            if float(entry.total_hours or 0) != float(pdf_emp["reg_hours"]):
-                issues.append(f"Hours mismatch (PDF {pdf_emp['reg_hours']} vs DTR {entry.total_hours})")
-            if float(entry.regular_ot or 0) != float(pdf_emp["ot_hours"]):
-                issues.append(f"OT mismatch (PDF {pdf_emp['ot_hours']} vs DTR {entry.regular_ot})")
-            if float(entry.night_diff or 0) != float(pdf_emp["nd_hours"]):
-                issues.append(f"Night diff mismatch (PDF {pdf_emp['nd_hours']} vs DTR {entry.night_diff})")
+            if not pdf_emp:
+                debug(f" → {entry.full_name} ({emp_no_normalized}) missing in Payroll PDF")
+                issues.append("Missing in Payroll PDF")
+            else:
+                if float(entry.total_days or 0) != float(pdf_emp["wrk_days"]):
+                    issues.append(f"Days mismatch (PDF {pdf_emp['wrk_days']} vs DTR {entry.total_days})")
+                if float(entry.total_hours or 0) != float(pdf_emp["reg_hours"]):
+                    issues.append(f"Hours mismatch (PDF {pdf_emp['reg_hours']} vs DTR {entry.total_hours})")
+                if float(entry.regular_ot or 0) != float(pdf_emp["ot_hours"]):
+                    issues.append(f"OT mismatch (PDF {pdf_emp['ot_hours']} vs DTR {entry.regular_ot})")
+                if float(entry.night_diff or 0) != float(pdf_emp["nd_hours"]):
+                    issues.append(f"Night diff mismatch (PDF {pdf_emp['nd_hours']} vs DTR {entry.night_diff})")
 
-        # Update DTREntry
-        entry.mismatch_flag = ", ".join(issues) if issues else ""
-        entry.status_flag = "mismatch" if issues else "match"
-        entry.save()
+            # Update DTREntry
+            entry.mismatch_flag = ", ".join(issues) if issues else ""
+            entry.status_flag = "mismatch" if issues else "match"
+            entry.save()
 
-        if issues:
-            debug(f" → Issues found: {issues}")
-        else:
-            debug(f" → No issues for {entry.full_name} ({emp_no_normalized})")
+            if issues:
+                debug(f" → Issues found: {issues}")
+            else:
+                debug(f" → No issues for {entry.full_name} ({emp_no_normalized})")
+
+        debug("DTR comparison complete")
+
+    except Exception as e:
+        debug(f"Error during comparison: {str(e)}")
+        traceback.print_exc()

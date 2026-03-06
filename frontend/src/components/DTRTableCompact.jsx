@@ -48,7 +48,7 @@ export default function DTRTableCompact({ fileId }) {
     if (!fileId) return;
 
     try {
-      const res = await api.post(`/dtr/files/${fileId}/parse/`);
+      const res = await api.post(`/files/dtr/files/${fileId}/parse/`);
       // log debug messages to console
       if (res.data.debug) {
         console.log("=== DTR Parse Debug ===");

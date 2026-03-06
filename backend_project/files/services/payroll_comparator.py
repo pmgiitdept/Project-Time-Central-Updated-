@@ -28,13 +28,11 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
         debug("No payroll PDF found for this owner")
     else:
         debug(f"Found PDF: {pdf_file.file.name}")
-        pdf_employees = parse_payroll_pdf(pdf_file.file)
+        pdf_employees = parse_payroll_pdf(pdf_file.file, log_debug=log_debug)
 
         for emp in pdf_employees:
-            # Normalize: remove non-digit characters but keep leading zeros
-            emp_no_norm = re.sub(r"\D", "", str(emp.get("employee_no", "")))
-            # Optional: pad to 5 digits for consistent matching
-            emp_no_norm = emp_no_norm.zfill(5)
+            # Normalize employee number exactly the same way as DTR
+            emp_no_norm = re.sub(r"\D", "", str(emp.get("employee_no", ""))).zfill(5)
             try:
                 pdf_map[emp_no_norm] = {
                     "wrk_days": float(emp.get("wrk_days") or 0),
@@ -54,16 +52,16 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
     for entry in entries:
         issues = []
 
-        # Normalize DTR emp_no the same way as PDF
-        emp_no_normalized = re.sub(r"\D", "", str(entry.employee_no))
-        emp_no_normalized = emp_no_normalized.zfill(5)
+        # Normalize DTR employee number exactly the same way as PDF
+        emp_no_normalized = re.sub(r"\D", "", str(entry.employee_no)).zfill(5)
         debug(f"Checking DTR emp: {emp_no_normalized}")
 
         pdf_emp = pdf_map.get(emp_no_normalized)
 
         if not pdf_emp:
+            # DEBUG: show all PDF keys to see why not matching
+            debug(f" → {entry.full_name} ({emp_no_normalized}) missing in PDF. PDF keys: {list(pdf_map.keys())}")
             issues.append("Missing in Payroll PDF")
-            debug(f" → {entry.full_name} ({emp_no_normalized}) missing in PDF")
         else:
             debug(f" → Comparing with PDF: {pdf_emp['raw']}")
             if float(entry.total_days) != float(pdf_emp["wrk_days"]):

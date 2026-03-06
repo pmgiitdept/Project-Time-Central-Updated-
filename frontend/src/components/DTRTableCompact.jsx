@@ -43,13 +43,11 @@ export default function DTRTableCompact({ fileId }) {
     }
   };
 
-  // --- Trigger parse & compare with PDF ---
   const handleParseAndDebug = async () => {
     if (!fileId) return;
 
     try {
       const res = await api.post(`/files/dtr/files/${fileId}/parse/`);
-      // log debug messages to console
       if (res.data.debug) {
         console.log("=== DTR Parse Debug ===");
         res.data.debug.forEach((msg) => console.log(msg));
@@ -57,7 +55,6 @@ export default function DTRTableCompact({ fileId }) {
       }
       toast.success(res.data.message || "Parsed and compared successfully");
 
-      // refresh table after parsing
       handleViewFile(fileId);
     } catch (err) {
       console.error(err);
@@ -122,7 +119,6 @@ export default function DTRTableCompact({ fileId }) {
         </div>
       )}
 
-      {/* --- Parse & Debug Button --- */}
       <div style={{ margin: "10px 0" }}>
         <button onClick={handleParseAndDebug}>Parse & Debug</button>
       </div>

@@ -22,16 +22,16 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
         file__iendswith=".pdf"
     ).order_by("-uploaded_at").first()
 
+    pdf_map = {}
     if not pdf_file:
         debug("No payroll PDF found for this owner")
-        pdf_map = {}
     else:
         debug(f"Found PDF: {pdf_file.file.name}")
         pdf_employees = parse_payroll_pdf(pdf_file.file)
 
-        pdf_map = {}
         for emp in pdf_employees:
-            emp_no_norm = "".join(filter(str.isdigit, str(emp.get("employee_no", ""))))
+            # Normalize PDF employee number: digits only + strip leading zeros
+            emp_no_norm = "".join(filter(str.isdigit, str(emp.get("employee_no", "")))).lstrip("0")
             try:
                 pdf_map[emp_no_norm] = {
                     "wrk_days": float(emp.get("wrk_days") or 0),
@@ -42,7 +42,7 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
                 }
             except Exception as e:
                 debug(f"Failed to parse numeric fields for PDF emp {emp_no_norm}: {e}")
-        
+
         debug(f"PDF employee numbers: {list(pdf_map.keys())}")
 
     entries = DTREntry.objects.filter(dtr_file=dtr_file)
@@ -50,7 +50,9 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
 
     for entry in entries:
         issues = []
-        emp_no_normalized = "".join(filter(str.isdigit, str(entry.employee_no)))
+
+        # Normalize DTR employee number the same way
+        emp_no_normalized = "".join(filter(str.isdigit, str(entry.employee_no))).lstrip("0")
         debug(f"Checking DTR emp: {emp_no_normalized}")
 
         pdf_emp = pdf_map.get(emp_no_normalized)

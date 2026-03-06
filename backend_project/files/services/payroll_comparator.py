@@ -120,12 +120,19 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
         debug(f"PDF employee numbers detected: {list(pdf_map.keys())}")
 
     # -------------------------------------------------
-    # Compute DTR totals from parsed_pages
+    # Compute DTR totals from DTREntry
     # -------------------------------------------------
 
-    parsed_pages = dtr_file.parsed_pages or {}
-    dtr_totals = compute_dtr_totals_from_parsed_pages(parsed_pages, debug)
+    entries = DTREntry.objects.filter(dtr_file=dtr_file)
 
+    dtr_totals = {
+        "days": sum(e.total_days or 0 for e in entries),
+        "hours": sum(e.total_hours or 0 for e in entries),
+        "ot": sum(e.regular_ot or 0 for e in entries),
+        "nd": sum(e.night_diff or 0 for e in entries),
+    }
+
+    debug(f"DTR computed totals from DTREntry: {dtr_totals}")
     # -------------------------------------------------
     # Compare each entry
     # -------------------------------------------------

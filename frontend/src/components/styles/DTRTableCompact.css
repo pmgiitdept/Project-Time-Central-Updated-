@@ -135,10 +135,9 @@
 }
 
 .mismatch-row {
-  background-color: #ffe5e5;
+  background-color: #ffe6e6; /* light red */
 }
 
-.mismatch-row td {
-  color: #b30000;
-  font-weight: 600;
+.match-row {
+  background-color: #e6ffea; /* light green */
 }

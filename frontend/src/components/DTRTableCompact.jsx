@@ -152,13 +152,20 @@ export default function DTRTableCompact({ fileId }) {
             <tbody>
             {sortedContents.map((row, rIdx) => (
                 <tr
-                    key={row?.id ?? `row-${rIdx}`}
-                    className={row.mismatch_flag ? "mismatch-row" : ""}
+                  key={row?.id ?? `row-${rIdx}`}
+                  className={
+                    row.status_flag === "mismatch"
+                      ? "mismatch-row"
+                      : row.status_flag === "match"
+                      ? "match-row"
+                      : ""
+                  }
                 >
                 {staticColumns.map((col, idx) =>
                     !hiddenColumns.includes(col.key) ? (
                     <td key={col.key} className={idx === 0 ? "sticky-col" : ""}>
-                      {col.key === "full_name" && row.mismatch_flag && "⚠️ "}
+                      {col.key === "full_name" &&
+                        (row.status_flag === "mismatch" ? "⚠️ " : row.status_flag === "match" ? "✅ " : "")}
                       {formatCellValue(col.key, row[col.key])}
                     </td>
                     ) : null

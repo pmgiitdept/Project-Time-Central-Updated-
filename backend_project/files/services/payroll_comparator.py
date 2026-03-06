@@ -26,35 +26,26 @@ def compare_dtr_with_payroll_pdf(dtr_file):
     entries = DTREntry.objects.filter(dtr_file=dtr_file)
 
     for entry in entries:
-
         issues = []
-
         pdf_emp = pdf_map.get(str(entry.employee_no))
 
         if not pdf_emp:
             issues.append("Missing in Payroll PDF")
-
         else:
-
             if float(entry.total_days) != float(pdf_emp["wrk_days"]):
-                issues.append(
-                    f"Days mismatch (PDF {pdf_emp['wrk_days']} vs DTR {entry.total_days})"
-                )
-
+                issues.append(f"Days mismatch (PDF {pdf_emp['wrk_days']} vs DTR {entry.total_days})")
             if float(entry.total_hours) != float(pdf_emp["reg_hours"]):
-                issues.append(
-                    f"Hours mismatch (PDF {pdf_emp['reg_hours']} vs DTR {entry.total_hours})"
-                )
-
+                issues.append(f"Hours mismatch (PDF {pdf_emp['reg_hours']} vs DTR {entry.total_hours})")
             if float(entry.regular_ot) != float(pdf_emp["ot_hours"]):
-                issues.append(
-                    f"OT mismatch (PDF {pdf_emp['ot_hours']} vs DTR {entry.regular_ot})"
-                )
-
+                issues.append(f"OT mismatch (PDF {pdf_emp['ot_hours']} vs DTR {entry.regular_ot})")
             if float(entry.night_diff) != float(pdf_emp["nd_hours"]):
-                issues.append(
-                    f"Night diff mismatch (PDF {pdf_emp['nd_hours']} vs DTR {entry.night_diff})"
-                )
+                issues.append(f"Night diff mismatch (PDF {pdf_emp['nd_hours']} vs DTR {entry.night_diff})")
 
-        entry.mismatch_flag = ", ".join(issues) if issues else ""
+        if issues:
+            entry.mismatch_flag = ", ".join(issues)
+            entry.status_flag = "mismatch"  # new field for frontend
+        else:
+            entry.mismatch_flag = ""
+            entry.status_flag = "match"  # new field for frontend
+
         entry.save()

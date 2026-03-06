@@ -110,7 +110,25 @@ class DTRFileSerializer(serializers.ModelSerializer):
 class DTREntrySerializer(serializers.ModelSerializer):
     class Meta:
         model = DTREntry
-        fields = "__all__"
+        fields = [
+            "id",
+            "full_name",
+            "employee_no",
+            "position",
+            "shift",
+            "time",
+            "daily_data",
+            "total_days",
+            "total_hours",
+            "regular_ot",
+            "legal_holiday",
+            "special_holiday",
+            "night_diff",
+            "undertime_minutes",
+            "unworked_reg_holiday",
+            "status_flag",    
+            "mismatch_flag", 
+        ]
 
     def get_project(self, obj):
         uploader = getattr(obj.dtr_file, "uploaded_by", None)

@@ -8,14 +8,20 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
     Updates DTREntry.mismatch_flag and DTREntry.status_flag accordingly.
     """
 
+    # -------------------------------
+    # Debug helper
+    # -------------------------------
     def debug(msg):
+        prefix = "[DTR-PARSER DEBUG]"
         if log_debug:
-            log_debug(msg)
+            log_debug(f"{prefix} {msg}")
         else:
-            print(msg)
+            print(f"{prefix} {msg}")
 
+    # -------------------------------
+    # Employee number normalization
+    # -------------------------------
     def normalize_emp_no(emp_no):
-        """Normalize employee number: digits only, strip spaces, pad to 5 digits."""
         if not emp_no:
             return None
         emp_no_str = re.sub(r"\D", "", str(emp_no)).strip()
@@ -24,9 +30,9 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
     owner = dtr_file.uploaded_by
     debug(f"Comparing DTR for owner: {owner.username if owner else 'Unknown'}")
 
-    # -------------------------------------------------
+    # -------------------------------
     # Find latest payroll PDF robustly
-    # -------------------------------------------------
+    # -------------------------------
     all_files = File.objects.filter(owner=owner)
     debug(f"All files for owner: {[f.file.name for f in all_files]}")
 
@@ -58,16 +64,16 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
 
         debug(f"PDF employee numbers detected: {list(pdf_map.keys())}")
 
-    # -------------------------------------------------
+    # -------------------------------
     # Compare each DTREntry
-    # -------------------------------------------------
+    # -------------------------------
     entries = DTREntry.objects.filter(dtr_file=dtr_file)
     debug(f"Found {entries.count()} DTR entries")
 
     for entry in entries:
         issues = []
         emp_no_normalized = normalize_emp_no(entry.employee_no)
-        debug(f"Checking DTR emp: {emp_no_normalized}")
+        debug(f"Checking DTR emp: {emp_no_normalized} ({entry.full_name})")
 
         pdf_emp = pdf_map.get(emp_no_normalized)
 
@@ -85,6 +91,7 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
             if float(entry.night_diff or 0) != float(pdf_emp["nd_hours"]):
                 issues.append(f"Night diff mismatch (PDF {pdf_emp['nd_hours']} vs DTR {entry.night_diff})")
 
+        # Update DTR entry
         entry.mismatch_flag = ", ".join(issues) if issues else ""
         entry.status_flag = "mismatch" if issues else "match"
         entry.save()

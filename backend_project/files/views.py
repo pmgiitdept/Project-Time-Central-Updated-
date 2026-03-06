@@ -247,8 +247,27 @@ class FileViewSet(viewsets.ModelViewSet):
                                     row = [emp_no, clean_name] + padded_numbers[:expected_cols]
                                     structured_table["rows"].append(row)
 
+                        table_lines_idx = set()
+                        if structured_table["rows"]:
+                            table_start = header_idx + 1
+                            table_end = table_start + len(structured_table["rows"])
+                            table_lines_idx.update(range(table_start, table_end))
+
+                        other_texts = [
+                            line for idx, line in enumerate(lines)
+                            if idx not in table_lines_idx and idx != header_idx
+                        ]
+
+                        header_lines = []
+                        if header_idx is not None:
+                            header_lines = lines[:header_idx+1]  
+                            
+                        if header_lines:
+                            page_data["header_text"] = header_lines
                         if structured_table["rows"]:
                             page_data["tables"] = [structured_table]
+                        if other_texts:
+                            page_data["other_texts"] = other_texts
 
                         pages_data.append(page_data)
 

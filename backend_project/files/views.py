@@ -937,10 +937,16 @@ class DTRFileViewSet(viewsets.ModelViewSet):
                         night_diff=safe_number(row[30]) if len(row) > 30 else 0,
                     )
 
-            compare_dtr_with_payroll_pdf(dtr_file)
+            debug_messages = []
+
+            def log_debug(msg):
+                debug_messages.append(msg)
+
+            compare_dtr_with_payroll_pdf(dtr_file, log_debug=log_debug)
 
             return Response({
-                "message": "DTR file parsed successfully and compared with payroll PDF."
+                "message": "DTR file parsed successfully and compared with payroll PDF.",
+                "debug": debug_messages
             })
 
         except Exception as e:
@@ -1171,7 +1177,7 @@ class DTRFileViewSet(viewsets.ModelViewSet):
             entry.save()
 
         compare_dtr_with_payroll_pdf(dtr_file)
-        
+
         return Response({"message": "DTR entries updated successfully!"}, status=status.HTTP_200_OK)
     
     @action(detail=False, methods=["post"], url_path="manual")

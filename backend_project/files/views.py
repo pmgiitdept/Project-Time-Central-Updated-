@@ -2,7 +2,7 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from .models import File, AuditLog, SystemSettings, EmployeeDirectory, DTRFile, DTREntry, Employee, PDFFile, ParsedDTR
-from .serializers import FileSerializer, FileStatusSerializer, AuditLogSerializer, SystemSettingsSerializer, EmployeeDirectorySerializer, DTREntrySerializer, DTRFileSerializer, EmployeeSerializer, PDFFileSerializer, ParsedDTRSerializer
+from .serializers import FileSerializer, FileStatusSerializer, AuditLogSerializer, SystemSettingsSerializer, EmployeeDirectorySerializer, DTREntrySerializer, DTRFileSerializer, EmployeeSerializer, PDFFileSerializer, ParsedDTRSerializer, DTREntryContentSerializer
 from accounts.permissions import ReadOnlyForViewer, IsOwnerOrAdmin, CanEditStatus, IsAdmin
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
@@ -937,7 +937,6 @@ class DTRFileViewSet(viewsets.ModelViewSet):
                         night_diff=safe_number(row[30]) if len(row) > 30 else 0,
                     )
 
-            # Run payroll comparison after all entries are created
             compare_dtr_with_payroll_pdf(dtr_file)
 
             return Response({
@@ -952,7 +951,9 @@ class DTRFileViewSet(viewsets.ModelViewSet):
     def content(self, request, pk=None):
         dtr_file = self.get_object()
         entries = dtr_file.entries.all()
-        serializer = DTREntrySerializer(entries, many=True)
+
+        serializer = DTREntryContentSerializer(entries, many=True)
+
         return Response({
             "start_date": dtr_file.start_date,
             "end_date": dtr_file.end_date,

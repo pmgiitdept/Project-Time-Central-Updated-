@@ -110,6 +110,22 @@ class DTRFileSerializer(serializers.ModelSerializer):
 class DTREntrySerializer(serializers.ModelSerializer):
     class Meta:
         model = DTREntry
+        fields = "__all__"
+
+    def get_project(self, obj):
+        uploader = getattr(obj.dtr_file, "uploaded_by", None)
+        if not uploader:
+            return "Unknown Project"
+
+        if uploader.first_name or uploader.last_name:
+            return f"{uploader.first_name} {uploader.last_name}".strip()
+        return uploader.username or "Unknown Project"
+
+# serializers.py
+
+class DTREntryContentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DTREntry
         fields = [
             "id",
             "full_name",
@@ -126,18 +142,9 @@ class DTREntrySerializer(serializers.ModelSerializer):
             "night_diff",
             "undertime_minutes",
             "unworked_reg_holiday",
-            "status_flag",    
-            "mismatch_flag", 
+            "status_flag",   
+            "mismatch_flag",
         ]
-
-    def get_project(self, obj):
-        uploader = getattr(obj.dtr_file, "uploaded_by", None)
-        if not uploader:
-            return "Unknown Project"
-
-        if uploader.first_name or uploader.last_name:
-            return f"{uploader.first_name} {uploader.last_name}".strip()
-        return uploader.username or "Unknown Project"
 
 class EmployeeSerializer(serializers.ModelSerializer):
     class Meta:

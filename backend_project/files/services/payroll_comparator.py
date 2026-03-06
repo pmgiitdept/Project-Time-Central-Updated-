@@ -98,6 +98,9 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
 
         pdf_employees = parse_payroll_pdf(pdf_file.file, log_debug=log_debug)
 
+        debug(f"PDF employees parsed: {len(pdf_employees)}")
+        debug(f"PDF employees data: {pdf_employees}")
+
         for emp in pdf_employees:
 
             emp_no_norm = normalize_emp_no(emp.get("employee_no"))

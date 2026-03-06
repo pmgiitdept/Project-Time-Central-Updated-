@@ -4,16 +4,8 @@ import re
 def parse_payroll_pdf(file_path_or_obj, log_debug=None):
     """
     Extract employee rows from payroll PDF.
-    Returns list of dictionaries:
-      - employee_no (normalized)
-      - full_name
-      - wrk_days
-      - reg_hours
-      - ot_hours
-      - nd_hours
-    Works with both file paths (str) and Django FileField file-like objects.
+    Skips OT for Special Holiday (SHP) / Legal Holiday (LHP) when calculating ot_hours.
     """
-
     def debug(msg):
         if log_debug:
             log_debug(f"[PAYROLL-PARSER DEBUG] {msg}")
@@ -21,18 +13,15 @@ def parse_payroll_pdf(file_path_or_obj, log_debug=None):
             print(f"[PAYROLL-PARSER DEBUG] {msg}")
 
     def normalize_emp_no(emp_no):
-        """Normalize employee number: remove non-digit chars and pad to 5 digits."""
         if not emp_no:
             return None
         emp_no_str = re.sub(r"\D", "", str(emp_no)).strip()
         return emp_no_str.zfill(5) if emp_no_str else None
 
     def extract_employee_info_from_header(header_lines):
-        """Extract employee number and full name from PDF header lines."""
         emp_no = None
         full_name = None
         for line in header_lines:
-            # Example: "Employee No. : PM03508 Name : Abad, Jonmark Caballero"
             m = re.search(r"Employee No\. ?: ?(PM?\d+).*Name ?: ?(.+)", line, re.I)
             if m:
                 emp_no = normalize_emp_no(m.group(1))
@@ -42,12 +31,7 @@ def parse_payroll_pdf(file_path_or_obj, log_debug=None):
 
     employees = []
 
-    # Determine if input is path or file-like
-    if isinstance(file_path_or_obj, str):
-        pdf_source = file_path_or_obj
-    else:
-        file_path_or_obj.seek(0)
-        pdf_source = file_path_or_obj
+    pdf_source = file_path_or_obj if isinstance(file_path_or_obj, str) else file_path_or_obj
 
     try:
         with pdfplumber.open(pdf_source) as pdf:
@@ -81,12 +65,13 @@ def parse_payroll_pdf(file_path_or_obj, log_debug=None):
                     nd_hours = 0
 
                     for row in data_rows:
-                        if not row or len(row) < 14:
+                        if not row or len(row) < 17:  # ensure holiday column exists
                             continue
                         try:
                             low = float(row[8] or 0)   # worked hours
                             ot = float(row[9] or 0)
                             nd = float(row[13] or 0)
+                            holiday_code = (row[16] or "").strip().upper()
                         except Exception:
                             debug(f"Page {page_num}: Failed to parse row {row}, skipping")
                             continue
@@ -94,8 +79,10 @@ def parse_payroll_pdf(file_path_or_obj, log_debug=None):
                         if low > 0:
                             total_days += 1
                         reg_hours += low
-                        ot_hours += ot
                         nd_hours += nd
+                        # Only count OT if NOT SHP/LHP
+                        if holiday_code not in ["SHP", "LHP"]:
+                            ot_hours += ot
 
                     employees.append({
                         "employee_no": emp_no,
@@ -104,6 +91,7 @@ def parse_payroll_pdf(file_path_or_obj, log_debug=None):
                         "reg_hours": reg_hours,
                         "ot_hours": ot_hours,
                         "nd_hours": nd_hours,
+                        "tables": tables,  # keep for cross-validation if needed
                     })
 
                     debug(f"Page {page_num}: Parsed {emp_no} - {full_name}, "

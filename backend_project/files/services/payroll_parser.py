@@ -104,6 +104,7 @@ def parse_payroll_pdf(file_path_or_obj, log_debug=None):
                         "reg_hours": reg_hours,
                         "ot_hours": ot_hours,
                         "nd_hours": nd_hours,
+                        "tables": tables
                     })
 
                     debug(f"Page {page_num}: Parsed {emp_no} - {full_name}, "

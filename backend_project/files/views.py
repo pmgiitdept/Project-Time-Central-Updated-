@@ -27,7 +27,7 @@ from openpyxl.drawing.image import Image
 from openpyxl.utils import get_column_letter
 from rest_framework.pagination import PageNumberPagination
 from pdf2image import convert_from_bytes
-from services.payroll_comparator import compare_dtr_with_payroll_pdf
+from files.services.payroll_comparator import compare_dtr_with_payroll_pdf
 
 def log_action(user, action, status="success", ip_address=None):
     AuditLog.objects.create(

@@ -52,7 +52,7 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
                             continue
                         holiday_type = (row[16] if len(row) > 16 else "").upper()  # Adjust index if necessary
                         ot_hours = float(row[9] or 0)  # Assuming OT column index
-                        if holiday_type in ["SH", "LEGAL HOLIDAY", "SPECIAL HOLIDAY"]:
+                        if holiday_type in ["SHP","LHP", "LEGAL HOLIDAY", "SPECIAL HOLIDAY"]:
                             total_ot -= ot_hours
                 total_ot = max(total_ot, 0)
 

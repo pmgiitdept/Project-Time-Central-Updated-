@@ -2,7 +2,7 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from .models import File, AuditLog, SystemSettings, EmployeeDirectory, DTRFile, DTREntry, Employee, PDFFile, ParsedDTR
-from .serializers import FileSerializer, FileStatusSerializer, AuditLogSerializer, SystemSettingsSerializer, EmployeeDirectorySerializer, DTREntrySerializer, DTRFileSerializer, EmployeeSerializer, PDFFileSerializer, ParsedDTRSerializer, DTREntryContentSerializer
+from .serializers import FileSerializer, FileStatusSerializer, AuditLogSerializer, SystemSettingsSerializer, EmployeeDirectorySerializer, DTREntrySerializer, DTRFileSerializer, EmployeeSerializer, PDFFileSerializer, ParsedDTRSerializer
 from accounts.permissions import ReadOnlyForViewer, IsOwnerOrAdmin, CanEditStatus, IsAdmin
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
@@ -951,9 +951,7 @@ class DTRFileViewSet(viewsets.ModelViewSet):
     def content(self, request, pk=None):
         dtr_file = self.get_object()
         entries = dtr_file.entries.all()
-
-        serializer = DTREntryContentSerializer(entries, many=True)
-
+        serializer = DTREntrySerializer(entries, many=True)
         return Response({
             "start_date": dtr_file.start_date,
             "end_date": dtr_file.end_date,

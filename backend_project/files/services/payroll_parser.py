@@ -6,6 +6,7 @@ def parse_payroll_pdf(file_obj):
     Extract employee rows from payroll PDF.
     Returns list of dictionaries.
     """
+    import re
 
     employees = []
 
@@ -20,19 +21,16 @@ def parse_payroll_pdf(file_obj):
 
     with pdfplumber.open(file_obj) as pdf:
         for page in pdf.pages:
-
             text = page.extract_text()
             if not text:
                 continue
 
             lines = text.splitlines()
-
             header_idx = None
             for idx, line in enumerate(lines):
                 if "Emp." in line and "DUTY" in line:
                     header_idx = idx
                     break
-
             if header_idx is None:
                 continue
 
@@ -40,11 +38,14 @@ def parse_payroll_pdf(file_obj):
 
             for dl in data_lines:
                 parts = dl.split()
-
-                if not parts or not parts[0].isdigit():
+                if not parts:
                     continue
 
-                emp_no = parts[0]
+                # Normalize employee number: strip non-digits and leading zeros
+                emp_no_raw = parts[0]
+                emp_no = re.sub(r"\D", "", emp_no_raw).lstrip("0")
+                if not emp_no:
+                    continue
 
                 name_parts = []
                 numbers = []
@@ -63,7 +64,7 @@ def parse_payroll_pdf(file_obj):
                     numbers.append(0)
 
                 employees.append({
-                    "employee_no": emp_no,
+                    "employee_no": emp_no,  # normalized
                     "name": name,
                     "wrk_days": numbers[0],
                     "abs_days": numbers[1],

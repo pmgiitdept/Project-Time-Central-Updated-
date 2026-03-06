@@ -1,5 +1,5 @@
 from .payroll_parser import parse_payroll_pdf
-from files.models import File, DTREntry
+from files.models import PDFFile, DTREntry
 import re
 import traceback
 
@@ -27,22 +27,14 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
         owner = dtr_file.uploaded_by
         debug(f"Comparing DTR for owner: {owner.username if owner else 'Unknown'}")
 
-        # Get all PDFs in system for debugging
-        all_pdfs = File.objects.filter(file__iendswith=".pdf").order_by("-uploaded_at")
-        debug(f"Total PDFs in system: {all_pdfs.count()}")
-        for f in all_pdfs:
-            debug(f"PDF: {f.file.name}, owner: {f.owner.username if f.owner else 'Unknown'}")
+        # Get latest PDFFile for this owner
+        pdf_file = PDFFile.objects.filter(uploaded_by=owner, file__iendswith=".pdf").order_by("-uploaded_at").first()
 
-        # Try to get latest PDF by this owner
-        pdf_file = all_pdfs.filter(owner=owner).first()
         if not pdf_file:
-            debug("No payroll PDF found for this owner, falling back to latest PDF")
-            pdf_file = all_pdfs.first()
-            if not pdf_file:
-                debug("No PDFs available in system to compare with")
-                return
+            debug("No payroll PDF found for this owner")
+            return
 
-        debug(f"Using payroll PDF: {pdf_file.file.name} (owner: {pdf_file.owner.username if pdf_file.owner else 'Unknown'})")
+        debug(f"Using payroll PDF: {pdf_file.file.name} (owner: {pdf_file.uploaded_by.username if pdf_file.uploaded_by else 'Unknown'})")
 
         # Parse PDF
         pdf_employees = parse_payroll_pdf(pdf_file.file.path, log_debug=log_debug)

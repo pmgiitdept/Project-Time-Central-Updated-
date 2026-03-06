@@ -1,4 +1,5 @@
-import pdfplumber, re
+import pdfplumber
+import re
 
 def parse_payroll_pdf(file_obj, log_debug=None):
     """
@@ -19,6 +20,16 @@ def parse_payroll_pdf(file_obj, log_debug=None):
         except:
             return False
 
+    def normalize_emp_no(emp_no):
+        """Normalize employee number: keep digits only, strip spaces, pad to 5 digits."""
+        if not emp_no:
+            return None
+        emp_no_str = re.sub(r"\D", "", str(emp_no))
+        emp_no_str = emp_no_str.strip()
+        if not emp_no_str:
+            return None
+        return emp_no_str.zfill(5)
+
     employees = []
     file_obj.seek(0)
 
@@ -31,7 +42,6 @@ def parse_payroll_pdf(file_obj, log_debug=None):
 
             lines = text.splitlines()
 
-            # Find header row (Emp. / DUTY)
             header_idx = None
             for idx, line in enumerate(lines):
                 if "Emp." in line and "DUTY" in line:
@@ -49,13 +59,10 @@ def parse_payroll_pdf(file_obj, log_debug=None):
                 if not parts:
                     continue
 
-                # Employee number normalization: remove non-digits, pad to 5 digits
-                emp_no_raw = parts[0]
-                emp_no = re.sub(r"\D", "", emp_no_raw).zfill(5)
+                emp_no = normalize_emp_no(parts[0])
                 if not emp_no:
                     continue
 
-                # Extract name (all text until first number)
                 name_parts = []
                 numbers = []
                 found_number = False
@@ -67,9 +74,8 @@ def parse_payroll_pdf(file_obj, log_debug=None):
                     elif not found_number:
                         name_parts.append(p)
 
-                name = " ".join(name_parts) or "Unknown"
+                name = " ".join(name_parts).strip() or "Unknown"
 
-                # Pad numbers to prevent index errors
                 while len(numbers) < 20:
                     numbers.append(0)
 

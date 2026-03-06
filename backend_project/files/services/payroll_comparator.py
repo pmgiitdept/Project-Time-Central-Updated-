@@ -15,6 +15,16 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
         else:
             print(msg)
 
+    def normalize_emp_no(emp_no):
+        """Normalize employee number: digits only, strip spaces, pad to 5 digits."""
+        if not emp_no:
+            return None
+        emp_no_str = re.sub(r"\D", "", str(emp_no))
+        emp_no_str = emp_no_str.strip()
+        if not emp_no_str:
+            return None
+        return emp_no_str.zfill(5)
+
     owner = dtr_file.uploaded_by
     debug(f"Comparing DTR for owner: {owner.username if owner else 'Unknown'}")
 
@@ -31,8 +41,10 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
         pdf_employees = parse_payroll_pdf(pdf_file.file, log_debug=log_debug)
 
         for emp in pdf_employees:
-            # Normalize employee number exactly the same way as DTR
-            emp_no_norm = re.sub(r"\D", "", str(emp.get("employee_no", ""))).zfill(5)
+            emp_no_norm = normalize_emp_no(emp.get("employee_no"))
+            if not emp_no_norm:
+                continue
+
             try:
                 pdf_map[emp_no_norm] = {
                     "wrk_days": float(emp.get("wrk_days") or 0),
@@ -52,25 +64,23 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
     for entry in entries:
         issues = []
 
-        # Normalize DTR employee number exactly the same way as PDF
-        emp_no_normalized = re.sub(r"\D", "", str(entry.employee_no)).zfill(5)
+        emp_no_normalized = normalize_emp_no(entry.employee_no)
         debug(f"Checking DTR emp: {emp_no_normalized}")
 
         pdf_emp = pdf_map.get(emp_no_normalized)
 
         if not pdf_emp:
-            # DEBUG: show all PDF keys to see why not matching
             debug(f" → {entry.full_name} ({emp_no_normalized}) missing in PDF. PDF keys: {list(pdf_map.keys())}")
             issues.append("Missing in Payroll PDF")
         else:
             debug(f" → Comparing with PDF: {pdf_emp['raw']}")
-            if float(entry.total_days) != float(pdf_emp["wrk_days"]):
+            if float(entry.total_days or 0) != float(pdf_emp["wrk_days"] or 0):
                 issues.append(f"Days mismatch (PDF {pdf_emp['wrk_days']} vs DTR {entry.total_days})")
-            if float(entry.total_hours) != float(pdf_emp["reg_hours"]):
+            if float(entry.total_hours or 0) != float(pdf_emp["reg_hours"] or 0):
                 issues.append(f"Hours mismatch (PDF {pdf_emp['reg_hours']} vs DTR {entry.total_hours})")
-            if float(entry.regular_ot) != float(pdf_emp["ot_hours"]):
+            if float(entry.regular_ot or 0) != float(pdf_emp["ot_hours"] or 0):
                 issues.append(f"OT mismatch (PDF {pdf_emp['ot_hours']} vs DTR {entry.regular_ot})")
-            if float(entry.night_diff) != float(pdf_emp["nd_hours"]):
+            if float(entry.night_diff or 0) != float(pdf_emp["nd_hours"] or 0):
                 issues.append(f"Night diff mismatch (PDF {pdf_emp['nd_hours']} vs DTR {entry.night_diff})")
 
         entry.mismatch_flag = ", ".join(issues) if issues else ""

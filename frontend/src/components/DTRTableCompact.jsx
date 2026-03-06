@@ -25,6 +25,11 @@ export default function DTRTableCompact({ fileId }) {
     return typeof id === "object" ? id.id || null : id.toString();
   };
 
+  const normalizeEmpNo = (empNo) => {
+    if (!empNo) return "";
+    return empNo.toString().replace(/\D/g, "").padStart(5, "0");
+  };
+
   // --- Fetch DTR file content ---
   const handleViewFile = async (id = fileId) => {
     const normalizedId = normalizeId(id);
@@ -32,9 +37,15 @@ export default function DTRTableCompact({ fileId }) {
 
     try {
       const res = await api.get(`/files/dtr/files/${normalizedId}/content/`);
-      setFileContents(res.data.rows || []);
-      if (res.data.rows?.length > 0) {
-        setDateColumns(Object.keys(res.data.rows[0].daily_data || {}));
+      const rows = res.data.rows || [];
+      // Normalize employee numbers
+      const normalizedRows = rows.map(r => ({
+        ...r,
+        employee_no: normalizeEmpNo(r.employee_no)
+      }));
+      setFileContents(normalizedRows);
+      if (normalizedRows.length > 0) {
+        setDateColumns(Object.keys(normalizedRows[0].daily_data || {}));
       }
       setSelectedFileObj(res.data || {});
     } catch (err) {
@@ -54,7 +65,6 @@ export default function DTRTableCompact({ fileId }) {
         console.log("=== End Debug ===");
       }
       toast.success(res.data.message || "Parsed and compared successfully");
-
       handleViewFile(fileId);
     } catch (err) {
       console.error(err);
@@ -104,7 +114,7 @@ export default function DTRTableCompact({ fileId }) {
   };
 
   const totalEmployees = new Set(
-    fileContents.map((row) => row?.employee_no?.trim()).filter(Boolean)
+    fileContents.map((row) => normalizeEmpNo(row?.employee_no)).filter(Boolean)
   ).size;
 
   return (

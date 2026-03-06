@@ -1,6 +1,7 @@
 import pdfplumber
 import re
 
+
 def parse_payroll_pdf(file_obj, log_debug=None):
     """
     Extract employee rows from payroll PDF.
@@ -21,21 +22,38 @@ def parse_payroll_pdf(file_obj, log_debug=None):
             return False
 
     def normalize_emp_no(emp_no):
-        """Normalize employee number: keep digits only, strip spaces, pad to 5 digits."""
+        """
+        Normalize employee number:
+        PM03508 → 03508
+        03508 → 03508
+        """
         if not emp_no:
             return None
+
         emp_no_str = re.sub(r"\D", "", str(emp_no))
         emp_no_str = emp_no_str.strip()
+
         if not emp_no_str:
             return None
+
         return emp_no_str.zfill(5)
 
+    def safe_float(val):
+        try:
+            return float(val)
+        except:
+            return 0.0
+
     employees = []
+
     file_obj.seek(0)
 
     with pdfplumber.open(file_obj) as pdf:
+
         for page_num, page in enumerate(pdf.pages, 1):
+
             text = page.extract_text()
+
             if not text:
                 debug(f"Page {page_num} has no text, skipping")
                 continue
@@ -43,56 +61,85 @@ def parse_payroll_pdf(file_obj, log_debug=None):
             lines = text.splitlines()
 
             header_idx = None
+
             for idx, line in enumerate(lines):
                 if "Emp." in line and "DUTY" in line:
                     header_idx = idx
                     break
 
             if header_idx is None:
-                debug(f"Page {page_num} has no header row, skipping")
+                debug(f"Page {page_num} has no payroll header")
                 continue
 
             data_lines = lines[header_idx + 1:]
 
             for dl in data_lines:
+
                 parts = dl.split()
+
                 if not parts:
                     continue
 
-                emp_no = normalize_emp_no(parts[0])
+                raw_emp = parts[0]
+                emp_no = normalize_emp_no(raw_emp)
+
                 if not emp_no:
                     continue
 
                 name_parts = []
                 numbers = []
+
                 found_number = False
 
                 for p in parts[1:]:
+
                     if is_number(p):
                         found_number = True
-                        numbers.append(float(p))
+                        numbers.append(safe_float(p))
+
                     elif not found_number:
                         name_parts.append(p)
 
                 name = " ".join(name_parts).strip() or "Unknown"
 
-                while len(numbers) < 20:
+                # Ensure we always have enough numeric fields
+                while len(numbers) < 15:
                     numbers.append(0)
 
-                employees.append({
+                employee = {
                     "employee_no": emp_no,
                     "full_name": name,
+
+                    # Duty Days
                     "wrk_days": numbers[0],
                     "abs_days": numbers[1],
                     "lv_days": numbers[2],
                     "hol_days": numbers[3],
                     "res_days": numbers[4],
+
+                    # Time penalties
                     "late": numbers[5],
                     "ut": numbers[6],
+
+                    # Work hours
                     "reg_hours": numbers[7],
                     "ot_hours": numbers[8],
                     "nd_hours": numbers[9],
-                })
+                }
 
-    debug(f"Parsed {len(employees)} employees from PDF")
+                employees.append(employee)
+
+                debug(f"""
+Parsed Payroll Employee
+-----------------------
+Emp No : {emp_no}
+Name   : {name}
+Days   : {employee['wrk_days']}
+Hours  : {employee['reg_hours']}
+OT     : {employee['ot_hours']}
+ND     : {employee['nd_hours']}
+""")
+
+    debug(f"Parsed {len(employees)} employees from payroll PDF")
+
     return employees

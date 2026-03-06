@@ -1,13 +1,35 @@
 /* components/DTRTableCompact.jsx */
-import { useEffect, useState, useRef } from "react";
+
+import { useEffect, useState } from "react";
 import api from "../api";
 import { toast } from "react-toastify";
 import "./styles/DTRTableCompact.css";
 
 export default function DTRTableCompact({ fileId }) {
+
   const [fileContents, setFileContents] = useState([]);
   const [dateColumns, setDateColumns] = useState([]);
   const [selectedFileObj, setSelectedFileObj] = useState(null);
+
+  /* ------------------------------------ */
+  /* Employee Number Normalization       */
+  /* (Matches backend normalize_emp_no)  */
+  /* ------------------------------------ */
+
+  const normalizeEmpNo = (empNo) => {
+    if (!empNo) return "";
+    const digits = empNo.toString().replace(/\D/g, "");
+    return digits.padStart(5, "0");
+  };
+
+  const normalizeId = (id) => {
+    if (!id) return null;
+    return typeof id === "object" ? id.id || null : id.toString();
+  };
+
+  /* ------------------------------------ */
+  /* Sort Employees                       */
+  /* ------------------------------------ */
 
   const sortedContents = [...fileContents].sort((a, b) => {
     const nameA = (a.full_name || "").toLowerCase();
@@ -15,68 +37,118 @@ export default function DTRTableCompact({ fileId }) {
     return nameA.localeCompare(nameB);
   });
 
-  const [hiddenColumns, setHiddenColumns] = useState(() => {
-    const saved = localStorage.getItem("hiddenColumns");
-    return saved ? JSON.parse(saved) : [];
-  });
+  /* ------------------------------------ */
+  /* Fetch DTR Content                    */
+  /* ------------------------------------ */
 
-  const normalizeId = (id) => {
-    if (!id) return null;
-    return typeof id === "object" ? id.id || null : id.toString();
-  };
-
-  const normalizeEmpNo = (empNo) => {
-    if (!empNo) return "";
-    return empNo.toString().replace(/\D/g, "").padStart(5, "0");
-  };
-
-  // --- Fetch DTR file content ---
   const handleViewFile = async (id = fileId) => {
+
     const normalizedId = normalizeId(id);
     if (!normalizedId) return;
 
     try {
+
       const res = await api.get(`/files/dtr/files/${normalizedId}/content/`);
+
       const rows = res.data.rows || [];
-      // Normalize employee numbers
-      const normalizedRows = rows.map(r => ({
-        ...r,
-        employee_no: normalizeEmpNo(r.employee_no)
-      }));
+
+      console.log("=== DTR RAW DATA ===");
+      console.log(rows);
+
+      const normalizedRows = rows.map(r => {
+
+        const normalizedEmp = normalizeEmpNo(r.employee_no);
+
+        console.log("Employee Row Loaded");
+        console.log({
+          name: r.full_name,
+          employee_no_original: r.employee_no,
+          employee_no_normalized: normalizedEmp,
+          total_days: r.total_days,
+          total_hours: r.total_hours,
+          regular_ot: r.regular_ot,
+          night_diff: r.night_diff
+        });
+
+        return {
+          ...r,
+          employee_no: normalizedEmp,
+          daily_data: r.daily_data || {}
+        };
+      });
+
       setFileContents(normalizedRows);
+
       if (normalizedRows.length > 0) {
         setDateColumns(Object.keys(normalizedRows[0].daily_data || {}));
       }
+
       setSelectedFileObj(res.data || {});
+
+      console.log("=== END DTR LOAD ===");
+
     } catch (err) {
-      console.error(err);
+
+      console.error("DTR Load Error", err);
       toast.error("Failed to load file content.");
+
     }
   };
 
+  /* ------------------------------------ */
+  /* Parse + Debug                        */
+  /* ------------------------------------ */
+
   const handleParseAndDebug = async () => {
+
     if (!fileId) return;
 
     try {
+
+      console.log("=== STARTING PARSE ===");
+
       const res = await api.post(`/files/dtr/files/${fileId}/parse/`);
+
       if (res.data.debug) {
-        console.log("=== DTR Parse Debug ===");
+
+        console.log("===== BACKEND PARSER DEBUG =====");
+
         res.data.debug.forEach((msg) => console.log(msg));
-        console.log("=== End Debug ===");
+
+        console.log("===== END PARSER DEBUG =====");
+
       }
+
       toast.success(res.data.message || "Parsed and compared successfully");
-      handleViewFile(fileId);
+
+      await handleViewFile(fileId);
+
+      console.log("=== PARSE COMPLETE ===");
+
     } catch (err) {
-      console.error(err);
+
+      console.error("Parse Error", err);
+
       toast.error("Failed to parse DTR file.");
+
     }
   };
 
+  /* ------------------------------------ */
+
   useEffect(() => {
+
     if (fileId) handleViewFile(fileId);
+
   }, [fileId]);
 
+  /* ------------------------------------ */
+
   const getDayNumber = (dateStr) => new Date(dateStr).getDate();
+
+  /* ------------------------------------ */
+  /* Columns                              */
+  /* ------------------------------------ */
 
   const staticColumns = [
     { key: "full_name", label: "Name" },
@@ -101,57 +173,93 @@ export default function DTRTableCompact({ fileId }) {
   ];
 
   const integerColumns = new Set([
-    "total_days", "total_hours", "regular_ot", "legal_holiday",
-    "unworked_reg_holiday", "special_holiday", "night_diff", "undertime_minutes",
+    "total_days",
+    "total_hours",
+    "regular_ot",
+    "legal_holiday",
+    "unworked_reg_holiday",
+    "special_holiday",
+    "night_diff",
+    "undertime_minutes",
   ]);
 
   const formatCellValue = (colKey, value) => {
+
     if (integerColumns.has(colKey)) {
+
       const num = parseFloat(value);
+
       return Number.isNaN(num) ? "-" : Math.round(num);
+
     }
+
     return value ?? "-";
+
   };
+
+  /* ------------------------------------ */
 
   const totalEmployees = new Set(
     fileContents.map((row) => normalizeEmpNo(row?.employee_no)).filter(Boolean)
   ).size;
 
+  /* ------------------------------------ */
+
   return (
     <div className="dtr-compact-wrapper">
+
       <h3 className="dtr-compact-title">
-        Project: {selectedFileObj?.uploaded_by?.username || selectedFileObj?.uploaded_by?.full_name || "Unknown"} | Employees: {totalEmployees}
+        Project: {selectedFileObj?.uploaded_by?.username ||
+          selectedFileObj?.uploaded_by?.full_name ||
+          "Unknown"} | Employees: {totalEmployees}
       </h3>
 
       {selectedFileObj?.start_date && selectedFileObj?.end_date && (
         <div className="dtr-compact-date">
-          📅 Date Covered: {new Date(selectedFileObj.start_date).toLocaleDateString()} → {new Date(selectedFileObj.end_date).toLocaleDateString()}
+          📅 Date Covered: {new Date(selectedFileObj.start_date).toLocaleDateString()}
+          {" → "}
+          {new Date(selectedFileObj.end_date).toLocaleDateString()}
         </div>
       )}
 
       <div style={{ margin: "10px 0" }}>
-        <button onClick={handleParseAndDebug}>Parse & Debug</button>
+        <button onClick={handleParseAndDebug}>
+          Parse & Compare
+        </button>
       </div>
 
       <div className="dtr-compact-table-container">
+
         <table className="dtr-table dtr-compact">
+
           <thead>
+
             <tr>
-              {staticColumns.concat(summaryColumns, extraColumns).map((col, idx) =>
-                !hiddenColumns.includes(col.key) ? (
-                  <th key={col.key} className={idx === 0 ? "sticky-col" : ""}>{col.label}</th>
-                ) : null
-              )}
-              {dateColumns.map((date) =>
-                !hiddenColumns.includes(date) ? (
-                  <th key={date}>{getDayNumber(date)}</th>
-                ) : null
-              )}
+
+              {staticColumns.concat(summaryColumns, extraColumns).map((col, idx) => (
+
+                <th key={col.key} className={idx === 0 ? "sticky-col" : ""}>
+                  {col.label}
+                </th>
+
+              ))}
+
+              {dateColumns.map((date) => (
+
+                <th key={date}>
+                  {getDayNumber(date)}
+                </th>
+
+              ))}
+
             </tr>
+
           </thead>
 
           <tbody>
+
             {sortedContents.map((row, rIdx) => (
+
               <tr
                 key={row?.id ?? `row-${rIdx}`}
                 className={
@@ -162,26 +270,43 @@ export default function DTRTableCompact({ fileId }) {
                     : ""
                 }
               >
-                {staticColumns.concat(summaryColumns, extraColumns).map((col, idx) =>
-                  !hiddenColumns.includes(col.key) ? (
-                    <td key={col.key} className={idx === 0 ? "sticky-col" : ""}>
-                      {col.key === "full_name" &&
-                        (row.status_flag === "mismatch" ? "⚠️ " : row.status_flag === "match" ? "✅ " : "")
-                      }
-                      {formatCellValue(col.key, row[col.key])}
-                    </td>
-                  ) : null
-                )}
-                {dateColumns.map((date) =>
-                  !hiddenColumns.includes(date) ? (
-                    <td key={date}>{formatCellValue(date, row.daily_data?.[date])}</td>
-                  ) : null
-                )}
+
+                {staticColumns.concat(summaryColumns, extraColumns).map((col, idx) => (
+
+                  <td key={col.key} className={idx === 0 ? "sticky-col" : ""}>
+
+                    {col.key === "full_name" &&
+                      (row.status_flag === "mismatch"
+                        ? "⚠️ "
+                        : row.status_flag === "match"
+                        ? "✅ "
+                        : "")
+                    }
+
+                    {formatCellValue(col.key, row[col.key])}
+
+                  </td>
+
+                ))}
+
+                {dateColumns.map((date) => (
+
+                  <td key={date}>
+                    {formatCellValue(date, row.daily_data?.[date])}
+                  </td>
+
+                ))}
+
               </tr>
+
             ))}
+
           </tbody>
+
         </table>
+
       </div>
+
     </div>
   );
 }

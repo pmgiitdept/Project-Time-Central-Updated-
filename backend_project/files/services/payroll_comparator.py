@@ -7,6 +7,7 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
     """
     Compare DTREntry rows with the latest payroll PDF for the same owner.
     Updates DTREntry.mismatch_flag and DTREntry.status_flag.
+    Skips OT on Special Holiday / Legal Holiday from total OT comparison.
     """
 
     def debug(msg):
@@ -17,7 +18,6 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
             print(f"{prefix} {msg}")
 
     def normalize_emp_no(emp_no):
-        """Normalize employee number: digits only, pad to 5."""
         if not emp_no:
             return None
         emp_no_str = re.sub(r"\D", "", str(emp_no)).strip()
@@ -29,11 +29,9 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
 
         # Get latest PDFFile for this owner
         pdf_file = PDFFile.objects.filter(uploaded_by=owner, file__iendswith=".pdf").order_by("-uploaded_at").first()
-
         if not pdf_file:
             debug("No payroll PDF found for this owner")
             return
-
         debug(f"Using payroll PDF: {pdf_file.file.name} (owner: {pdf_file.uploaded_by.username if pdf_file.uploaded_by else 'Unknown'})")
 
         # Parse PDF
@@ -45,10 +43,23 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
                 debug(f"Skipping invalid PDF employee: {emp}")
                 continue
             try:
+                # Calculate OT ignoring SH / LH
+                total_ot = float(emp.get("ot_hours") or 0)
+                tables = emp.get("tables") or []
+                for table in tables:
+                    for row in table:
+                        if not row:
+                            continue
+                        holiday_type = (row[16] if len(row) > 16 else "").upper()  # Adjust index if necessary
+                        ot_hours = float(row[9] or 0)  # Assuming OT column index
+                        if holiday_type in ["SH", "LEGAL HOLIDAY", "SPECIAL HOLIDAY"]:
+                            total_ot -= ot_hours
+                total_ot = max(total_ot, 0)
+
                 pdf_map[emp_no_norm] = {
                     "wrk_days": float(emp.get("wrk_days") or 0),
                     "reg_hours": float(emp.get("reg_hours") or 0),
-                    "ot_hours": float(emp.get("ot_hours") or 0),
+                    "ot_hours": total_ot,
                     "nd_hours": float(emp.get("nd_hours") or 0),
                     "raw": emp
                 }
@@ -67,7 +78,6 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
             debug(f"Checking DTR emp: {emp_no_normalized} ({entry.full_name})")
 
             pdf_emp = pdf_map.get(emp_no_normalized)
-
             if not pdf_emp:
                 debug(f" → {entry.full_name} ({emp_no_normalized}) missing in Payroll PDF")
                 issues.append("Missing in Payroll PDF")

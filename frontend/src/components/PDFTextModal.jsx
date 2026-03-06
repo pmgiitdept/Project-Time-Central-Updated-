@@ -21,6 +21,9 @@ export default function PDFTextModal({ pdfData, currentUser }) {
   const totalPages = Object.keys(editableData || {}).length;
   const pageData = editableData[String(currentPage)];
 
+  console.log(`Debug - Page ${currentPage} data:`, pageData);
+  console.log(`Debug - Other texts on page ${currentPage}:`, pageData?.other_texts);
+
   const goNext = () =>
     currentPage < totalPages && setCurrentPage(currentPage + 1);
   const goPrev = () =>

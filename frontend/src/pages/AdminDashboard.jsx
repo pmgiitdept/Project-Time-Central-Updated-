@@ -30,6 +30,7 @@ import UploaderReviewModal from "../components/UploaderReviewModal";
 import UploadedPDFVertical from "../components/UploadedPDFVertical";
 import FileTableVertical from "../components/FileTableVertical";
 import UsageSummary from "../components/UsageSummary";
+import Manpower from "../components/Manpower";
 import api from "../api";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
@@ -103,6 +104,7 @@ export default function AdminDashboard() {
   let sidebarItems = [
     { key: "dashboard", label: "Dashboard", icon: <FaTachometerAlt /> },
     { key: "dtrStatus", label: "DTR Status Archives ", icon: <FaTable /> },
+    { key: "manpower", label: "Manpower Monitoring", icon: <FaUsers /> },
     { key: "audit", label: "Audit Logs", icon: <FaClipboardList /> },
     { key: "settings", label: "Settings", icon: <FaCog /> },
   ];
@@ -1169,6 +1171,12 @@ export default function AdminDashboard() {
           {activeSection === "dtrStatus" && (
             <div className="tables-wrapper">
               <DTRStatusDashboard />
+            </div>
+          )}
+
+          {activeSection === "manpower" && (
+            <div className="tables-wrapper">
+              <Manpower />
             </div>
           )}
 

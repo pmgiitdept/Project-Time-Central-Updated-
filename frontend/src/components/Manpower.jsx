@@ -119,34 +119,52 @@ export default function Manpower() {
 
     <div className="manpower-filters">
         <div className="filter-item">
-        <label>Project / Uploader</label>
-        <select value={uploaderFilter} onChange={(e) => setUploaderFilter(e.target.value)}>
+            <label>Project / Uploader</label>
+            <select value={uploaderFilter} onChange={(e) => setUploaderFilter(e.target.value)}>
             <option value="">All Projects</option>
             {uniqueUploaders.map(u => (
-            <option key={u} value={u}>{u}</option>
+                <option key={u} value={u}>{u}</option>
             ))}
-        </select>
+            </select>
         </div>
 
         <div className="filter-item">
-        <label>Start Date</label>
-        <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
+            <label>Start Date</label>
+            <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
         </div>
 
         <div className="filter-item">
-        <label>End Date</label>
-        <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} />
+            <label>End Date</label>
+            <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} />
+        </div>
+
+        <div className="filter-item search-employee">
+            <label>Search Employee</label>
+            <input
+            type="text"
+            placeholder="Name or Employee No"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            />
+        </div>
+
+        <div className="filter-item reset-filters">
+            <button onClick={resetFilters}>Reset Filters</button>
         </div>
     </div>
 
     <div className="manpower-summary">
         <div className="summary-card">
-        <strong>Total Employees</strong>
-        <span>{allEmployees.regular.length}</span>
+            <strong>Total Employees</strong>
+            <span>{allEmployees.regular.length}</span>
         </div>
         <div className="summary-card">
-        <strong>Total Relievers</strong>
-        <span>{allEmployees.relievers.length}</span>
+            <strong>Total Relievers</strong>
+            <span>{allEmployees.relievers.length}</span>
+        </div>
+        <div className="summary-card">
+            <strong>Total Projects</strong>
+            <span>{uniqueUploaders.length}</span>
         </div>
     </div>
 

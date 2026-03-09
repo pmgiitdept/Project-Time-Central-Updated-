@@ -117,7 +117,7 @@ export default function AdminDashboard() {
 
     sidebarItems.splice(2, 0, {
       key: "filesVertical",
-      label: "DTR Files (Vertical)",
+      label: "Cross Validation View",
       icon: <FaFileAlt />
     });
 
@@ -143,8 +143,8 @@ export default function AdminDashboard() {
   else if (currentUser?.username === "payroll.pmgi") {
 
     sidebarItems.splice(1, 0, {
-      key: "files",
-      label: "DTR Files",
+      key: "filesVertical",
+      label: "Cross Validation View",
       icon: <FaFileAlt />
     });
 
@@ -164,8 +164,8 @@ export default function AdminDashboard() {
   else if (currentUser?.username === "hr_staff.pmgi") {
 
     sidebarItems.splice(1, 0, {
-      key: "files",
-      label: "DTR Files",
+      key: "filesVertical",
+      label: "Cross Validation View",
       icon: <FaFileAlt />
     });
 
@@ -185,8 +185,8 @@ export default function AdminDashboard() {
   else if (currentUser?.username === "eas_finance.pmgi") {
 
     sidebarItems.splice(1, 0, {
-      key: "files",
-      label: "DTR Files",
+      key: "filesVertical",
+      label: "Cross Validation View",
       icon: <FaFileAlt />
     });
 
@@ -215,8 +215,8 @@ export default function AdminDashboard() {
   else if (currentUser?.username === "operations_manager.pmgi") {
 
     sidebarItems.splice(1, 0, {
-      key: "files",
-      label: "DTR Files",
+      key: "filesVertical",
+      label: "Cross Validation View",
       icon: <FaFileAlt />
     });
 
@@ -229,8 +229,8 @@ export default function AdminDashboard() {
   else if (currentUser?.username === "operations.gl") {
 
     sidebarItems.splice(1, 0, {
-      key: "files",
-      label: "DTR Files",
+      key: "filesVertical",
+      label: "Cross Validation View",
       icon: <FaFileAlt />
     });
 
@@ -243,8 +243,8 @@ export default function AdminDashboard() {
   else if (currentUser?.username === "operations.hk") {
 
     sidebarItems.splice(1, 0, {
-      key: "files",
-      label: "DTR Files",
+      key: "filesVertical",
+      label: "Cross Validation View",
       icon: <FaFileAlt />
     });
 
@@ -257,8 +257,8 @@ export default function AdminDashboard() {
   else if (currentUser?.username === "operations.pmgi") {
 
     sidebarItems.splice(1, 0, {
-      key: "files",
-      label: "DTR Files",
+      key: "filesVertical",
+      label: "Cross Validation View",
       icon: <FaFileAlt />
     });
 
@@ -1062,7 +1062,7 @@ export default function AdminDashboard() {
 
           {["itdept.pmgi", "payroll.pmgi", "hr_staff.pmgi", "eas_finance.pmgi", "operations.pmgi", "operations.hk", "operations.gl", "operations_manager.pmgi"].includes(currentUser?.username) && (
             <>
-              {activeSection === "files" && (
+              {/* {activeSection === "files" && (
                 <div className="tables-wrapper">
                   <div style={{ position: "fixed", top: "100px", right: "40px", zIndex: 500 }}>
                     <button onClick={() => setRefresh(!refresh)} className="upload-button">
@@ -1110,8 +1110,8 @@ export default function AdminDashboard() {
                     />
                   )}
                 </div>
-              )}
-
+              )} */}
+            
               {activeSection === "filesVertical" && (
                 <div className="tables-wrapper">
                   <div style={{ position: "fixed", top: "100px", right: "40px", zIndex: 500 }}>

@@ -10,6 +10,9 @@ export default function FileTableVertical({ role, uploaderFilter = null }) {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedFileId, setSelectedFileId] = useState(null);
+  const [downloadLoading, setDownloadLoading] = useState({});
+  const [deleting, setDeleting] = useState({});
+  const [deleteModal, setDeleteModal] = useState({ open: false, fileIds: [], message: "" });
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -70,6 +73,70 @@ export default function FileTableVertical({ role, uploaderFilter = null }) {
     }
   };
 
+  const handleDownload = async (fileId, fileName, fileUrl) => {
+    if (fileUrl && fileUrl.endsWith(".pdf")) {
+      window.open(fileUrl, "_blank");
+      return;
+    }
+
+    setDownloadLoading((prev) => ({ ...prev, [fileId]: true }));
+    try {
+      const token = localStorage.getItem("access_token");
+      const res = await api.get(`/files/dtr/files/${fileId}/export/`, {
+        headers: { Authorization: `Bearer ${token}` },
+        responseType: "blob",
+      });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", fileName);
+      document.body.appendChild(link);
+      link.click();
+      toast.success(`Downloaded ${fileName}`);
+    } catch (err) {
+      console.error(err);
+      toast.error("Download failed or no permission");
+    } finally {
+      setDownloadLoading((prev) => ({ ...prev, [fileId]: false }));
+    }
+  };
+
+  const handleDeleteClick = (fileId) => {
+    setDeleteModal({
+      open: true,
+      fileIds: [fileId],
+      message: "Are you sure you want to delete this DTR file?",
+    });
+  };
+
+  const confirmDelete = async () => {
+    const fileIds = deleteModal.fileIds;
+    const token = localStorage.getItem("access_token");
+
+    try {
+      const newDeleting = {};
+      fileIds.forEach(id => newDeleting[id] = true);
+      setDeleting(prev => ({ ...prev, ...newDeleting }));
+
+      await Promise.all(
+        fileIds.map((fileId) =>
+          api.delete(`/files/dtr/files/${fileId}/`, { headers: { Authorization: `Bearer ${token}` } })
+        )
+      );
+
+      setFiles(prevFiles => prevFiles.filter(file => !fileIds.includes(file.id)));
+      toast.success(`${fileIds.length} DTR file(s) deleted successfully`);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to delete DTR file(s)");
+    } finally {
+      const newDeleting = {};
+      fileIds.forEach(id => newDeleting[id] = false);
+      setDeleting(prev => ({ ...prev, ...newDeleting }));
+      setDeleteModal({ open: false, fileIds: [], message: "" });
+    }
+  };
+
   const getFilteredFiles = () => {
     return files.filter((file) => {
       const name = (file.file?.split("/").pop() || "").toLowerCase();
@@ -99,17 +166,33 @@ export default function FileTableVertical({ role, uploaderFilter = null }) {
   const uniqueUploaders = [...new Set(files.map(f => f.uploaded_by?.username).filter(Boolean))];
 
   return (
-    <motion.div className="file-vertical-wrapper" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-      
-      {/* TOP SECTION */}
-      <div className="file-vertical-top">
-        <div className="vertical-header">
-          <h3>Summary Forms Dashboard</h3>
-          <button className="refresh-btn" onClick={fetchFiles}><FaSyncAlt /></button>
+    <>
+      {deleteModal.open && (
+        <div className="modal-overlay5" onClick={() => setDeleteModal({ open: false, fileIds: [], message: "" })}>
+          <div className="modal-wrapper5" onClick={(e) => e.stopPropagation()}>
+            <h3>Confirm Delete</h3>
+            <p>{deleteModal.message}</p>
+            <div className="modal-actions">
+              <button onClick={() => setDeleteModal({ open: false, fileIds: [], message: "" })}>Cancel</button>
+              <button onClick={confirmDelete} className="action-btn delete">
+                {deleteModal.fileIds.some(id => deleting[id]) ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
         </div>
+      )}
 
-        {/* FILTERS */}
-        <div className="vertical-filters">
+      <motion.div className="file-vertical-wrapper" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+
+        {/* TOP SECTION */}
+        <div className="file-vertical-top">
+          <div className="vertical-header">
+            <h3>Summary Forms Dashboard</h3>
+            <button className="refresh-btn" onClick={fetchFiles}><FaSyncAlt /></button>
+          </div>
+
+          {/* FILTERS */}
+          <div className="vertical-filters">
             <label className="filter-label">
                 Search:
                 <input
@@ -183,48 +266,61 @@ export default function FileTableVertical({ role, uploaderFilter = null }) {
             </label>
         </div>
 
-        {/* TABLE */}
-        <div className="vertical-table-container">
-          <table className="vertical-file-table">
-            <thead>
-              <tr>
-                <th>Uploader</th>
-                <th>Uploaded</th>
-                <th>Status</th>
-                <th>Start</th>
-                <th>End</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredFiles.map(file => (
-                <tr key={file.id} className={selectedFileId === file.id ? "selected-row" : ""} onClick={() => setSelectedFileId(file.id)}>
-                  <td>{file.uploaded_by?.username || "N/A"}</td>
-                  <td>{new Date(file.uploaded_at).toLocaleString()}</td>
-                  <td>
-                    {(role === "admin" || role === "viewer") ? (
-                      <select value={file.status} onChange={(e) => handleStatusChange(file.id, e.target.value)} className={`status-select ${file.status}`}>
-                        <option value="pending">Pending</option>
-                        <option value="verified">Verified</option>
-                        <option value="rejected">Rejected</option>
-                      </select>
-                    ) : (
-                      <span className={`status-badge status-${file.status}`}>{file.status}</span>
-                    )}
-                  </td>
-                  <td>{file.start_date ? new Date(file.start_date).toLocaleDateString() : "-"}</td>
-                  <td>{file.end_date ? new Date(file.end_date).toLocaleDateString() : "-"}</td>
+          {/* TABLE */}
+          <div className="vertical-table-container">
+            <table className="vertical-file-table">
+              <thead>
+                <tr>
+                  <th>Uploader</th>
+                  <th>Uploaded</th>
+                  <th>Status</th>
+                  <th>Start</th>
+                  <th>End</th>
+                  {(role === "admin" || role === "viewer") && <th>Actions</th>}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filteredFiles.map(file => (
+                  <tr key={file.id} className={selectedFileId === file.id ? "selected-row" : ""} onClick={() => setSelectedFileId(file.id)}>
+                    <td>{file.uploaded_by?.username || "N/A"}</td>
+                    <td>{new Date(file.uploaded_at).toLocaleString()}</td>
+                    <td>
+                      {(role === "admin" || role === "viewer") ? (
+                        <select value={file.status} onChange={(e) => handleStatusChange(file.id, e.target.value)} className={`status-select ${file.status}`}>
+                          <option value="pending">Pending</option>
+                          <option value="verified">Verified</option>
+                          <option value="rejected">Rejected</option>
+                        </select>
+                      ) : (
+                        <span className={`status-badge status-${file.status}`}>{file.status}</span>
+                      )}
+                    </td>
+                    <td>{file.start_date ? new Date(file.start_date).toLocaleDateString() : "-"}</td>
+                    <td>{file.end_date ? new Date(file.end_date).toLocaleDateString() : "-"}</td>
+
+                    {(role === "admin" || role === "viewer") && (
+                      <td>
+                        <button className="action-btn download" onClick={(e) => { e.stopPropagation(); handleDownload(file.id, `DTR_${file.id}.xlsx`, file.file); }} disabled={downloadLoading[file.id]}>
+                          {downloadLoading[file.id] ? "Downloading..." : "Download"}
+                        </button>
+                        <button className="action-btn delete" onClick={(e) => { e.stopPropagation(); handleDeleteClick(file.id); }} disabled={deleting[file.id]}>
+                          {deleting[file.id] ? "Deleting..." : "Delete"}
+                        </button>
+                      </td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
 
-      {/* BOTTOM SECTION (DTR Table) */}
-      <div className="file-vertical-bottom">
-        <DTRTableCompact role={role} fileId={selectedFileId} />
-      </div>
+        {/* BOTTOM SECTION (DTR Table) */}
+        <div className="file-vertical-bottom">
+          <DTRTableCompact role={role} fileId={selectedFileId} />
+        </div>
 
-    </motion.div>
+      </motion.div>
+    </>
   );
 }

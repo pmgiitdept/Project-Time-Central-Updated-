@@ -141,3 +141,18 @@
 .match-row {
   background-color: #e6ffea;
 }
+
+.action-btn {
+  padding: 4px 8px;
+  font-size: 12px;
+  border-radius: 4px;
+  border: none;
+  background-color: #1a73e8;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.action-btn:hover {
+  background-color: #1558b0;
+}

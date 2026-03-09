@@ -15,6 +15,9 @@ export default function FileTableVertical({ role, uploaderFilter = null }) {
   const [deleteModal, setDeleteModal] = useState({ open: false, fileIds: [], message: "" });
   const [viewingReason, setViewingReason] = useState(null);
 
+  const [rejectingFileId, setRejectingFileId] = useState(null);
+  const [rejectionReason, setRejectionReason] = useState("");
+
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [uploaderFilterLocal, setUploaderFilterLocal] = useState(uploaderFilter || "");
@@ -56,18 +59,25 @@ export default function FileTableVertical({ role, uploaderFilter = null }) {
   };
 
   const handleStatusChange = async (fileId, newStatus) => {
+    if (newStatus === "rejected") {
+      setRejectingFileId(fileId);
+      return;
+    }
+
     const token = localStorage.getItem("access_token");
     try {
       await api.patch(
         `/files/dtr/files/${fileId}/status/`,
-        { status: newStatus },
+        { status: newStatus, rejection_reason: null },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setFiles((prev) =>
-        prev.map((file) =>
-          file.id === fileId ? { ...file, status: newStatus } : file
+
+      setFiles(prev =>
+        prev.map(file =>
+          file.id === fileId ? { ...file, status: newStatus, rejection_reason: null } : file
         )
       );
+
       toast.success(`Status updated to ${newStatus}`);
     } catch {
       toast.error("Failed to update status");
@@ -177,6 +187,54 @@ export default function FileTableVertical({ role, uploaderFilter = null }) {
               <button onClick={() => setDeleteModal({ open: false, fileIds: [], message: "" })}>Cancel</button>
               <button onClick={confirmDelete} className="action-btn delete">
                 {deleteModal.fileIds.some(id => deleting[id]) ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {rejectingFileId && (
+        <div className="modal-overlay5" onClick={() => setRejectingFileId(null)}>
+          <div className="modal-wrapper5" onClick={e => e.stopPropagation()}>
+            <h3>Reject DTR File</h3>
+            <textarea
+              placeholder="Enter reason for rejection..."
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+              rows={4}
+              style={{ width: "100%", marginBottom: "1rem" }}
+            />
+            <div className="modal-actions">
+              <button onClick={() => setRejectingFileId(null)}>Cancel</button>
+              <button
+                className="action-btn delete"
+                onClick={async () => {
+                  try {
+                    const token = localStorage.getItem("access_token");
+                    await api.patch(
+                      `/files/dtr/files/${rejectingFileId}/status/`,
+                      { status: "rejected", rejection_reason: rejectionReason },
+                      { headers: { Authorization: `Bearer ${token}` } }
+                    );
+
+                    setFiles(prev =>
+                      prev.map(file =>
+                        file.id === rejectingFileId
+                          ? { ...file, status: "rejected", rejection_reason: rejectionReason }
+                          : file
+                      )
+                    );
+
+                    toast.success("File rejected");
+                  } catch {
+                    toast.error("Failed to reject file");
+                  } finally {
+                    setRejectingFileId(null);
+                    setRejectionReason("");
+                  }
+                }}
+              >
+                Reject
               </button>
             </div>
           </div>

@@ -232,37 +232,31 @@ export default function DTRTableCompact({ fileId }) {
                 {staticColumns.concat(summaryColumns, extraColumns).map((col, idx) => (
                   <td key={col.key} className={idx === 0 ? "sticky-col" : ""}>
                     {col.key === "full_name" ? (
-                    <div className="employee-name-cell">
+  <div className="employee-name-cell">
+    <div className="employee-name-main">
+      {row.status_flag === "mismatch" && (
+        <div className="status-icon-wrapper">
+          <span className="status-icon mismatch">⚠️</span>
+          {row.mismatch_flag && (
+            <div className="floating-mismatch">
+              {row.mismatch_flag}
+            </div>
+          )}
+        </div>
+      )}
 
-                      <div className="employee-name-main">
-                        {row.status_flag === "mismatch" && (
-                          <span
-                            className="status-icon mismatch"
-                            title={row.mismatch_flag || "Mismatch detected"}
-                          >
-                            ⚠️
-                          </span>
-                        )}
+      {row.status_flag === "match" && (
+        <span className="status-icon match" title="Data matches payroll">
+          ✅
+        </span>
+      )}
 
-                        {row.status_flag === "match" && (
-                          <span className="status-icon match" title="Data matches payroll">
-                            ✅
-                          </span>
-                        )}
-
-                        <span>{row.full_name}</span>
-                      </div>
-
-                      {row.status_flag === "mismatch" && row.mismatch_flag && (
-                        <div className="mismatch-details">
-                          {row.mismatch_flag}
-                        </div>
-                      )}
-
-                    </div>
-                  ) : (
-                    formatCellValue(col.key, row[col.key])
-                  )}
+      <span>{row.full_name}</span>
+    </div>
+  </div>
+) : (
+  formatCellValue(col.key, row[col.key])
+)}
                   </td>
                 ))}
                 {dateColumns.map((date) => (

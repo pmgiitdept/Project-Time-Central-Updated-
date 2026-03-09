@@ -134,28 +134,25 @@
   }
 }
 
-.employee-name-cell {
-  display: flex;
-  flex-direction: column;
+.status-icon-wrapper {
+  position: relative;
+  display: inline-block;
 }
 
-.employee-name-main {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+.floating-mismatch {
+  display: block;
+  position: absolute;
+  top: -8px;        /* slightly above the icon */
+  left: 20px;       /* right of the icon */
+  background-color: #d93025;
+  color: white;
+  font-size: 10px;
   font-weight: 500;
-}
-
-.status-icon {
-  font-size: 14px;
-}
-
-.mismatch-details {
-  margin-top: 3px;
-  font-size: 11px;
-  color: #d93025;
-  font-weight: 500;
-  line-height: 1.2;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  z-index: 10;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
 
 .mismatch-row {

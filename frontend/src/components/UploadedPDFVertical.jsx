@@ -80,43 +80,37 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
         </div>
 
         <div className="vertical-filters">
-            <div className="filter-label">
-                <span>Search</span>
-                <input
-                type="text"
-                placeholder="Filename / Employee Name"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                />
-            </div>
+          {/* Search */}
+          <div className="filter-item">
+            <label>Search</label>
+            <input
+              type="text"
+              placeholder="Filename / Employee Name"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
 
-            <div className="filter-label">
-                <span>Upload Start</span>
-                <input
-                type="date"
-                value={uploadStartDate}
-                onChange={e => setUploadStartDate(e.target.value)}
-                />
-            </div>
+          {/* Upload Start */}
+          <div className="filter-item">
+            <label>Upload From</label>
+            <input
+              type="date"
+              value={uploadStartDate}
+              onChange={(e) => setUploadStartDate(e.target.value)}
+            />
+          </div>
 
-            <div className="filter-label">
-                <span>Upload End</span>
-                <input
-                type="date"
-                value={uploadEndDate}
-                onChange={e => setUploadEndDate(e.target.value)}
-                />
-            </div>
-
-            <div className="filter-label">
-                <span>Uploader / Project</span>
-                <input
-                type="text"
-                placeholder="Uploader or Project Name"
-                value={uploaderFilterLocal}
-                onChange={e => setUploaderFilterLocal(e.target.value)}
-                />
-            </div>
+          {/* Uploader / Project */}
+          <div className="filter-item">
+            <label>Uploader / Project</label>
+            <input
+              type="text"
+              placeholder="Uploader or Project Name"
+              value={uploaderFilterLocal}
+              onChange={(e) => setUploaderFilterLocal(e.target.value)}
+            />
+          </div>
         </div>
 
         {loading ? <p>Loading...</p> : (

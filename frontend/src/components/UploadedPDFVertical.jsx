@@ -133,7 +133,7 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
                     <td>
                       {file.type === "pdf" ? (
                         <>
-                          <button onClick={e => { e.stopPropagation(); openModal(file, "text"); }}  className="view-btn">View DTR</button>
+                          <button onClick={e => { e.stopPropagation(); openModal(file, "text"); }}  className="dtr-btn">View DTR</button>
                           <button onClick={e => { e.stopPropagation(); openModal(file, "visual"); }}  className="visual-btn">Visual</button>
                         </>
                       ) : (

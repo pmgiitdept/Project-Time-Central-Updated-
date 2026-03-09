@@ -7,9 +7,10 @@
   color: #1f2937;
 }
 
-/* Filters Section */
 .manpower-filters {
   display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
   flex-wrap: wrap;
   gap: 20px;
   margin-bottom: 30px;
@@ -19,6 +20,16 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
+/* Left and Right groups */
+.filters-left,
+.filters-right {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-end;
+}
+
+/* Individual filter items */
 .filter-item {
   display: flex;
   flex-direction: column;
@@ -49,7 +60,7 @@
   box-shadow: 0 0 0 2px rgba(2,132,199,0.2);
 }
 
-/* Search box specifically */
+/* Search box width */
 .search-employee input {
   width: 220px;
 }
@@ -68,11 +79,31 @@
   border-radius: 10px;
   border: none;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, transform 0.2s;
 }
 
 .reset-filters button:hover {
   background-color: #0369a1;
+  transform: translateY(-1px);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .manpower-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .filters-left,
+  .filters-right {
+    justify-content: flex-start;
+    width: 100%;
+  }
+  .search-employee input {
+    width: 100%;
+  }
+  .reset-filters {
+    justify-content: flex-start;
+  }
 }
 
 /* Summary Cards */

@@ -231,8 +231,10 @@ export default function DTRTableCompact({ fileId }) {
               >
                 {staticColumns.concat(summaryColumns, extraColumns).map((col, idx) => (
                   <td key={col.key} className={idx === 0 ? "sticky-col" : ""}>
-                    {col.key === "full_name" && (
-                      <>
+                    {col.key === "full_name" ? (
+                    <div className="employee-name-cell">
+
+                      <div className="employee-name-main">
                         {row.status_flag === "mismatch" && (
                           <span
                             className="status-icon mismatch"
@@ -247,9 +249,20 @@ export default function DTRTableCompact({ fileId }) {
                             ✅
                           </span>
                         )}
-                      </>
-                    )}
-                    {formatCellValue(col.key, row[col.key])}
+
+                        <span>{row.full_name}</span>
+                      </div>
+
+                      {row.status_flag === "mismatch" && row.mismatch_flag && (
+                        <div className="mismatch-details">
+                          {row.mismatch_flag}
+                        </div>
+                      )}
+
+                    </div>
+                  ) : (
+                    formatCellValue(col.key, row[col.key])
+                  )}
                   </td>
                 ))}
                 {dateColumns.map((date) => (

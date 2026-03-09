@@ -51,6 +51,14 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
     }
   }, []);
 
+  const uploaderProjectOptions = [
+    ...new Set(
+      files.map(file =>
+        file.type === "pdf" ? file.uploaded_by_name : file.project
+      )
+    ),
+  ].filter(Boolean);
+
   const filteredFiles = files.filter(file => {
     const matchesSearch = file.type === "pdf"
       ? file.file.split("/").pop().toLowerCase().includes(search.toLowerCase())
@@ -83,7 +91,6 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
         </div>
 
         <div className="vertical-filters">
-          {/* Search */}
           <div className="filter-item">
             <label>Search</label>
             <input
@@ -94,7 +101,6 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
             />
           </div>
 
-          {/* Upload Start */}
           <div className="filter-item">
             <label>Upload From</label>
             <input
@@ -104,15 +110,19 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
             />
           </div>
 
-          {/* Uploader / Project */}
           <div className="filter-item">
             <label>Uploader / Project</label>
-            <input
-              type="text"
-              placeholder="Uploader or Project Name"
+            <select
               value={uploaderFilterLocal}
               onChange={(e) => setUploaderFilterLocal(e.target.value)}
-            />
+            >
+              <option value="">All</option>
+              {uploaderProjectOptions.map((option, index) => (
+                <option key={index} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 

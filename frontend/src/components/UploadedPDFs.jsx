@@ -12,13 +12,10 @@ export default function UploadedPDFs({ refreshTrigger, currentUser, uploaderFilt
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Collapse state for sidebar
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  // Unified modal selection
   const [activeModal, setActiveModal] = useState({ type: null, data: null });
 
-  // Fetch PDFs
   const fetchPDFs = async () => {
     try {
       const res = await api.get("/files/pdfs/");
@@ -32,7 +29,6 @@ export default function UploadedPDFs({ refreshTrigger, currentUser, uploaderFilt
     }
   };
 
-  // Fetch Parsed DTRs
   const fetchParsedDTRs = async () => {
     try {
       const res = await api.get("/files/parsed-dtrs/");
@@ -67,7 +63,6 @@ export default function UploadedPDFs({ refreshTrigger, currentUser, uploaderFilt
     }
   };
 
-  // Modal handlers
   const openTextModal = (pdf) => setActiveModal({ type: "text", data: pdf });
   const openVisualModal = (pdf) => setActiveModal({ type: "visual", data: pdf });
   const openParsedModal = (dtr) => setActiveModal({ type: "parsed", data: dtr });
@@ -136,7 +131,6 @@ export default function UploadedPDFs({ refreshTrigger, currentUser, uploaderFilt
         )}
       </motion.div>
 
-      {/* MODALS */}
       {activeModal.type === "text" && (
         <PDFTextModal pdfData={activeModal.data} currentUser={currentUser} onClose={closeModal} />
       )}

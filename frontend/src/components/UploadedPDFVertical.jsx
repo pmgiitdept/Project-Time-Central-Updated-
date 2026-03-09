@@ -67,7 +67,10 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
     return matchesSearch && matchesUploadStart && matchesUploadEnd && matchesUploader;
   });
 
-  const openModal = (file, type) => setActiveModal({ type, data: file });
+  const openModal = (file, type) => {
+    setSelectedFile(file);
+    setActiveModal({ type, data: file });
+  };
   const closeModal = () => setActiveModal({ type: null, data: null });
 
   return (

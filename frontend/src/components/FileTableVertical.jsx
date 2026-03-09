@@ -260,7 +260,7 @@ export default function FileTableVertical({ role, uploaderFilter = null }) {
         <div className="file-vertical-top">
           <div className="vertical-header">
             <h3>Summary Forms Dashboard</h3>
-            <button className="refresh-btn" onClick={fetchFiles}><FaSyncAlt /></button>
+            <button className="refresh-btn" onClick={() => fetchFiles()}><FaSyncAlt /></button>
           </div>
 
           <div className="vertical-filters">

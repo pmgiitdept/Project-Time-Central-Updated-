@@ -85,14 +85,21 @@ def parse_payroll_pdf(file_path_or_obj, log_debug=None):
                         try:
                             low = float(row[8] or 0)      # worked hours
                             ot = float(row[9] or 0)       # OT
-                            nd = float(row[13] or 0)      # night diff
+
+                            # FIX: Sum ND REG + ND OT
+                            nd_reg = float(row[13] or 0)
+                            nd_ot = float(row[14] or 0)
+                            nd = nd_reg + nd_ot
+
                             holiday = (row[16] or "").strip().upper()
+
                         except Exception:
                             debug(f"Page {page_num}: Failed to parse row {row}, skipping")
                             continue
 
                         if low > 0:
                             total_days += 1
+
                         reg_hours += low
                         ot_hours += ot
                         nd_hours += nd

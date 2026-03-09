@@ -198,6 +198,17 @@ export default function DTRTableCompact({ fileId }) {
             <button onClick={handleParseAndDebug}>
               Parse & Compare
             </button>
+            <p
+              style={{
+                marginTop: "6px",
+                fontSize: "0.8rem",
+                color: "#b91c1c", 
+                lineHeight: 1.3,
+              }}
+            >
+              ⚠️ Note: Parsing works correctly only if the PDF upload is from the biometric system.
+              Uploads from other sources may result in errors or mismatched data.
+            </p>
           </div>
 
           {fileContents.length > 0 ? (

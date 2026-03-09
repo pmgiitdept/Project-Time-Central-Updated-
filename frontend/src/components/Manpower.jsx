@@ -154,75 +154,78 @@ export default function Manpower() {
 
     {!loading && (
     <div className="manpower-tables-container">
+        {/* Regular Employees Table */}
         <div className="manpower-section">
-        <h3 className="section-title">Regular Employees</h3>
-        <div className="manpower-table-wrapper">
-            <table className="manpower-table">
-            <thead>
-                <tr>
-                <th>Employee No</th>
-                <th>Full Name</th>
-                <th>Projects</th>
-                </tr>
-            </thead>
-            <tbody>
-                {allEmployees.regular.map(emp => (
-                <tr key={emp.employee_no}>
-                    <td>{emp.employee_no}</td>
-                    <td>{emp.full_name}</td>
-                    <td>
-                    {Array.from(emp.projects).map(p => (
-                        <span key={p} className="project-badge">
-                        {p} ({projectCounts.regularCounts[p]})
-                        </span>
-                    ))}
-                    </td>
-                </tr>
-                ))}
-                {allEmployees.regular.length === 0 && (
-                <tr>
-                    <td colSpan={3} className="empty-row">No employees found</td>
-                </tr>
-                )}
-            </tbody>
-            </table>
-        </div>
+            <h3 className="section-title">
+                Regular Employees
+                <span className="section-badge">{allEmployees.regular.length} total</span>
+            </h3>
+            <div className="manpower-table-wrapper">
+                <table className="manpower-table">
+                    <thead>
+                        <tr>
+                        <th>Employee No</th>
+                        <th>Full Name</th>
+                        <th>Projects</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {allEmployees.regular.map(emp => (
+                        <tr key={emp.employee_no}>
+                            <td>{emp.employee_no}</td>
+                            <td>{emp.full_name}</td>
+                            <td>
+                            {Array.from(emp.projects).map(p => (
+                                <span key={p} className="project-badge">{p}</span>
+                            ))}
+                            </td>
+                        </tr>
+                        ))}
+                        {allEmployees.regular.length === 0 && (
+                        <tr>
+                            <td colSpan={3} className="empty-row">No employees found</td>
+                        </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
         </div>
 
-        {/* Relievers Table */}
+            {/* Relievers Table */}
         <div className="manpower-section">
-        <h3 className="section-title">Relievers</h3>
-        <div className="manpower-table-wrapper">
-            <table className="manpower-table">
-            <thead>
-                <tr>
-                <th>Employee No</th>
-                <th>Full Name</th>
-                <th>Projects</th>
-                </tr>
-            </thead>
-            <tbody>
-                {allEmployees.relievers.map(emp => (
-                <tr key={emp.employee_no}>
-                    <td>{emp.employee_no}</td>
-                    <td>{emp.full_name}</td>
-                    <td>
-                    {Array.from(emp.projects).map(p => (
-                        <span key={p} className="project-badge">
-                        {p} ({projectCounts.relieverCounts[p]})
-                        </span>
-                    ))}
-                    </td>
-                </tr>
-                ))}
-                {allEmployees.relievers.length === 0 && (
-                <tr>
-                    <td colSpan={3} className="empty-row">No relievers found</td>
-                </tr>
-                )}
-            </tbody>
-            </table>
-        </div>
+            <h3 className="section-title">
+                Relievers
+                <span className="section-badge">{allEmployees.relievers.length} total</span>
+            </h3>
+            <div className="manpower-table-wrapper">
+                <table className="manpower-table">
+                    <thead>
+                        <tr>
+                        <th>Employee No</th>
+                        <th>Full Name</th>
+                        <th>Projects</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {allEmployees.relievers.map(emp => (
+                        <tr key={emp.employee_no}>
+                            <td>{emp.employee_no}</td>
+                            <td>{emp.full_name}</td>
+                            <td>
+                            {Array.from(emp.projects).map(p => (
+                                <span key={p} className="project-badge">{p}</span>
+                            ))}
+                            </td>
+                        </tr>
+                        ))}
+                        {allEmployees.relievers.length === 0 && (
+                        <tr>
+                            <td colSpan={3} className="empty-row">No relievers found</td>
+                        </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
     )}

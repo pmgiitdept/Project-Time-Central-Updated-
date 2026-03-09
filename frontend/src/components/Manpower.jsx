@@ -94,11 +94,29 @@ export default function Manpower() {
 
   const uniqueUploaders = [...new Set(files.map(f => f.project).filter(Boolean))];
 
+    const projectCounts = useMemo(() => {
+    const regularCounts = {};
+    const relieverCounts = {};
+
+    allEmployees.regular.forEach(emp => {
+        emp.projects.forEach(proj => {
+        regularCounts[proj] = (regularCounts[proj] || 0) + 1;
+        });
+    });
+
+    allEmployees.relievers.forEach(emp => {
+        emp.projects.forEach(proj => {
+        relieverCounts[proj] = (relieverCounts[proj] || 0) + 1;
+        });
+    });
+
+    return { regularCounts, relieverCounts };
+    }, [allEmployees]);
+
   return (
     <motion.div className="manpower-container" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
     <h2>👥 Manpower Monitoring</h2>
 
-    {/* Filters */}
     <div className="manpower-filters">
         <div className="filter-item">
         <label>Project / Uploader</label>
@@ -121,7 +139,6 @@ export default function Manpower() {
         </div>
     </div>
 
-    {/* Summary */}
     <div className="manpower-summary">
         <div className="summary-card">
         <strong>Total Employees</strong>
@@ -135,10 +152,8 @@ export default function Manpower() {
 
     {loading && <p>Loading manpower...</p>}
 
-    {/* Tables Section */}
     {!loading && (
     <div className="manpower-tables-container">
-        {/* Regular Employees */}
         <div className="manpower-section">
         <h3 className="section-title">Regular Employees</h3>
         <div className="manpower-table-wrapper">
@@ -155,7 +170,13 @@ export default function Manpower() {
                 <tr key={emp.employee_no}>
                     <td>{emp.employee_no}</td>
                     <td>{emp.full_name}</td>
-                    <td>{Array.from(emp.projects).map(p => <span key={p}>{p}</span>)}</td>
+                    <td>
+                    {Array.from(emp.projects).map(p => (
+                        <span key={p} className="project-badge">
+                        {p} ({projectCounts.regularCounts[p]})
+                        </span>
+                    ))}
+                    </td>
                 </tr>
                 ))}
                 {allEmployees.regular.length === 0 && (
@@ -168,7 +189,7 @@ export default function Manpower() {
         </div>
         </div>
 
-        {/* Relievers */}
+        {/* Relievers Table */}
         <div className="manpower-section">
         <h3 className="section-title">Relievers</h3>
         <div className="manpower-table-wrapper">
@@ -185,7 +206,13 @@ export default function Manpower() {
                 <tr key={emp.employee_no}>
                     <td>{emp.employee_no}</td>
                     <td>{emp.full_name}</td>
-                    <td>{Array.from(emp.projects).map(p => <span key={p}>{p}</span>)}</td>
+                    <td>
+                    {Array.from(emp.projects).map(p => (
+                        <span key={p} className="project-badge">
+                        {p} ({projectCounts.relieverCounts[p]})
+                        </span>
+                    ))}
+                    </td>
                 </tr>
                 ))}
                 {allEmployees.relievers.length === 0 && (

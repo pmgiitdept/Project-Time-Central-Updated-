@@ -131,3 +131,15 @@
   font-size: 12px;
   font-weight: 500;
 }
+
+.project-badge {
+  background-color: #dbeafe; 
+  color: #1d4ed8;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-right: 4px;
+  margin-bottom: 4px;
+  display: inline-block;
+}

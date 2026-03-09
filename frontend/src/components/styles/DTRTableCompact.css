@@ -134,31 +134,10 @@
   }
 }
 
-.status-icon-wrapper {
-  position: relative;
-  display: inline-block;
-}
-
-.floating-mismatch {
-  display: block;
-  position: absolute;
-  top: -8px;        /* slightly above the icon */
-  left: 20px;       /* right of the icon */
-  background-color: #d93025;
-  color: white;
-  font-size: 10px;
-  font-weight: 500;
-  padding: 2px 6px;
-  border-radius: 4px;
-  white-space: nowrap;
-  z-index: 10;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-}
-
 .mismatch-row {
-  background-color: #fff3f3;
+  background-color: #ffe6e6; 
 }
 
 .match-row {
-  background-color: #f3fff6;
+  background-color: #e6ffea;
 }

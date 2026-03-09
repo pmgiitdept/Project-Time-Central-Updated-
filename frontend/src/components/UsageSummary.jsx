@@ -36,7 +36,7 @@ export default function UsageSummary() {
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 400) {
+      if (window.scrollY > 200) {
         setShowScrollTop(true);
       } else {
         setShowScrollTop(false);

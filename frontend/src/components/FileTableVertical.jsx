@@ -257,16 +257,13 @@ export default function FileTableVertical({ role, uploaderFilter = null }) {
 
       <motion.div className="file-vertical-wrapper" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
 
-        {/* TOP SECTION */}
         <div className="file-vertical-top">
           <div className="vertical-header">
             <h3>Summary Forms Dashboard</h3>
             <button className="refresh-btn" onClick={fetchFiles}><FaSyncAlt /></button>
           </div>
 
-          {/* FILTERS */}
           <div className="vertical-filters">
-            {/* Search */}
             <div className="filter-item">
               <label>Search</label>
               <input
@@ -277,21 +274,19 @@ export default function FileTableVertical({ role, uploaderFilter = null }) {
               />
             </div>
 
-            {/* Uploader */}
             <div className="filter-item">
-              <label>Uploader</label>
+              <label>Project</label>
               <select
                 value={uploaderFilterLocal}
                 onChange={(e) => setUploaderFilterLocal(e.target.value)}
               >
-                <option value="">All Uploaders</option>
+                <option value="">All Projects</option>
                 {uniqueUploaders.map((u) => (
                   <option key={u} value={u}>{u}</option>
                 ))}
               </select>
             </div>
 
-            {/* Status */}
             <div className="filter-item">
               <label>Status</label>
               <select
@@ -305,7 +300,6 @@ export default function FileTableVertical({ role, uploaderFilter = null }) {
               </select>
             </div>
 
-            {/* Upload Start Date */}
             <div className="filter-item">
               <label>Upload From</label>
               <input
@@ -315,7 +309,6 @@ export default function FileTableVertical({ role, uploaderFilter = null }) {
               />
             </div>
 
-            {/* Covered Date Range */}
             <div className="filter-item">
               <label>Covered Dates</label>
               <div className="date-range-inputs">
@@ -334,7 +327,6 @@ export default function FileTableVertical({ role, uploaderFilter = null }) {
             </div>
           </div>
 
-          {/* TABLE */}
           <div className="vertical-table-container">
             <table className="vertical-file-table">
               <thead>
@@ -401,7 +393,6 @@ export default function FileTableVertical({ role, uploaderFilter = null }) {
           </div>
         </div>
 
-        {/* BOTTOM SECTION (DTR Table) */}
         <div className="file-vertical-bottom">
           <DTRTableCompact role={role} fileId={selectedFileId} />
         </div>

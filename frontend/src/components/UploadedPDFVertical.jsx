@@ -139,6 +139,58 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
                       ) : (
                         <button onClick={e => { e.stopPropagation(); openModal(file, "parsed"); }}>View Parsed</button>
                       )}
+
+                      <button
+                        onClick={async e => {
+                          e.stopPropagation();
+                          try {
+                            const token = localStorage.getItem("access_token");
+                            const res = await api.get(
+                              file.type === "pdf"
+                                ? `/files/pdfs/${file.id}/download/`
+                                : `/files/parsed-dtrs/${file.id}/export/`,
+                              { headers: { Authorization: `Bearer ${token}` }, responseType: "blob" }
+                            );
+                            const url = window.URL.createObjectURL(new Blob([res.data]));
+                            const link = document.createElement("a");
+                            link.href = url;
+                            link.setAttribute("download", file.type === "pdf" ? file.file.split("/").pop() : `DTR_${file.id}.xlsx`);
+                            document.body.appendChild(link);
+                            link.click();
+                            toast.success("File downloaded");
+                          } catch (err) {
+                            console.error(err);
+                            toast.error("Failed to download file");
+                          }
+                        }}
+                      >
+                        Download
+                      </button>
+
+                      <button
+                        onClick={async e => {
+                          e.stopPropagation();
+                          if (!confirm("Are you sure you want to delete this file?")) return;
+                          try {
+                            const token = localStorage.getItem("access_token");
+                            await api.delete(
+                              file.type === "pdf"
+                                ? `/files/pdfs/${file.id}/`
+                                : `/files/parsed-dtrs/${file.id}/`,
+                              { headers: { Authorization: `Bearer ${token}` } }
+                            );
+                            setFiles(prev => prev.filter(f => f.id !== file.id));
+                            toast.success("File deleted successfully");
+                            if (selectedFile?.id === file.id) setSelectedFile(null);
+                          } catch (err) {
+                            console.error(err);
+                            toast.error("Failed to delete file");
+                          }
+                        }}
+                        className="delete-btn"
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -148,7 +200,6 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
         )}
       </div>
 
-      {/* BOTTOM SECTION: SELECTED FILE DETAILS */}
       <div className="file-vertical-bottom">
         {selectedFile && selectedFile.type === "pdf" && activeModal.type === "text" && (
           <PDFTextModal pdfData={selectedFile} currentUser={currentUser} onClose={closeModal} />

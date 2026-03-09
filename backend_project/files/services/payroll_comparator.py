@@ -20,12 +20,10 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
         emp_no_str = re.sub(r"\D", "", str(emp_no)).strip()
         return emp_no_str.zfill(5) if emp_no_str else None
 
-    # ✅ Flexible date parser
     def parse_date_flexible(date_val):
         if not date_val:
             return None
 
-        # already a date object
         if hasattr(date_val, "year"):
             return date_val
 

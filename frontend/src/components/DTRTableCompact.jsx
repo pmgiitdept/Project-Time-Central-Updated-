@@ -231,13 +231,24 @@ export default function DTRTableCompact({ fileId }) {
               >
                 {staticColumns.concat(summaryColumns, extraColumns).map((col, idx) => (
                   <td key={col.key} className={idx === 0 ? "sticky-col" : ""}>
-                    {col.key === "full_name" &&
-                      (row.status_flag === "mismatch"
-                        ? "⚠️ "
-                        : row.status_flag === "match"
-                        ? "✅ "
-                        : "")
-                    }
+                    {col.key === "full_name" && (
+                      <>
+                        {row.status_flag === "mismatch" && (
+                          <span
+                            className="status-icon mismatch"
+                            title={row.mismatch_flag || "Mismatch detected"}
+                          >
+                            ⚠️
+                          </span>
+                        )}
+
+                        {row.status_flag === "match" && (
+                          <span className="status-icon match" title="Data matches payroll">
+                            ✅
+                          </span>
+                        )}
+                      </>
+                    )}
                     {formatCellValue(col.key, row[col.key])}
                   </td>
                 ))}

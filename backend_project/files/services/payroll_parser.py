@@ -89,14 +89,12 @@ def parse_payroll_pdf(file_path_or_obj, log_debug=None):
                         low = safe_float(row[8])
                         ot = safe_float(row[9])
 
-                        # ND REG + ND OT
                         holiday = str(row[16] or "").strip().upper()
 
                         nd_reg = safe_float(row[13])
                         nd_ot = safe_float(row[14])
                         nd = nd_reg + nd_ot
 
-                        # Apply same rule as OT: ignore ND if SHP or LHP
                         if holiday in ["SHP", "LHP"]:
                             nd = 0
 

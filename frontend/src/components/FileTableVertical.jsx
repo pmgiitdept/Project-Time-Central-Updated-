@@ -182,6 +182,20 @@ export default function FileTableVertical({ role, uploaderFilter = null }) {
         </div>
       )}
 
+      {viewingReason && (
+        <div className="modal-overlay5" onClick={() => setViewingReason(null)}>
+          <div className="modal-wrapper5" onClick={(e) => e.stopPropagation()}>
+            <h3>Rejection Reason</h3>
+            <div className="rejection-card">
+              <p>{viewingReason.rejection_reason}</p>
+            </div>
+            <div className="modal-actions">
+              <button onClick={() => setViewingReason(null)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <motion.div className="file-vertical-wrapper" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
 
         {/* TOP SECTION */}
@@ -271,11 +285,12 @@ export default function FileTableVertical({ role, uploaderFilter = null }) {
             <table className="vertical-file-table">
               <thead>
                 <tr>
-                  <th>Uploader</th>
-                  <th>Uploaded</th>
+                  <th>Project</th>
+                  <th>Date Upload</th>
                   <th>Status</th>
                   <th>Start</th>
                   <th>End</th>
+                  <th>Rejection Reason</th>
                   {(role === "admin" || role === "viewer") && <th>Actions</th>}
                 </tr>
               </thead>
@@ -297,6 +312,23 @@ export default function FileTableVertical({ role, uploaderFilter = null }) {
                     </td>
                     <td>{file.start_date ? new Date(file.start_date).toLocaleDateString() : "-"}</td>
                     <td>{file.end_date ? new Date(file.end_date).toLocaleDateString() : "-"}</td>
+                    
+                    <td>
+                      {file.status === "rejected" && file.rejection_reason ? (
+                        <span
+                          className="rejection-ellipsis"
+                          onClick={(e) => { e.stopPropagation(); setViewingReason(file); }}
+                          title="Click to view full reason"
+                        >
+                          {file.rejection_reason.length > 20
+                            ? file.rejection_reason.substring(0, 20) + "..."
+                            : file.rejection_reason
+                          }
+                        </span>
+                      ) : (
+                        "-"
+                      )}
+                    </td>
 
                     {(role === "admin" || role === "viewer") && (
                       <td>

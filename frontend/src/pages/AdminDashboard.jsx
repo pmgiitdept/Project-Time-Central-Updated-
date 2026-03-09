@@ -109,31 +109,31 @@ export default function AdminDashboard() {
 
   if (currentUser?.username === "itdept.pmgi") {
 
-    sidebarItems.splice(1, 0, {
+    {/* sidebarItems.splice(1, 0, {
       key: "files",
       label: "DTR Files",
       icon: <FaFileAlt />
-    });
+    }); */}
 
-    sidebarItems.splice(2, 0, {
+    sidebarItems.splice(1, 0, {
       key: "filesVertical",
       label: "Cross Validation View",
       icon: <FaFileAlt />
     });
 
-    sidebarItems.splice(3, 0, {
+    sidebarItems.splice(2, 0, {
       key: "employeeDirectory",
       label: "Record Holdings",
       icon: <FaUsers />
     });
 
-    sidebarItems.splice(4, 0, {
+    sidebarItems.splice(3, 0, {
       key: "users",
       label: "Users",
       icon: <FaUsers />
     });
 
-    sidebarItems.splice(5, 0, {
+    sidebarItems.splice(4, 0, {
       key: "usageSummary",
       label: "Usage Summary",
       icon: <FaChartBar />

@@ -1149,8 +1149,6 @@ export default function AdminDashboard() {
                   {!showUploaderModal && (
                     <>
                       <FileTableVertical role={currentUser?.role} uploaderFilter={selectedUploader?.username} />
-
-                      <div className="divider-hybrid"><span>DTR REPORTS</span></div>
                       <UploadedPDFVertical
                         refreshTrigger={refresh}
                         currentUser={currentUser}

@@ -21,10 +21,53 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
         owner = dtr_file.uploaded_by
         debug(f"Comparing DTR for owner: {owner.username if owner else 'Unknown'}")
 
-        pdf_file = PDFFile.objects.filter(uploaded_by=owner, file__iendswith=".pdf").order_by("-uploaded_at").first()
-        if not pdf_file:
-            debug("No payroll PDF found for this owner")
+        from datetime import datetime
+
+        dtr_start = dtr_file.start_date
+        dtr_end = dtr_file.end_date
+
+        debug(f"DTR Period: {dtr_start} → {dtr_end}")
+
+        if not dtr_start or not dtr_end:
+            debug("DTR file does not have a valid period")
             return
+
+        pdf_candidates = PDFFile.objects.filter(
+            uploaded_by=owner,
+            file__iendswith=".pdf"
+        )
+
+        pdf_file = None
+
+        for pdf in pdf_candidates:
+
+            if not pdf.start_date or not pdf.end_date:
+                debug(f"Skipping PDF without period: {pdf.file.name}")
+                continue
+
+            try:
+                pdf_start = datetime.strptime(pdf.start_date, "%Y-%m-%d").date()
+                pdf_end = datetime.strptime(pdf.end_date, "%Y-%m-%d").date()
+            except Exception:
+                debug(f"Invalid PDF period format: {pdf.file.name}")
+                continue
+
+            if pdf_start == dtr_start and pdf_end == dtr_end:
+                pdf_file = pdf
+                break
+
+        if not pdf_file:
+            debug("No Payroll PDF found with matching period")
+            
+            entries = DTREntry.objects.filter(dtr_file=dtr_file)
+
+            for entry in entries:
+                entry.status_flag = "mismatch"
+                entry.mismatch_flag = "Payroll PDF with same period not found"
+                entry.save()
+
+            return
+
         debug(f"Using payroll PDF: {pdf_file.file.name}")
 
         pdf_employees = parse_payroll_pdf(pdf_file.file.path, log_debug=log_debug)

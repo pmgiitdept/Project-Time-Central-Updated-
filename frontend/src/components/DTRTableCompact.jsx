@@ -187,9 +187,14 @@ export default function DTRTableCompact({ fileId }) {
       ) : (
         <>
           <h3 className="dtr-compact-title">
-            Project: {selectedFileObj?.uploaded_by?.username ||
-              selectedFileObj?.uploaded_by?.full_name ||
-              "Unknown"} | Employees: {totalEmployees}
+            Project: {(() => {
+              const uploader = selectedFileObj?.uploaded_by;
+              if (!uploader) return "Unknown";
+              if (typeof uploader === "string") return uploader; 
+              if (uploader.full_name) return uploader.full_name;
+              if (uploader.username) return uploader.username;
+              return "Unknown";
+            })()} | Employees: {totalEmployees}
           </h3>
 
           {selectedFileObj?.start_date && selectedFileObj?.end_date && (

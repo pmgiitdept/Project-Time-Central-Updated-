@@ -13,6 +13,7 @@ export default function FileTableVertical({ role, uploaderFilter = null }) {
   const [downloadLoading, setDownloadLoading] = useState({});
   const [deleting, setDeleting] = useState({});
   const [deleteModal, setDeleteModal] = useState({ open: false, fileIds: [], message: "" });
+  const [viewingReason, setViewingReason] = useState(null);
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");

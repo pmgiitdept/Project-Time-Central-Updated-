@@ -14,7 +14,8 @@ export default function UsageSummary() {
   const [selectedProject, setSelectedProject] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
-  
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
   const [employeeSearch, setEmployeeSearch] = useState({});
 
   const generatedAt = useMemo(() => new Date(), []);
@@ -32,6 +33,27 @@ export default function UsageSummary() {
   useEffect(() => {
     fetchUsageSummary();
   }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 400) {
+        setShowScrollTop(true);
+      } else {
+        setShowScrollTop(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
 
   const fetchUsageSummary = async () => {
     setLoading(true);
@@ -525,6 +547,20 @@ export default function UsageSummary() {
       onClose={() => setSelectedEmployee(null)}
     />
 
+    <AnimatePresence>
+      {showScrollTop && (
+        <motion.button
+          className="scroll-top-btn"
+          onClick={scrollToTop}
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 30 }}
+          transition={{ duration: 0.25 }}
+        >
+          ↑
+        </motion.button>
+      )}
+    </AnimatePresence>
     </motion.div>
   );
 }

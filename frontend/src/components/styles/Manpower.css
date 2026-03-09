@@ -75,17 +75,14 @@
   color: #111827;
 }
 
-/* Table Wrapper with scroll */
 .manpower-table-wrapper {
   max-height: 400px;
   overflow-y: auto;
   background: #ffffff;
   border-radius: 12px;
   box-shadow: 0 1px 6px rgba(0,0,0,0.08);
-  padding: 10px;
 }
 
-/* Tables */
 .manpower-table {
   width: 100%;
   border-collapse: collapse;
@@ -120,7 +117,6 @@
   font-style: italic;
 }
 
-/* Project badges */
 .manpower-table td:nth-child(3) {
   display: flex;
   flex-wrap: wrap;

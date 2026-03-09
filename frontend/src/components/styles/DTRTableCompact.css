@@ -192,3 +192,25 @@
   font-size: 0.9rem;
   margin-top: 1px;
 }
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #ffffff80;
+  border-top: 2px solid #ffffff;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.parse-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}

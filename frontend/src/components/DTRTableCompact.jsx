@@ -11,6 +11,8 @@ export default function DTRTableCompact({ fileId }) {
   const [dateColumns, setDateColumns] = useState([]);
   const [selectedFileObj, setSelectedFileObj] = useState(null);
 
+  const [parsing, setParsing] = useState(false);
+
   const normalizeEmpNo = (empNo) => {
     if (!empNo) return "";
     const digits = empNo.toString().replace(/\D/g, "");
@@ -82,6 +84,8 @@ export default function DTRTableCompact({ fileId }) {
     if (!fileId) return;
 
     try {
+      setParsing(true);
+
       console.log("=== STARTING PARSE ===");
 
       const res = await api.post(`/files/dtr/files/${fileId}/parse/`);
@@ -118,6 +122,8 @@ export default function DTRTableCompact({ fileId }) {
     } catch (err) {
       console.error("Parse Error", err);
       toast.error("Failed to parse DTR file.");
+    } finally {
+      setParsing(false);
     }
   };
 
@@ -195,8 +201,19 @@ export default function DTRTableCompact({ fileId }) {
           )}
 
           <div className="parse-section">
-            <button className="parse-btn" onClick={handleParseAndDebug}>
-              Parse & Compare
+            <button
+              className="parse-btn"
+              onClick={handleParseAndDebug}
+              disabled={parsing}
+            >
+              {parsing ? (
+                <>
+                  <span className="spinner"></span>
+                  Parsing...
+                </>
+              ) : (
+                "Parse & Compare"
+              )}
             </button>
 
             <div className="parse-warning">

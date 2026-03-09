@@ -36,10 +36,13 @@ export default function Manpower() {
             empMap.set(row.employee_no, {
               employee_no: row.employee_no,
               full_name: row.full_name,
+              projects: new Set(),
               rows: [],
             });
           }
-          empMap.get(row.employee_no).rows.push(row);
+          const emp = empMap.get(row.employee_no);
+          emp.rows.push(row);
+          emp.projects.add(file.uploaded_by?.full_name || file.uploaded_by?.username || "Unknown");
         });
 
         processed.push({
@@ -66,23 +69,22 @@ export default function Manpower() {
     });
   };
 
-  const filteredFiles = useMemo(() => {
-    return files.filter(f => {
-      if (fromDate && new Date(f.start_date) < new Date(fromDate)) return false;
-      if (toDate && new Date(f.end_date) > new Date(toDate)) return false;
-      if (uploaderFilter && f.project !== uploaderFilter) return false;
-      return true;
-    });
-  }, [files, fromDate, toDate, uploaderFilter]);
-
-  const manpowerData = useMemo(() => {
+  // Flatten all employees into a single list with project mapping
+  const allEmployees = useMemo(() => {
     const regular = new Map();
     const relievers = new Map();
 
-    filteredFiles.forEach(file => {
+    files.forEach(file => {
+      if (uploaderFilter && file.project !== uploaderFilter) return;
+
       file.employees.forEach(emp => {
-        if (isReliever(emp)) relievers.set(emp.employee_no, emp);
-        else regular.set(emp.employee_no, emp);
+        // Combine projects if employee appears in multiple files
+        const existingEmpMap = isReliever(emp) ? relievers : regular;
+        if (!existingEmpMap.has(emp.employee_no)) {
+          existingEmpMap.set(emp.employee_no, { ...emp, projects: new Set(emp.projects) });
+        } else {
+          emp.projects.forEach(p => existingEmpMap.get(emp.employee_no).projects.add(p));
+        }
       });
     });
 
@@ -90,7 +92,7 @@ export default function Manpower() {
       regular: Array.from(regular.values()),
       relievers: Array.from(relievers.values()),
     };
-  }, [filteredFiles]);
+  }, [files, uploaderFilter]);
 
   const uniqueUploaders = [...new Set(files.map(f => f.project).filter(Boolean))];
 
@@ -125,11 +127,11 @@ export default function Manpower() {
       <div className="manpower-summary">
         <div className="summary-card">
           <strong>Total Employees</strong>
-          <span>{manpowerData.regular.length}</span>
+          <span>{allEmployees.regular.length}</span>
         </div>
         <div className="summary-card">
           <strong>Total Relievers</strong>
-          <span>{manpowerData.relievers.length}</span>
+          <span>{allEmployees.relievers.length}</span>
         </div>
       </div>
 
@@ -146,18 +148,20 @@ export default function Manpower() {
                 <tr>
                   <th>Employee No</th>
                   <th>Full Name</th>
+                  <th>Projects</th>
                 </tr>
               </thead>
               <tbody>
-                {manpowerData.regular.map(emp => (
+                {allEmployees.regular.map(emp => (
                   <tr key={emp.employee_no}>
                     <td>{emp.employee_no}</td>
                     <td>{emp.full_name}</td>
+                    <td>{Array.from(emp.projects).join(", ")}</td>
                   </tr>
                 ))}
-                {manpowerData.regular.length === 0 && (
+                {allEmployees.regular.length === 0 && (
                   <tr>
-                    <td colSpan={2} className="empty-row">No employees found</td>
+                    <td colSpan={3} className="empty-row">No employees found</td>
                   </tr>
                 )}
               </tbody>
@@ -172,18 +176,20 @@ export default function Manpower() {
                 <tr>
                   <th>Employee No</th>
                   <th>Full Name</th>
+                  <th>Projects</th>
                 </tr>
               </thead>
               <tbody>
-                {manpowerData.relievers.map(emp => (
+                {allEmployees.relievers.map(emp => (
                   <tr key={emp.employee_no}>
                     <td>{emp.employee_no}</td>
                     <td>{emp.full_name}</td>
+                    <td>{Array.from(emp.projects).join(", ")}</td>
                   </tr>
                 ))}
-                {manpowerData.relievers.length === 0 && (
+                {allEmployees.relievers.length === 0 && (
                   <tr>
-                    <td colSpan={2} className="empty-row">No relievers found</td>
+                    <td colSpan={3} className="empty-row">No relievers found</td>
                   </tr>
                 )}
               </tbody>

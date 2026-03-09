@@ -266,78 +266,73 @@ export default function FileTableVertical({ role, uploaderFilter = null }) {
 
           {/* FILTERS */}
           <div className="vertical-filters">
-            <label className="filter-label">
-                Search:
-                <input
+            {/* Search */}
+            <div className="filter-item">
+              <label>Search</label>
+              <input
                 type="text"
                 placeholder="Uploader or filename"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                />
-            </label>
+              />
+            </div>
 
-            <label className="filter-label">
-                Uploader:
-                <select
+            {/* Uploader */}
+            <div className="filter-item">
+              <label>Uploader</label>
+              <select
                 value={uploaderFilterLocal}
                 onChange={(e) => setUploaderFilterLocal(e.target.value)}
-                >
+              >
                 <option value="">All Uploaders</option>
                 {uniqueUploaders.map((u) => (
-                    <option key={u} value={u}>{u}</option>
+                  <option key={u} value={u}>{u}</option>
                 ))}
-                </select>
-            </label>
+              </select>
+            </div>
 
-            <label className="filter-label">
-                Status:
-                <select
+            {/* Status */}
+            <div className="filter-item">
+              <label>Status</label>
+              <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                >
+              >
                 <option value="">All Status</option>
                 <option value="pending">Pending</option>
                 <option value="verified">Verified</option>
                 <option value="rejected">Rejected</option>
-                </select>
-            </label>
+              </select>
+            </div>
 
-            <label className="filter-label">
-                Upload Start:
-                <input
+            {/* Upload Start Date */}
+            <div className="filter-item">
+              <label>Upload From</label>
+              <input
                 type="date"
                 value={uploadStartDate}
                 onChange={(e) => setUploadStartDate(e.target.value)}
-                />
-            </label>
+              />
+            </div>
 
-            <label className="filter-label">
-                Upload End:
+            {/* Covered Date Range */}
+            <div className="filter-item">
+              <label>Covered Dates</label>
+              <div className="date-range-inputs">
                 <input
-                type="date"
-                value={uploadEndDate}
-                onChange={(e) => setUploadEndDate(e.target.value)}
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
                 />
-            </label>
-
-            <label className="filter-label">
-                Start Covered:
+                <span className="date-separator">to</span>
                 <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
                 />
-            </label>
-
-            <label className="filter-label">
-                End Covered:
-                <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                />
-            </label>
-        </div>
+              </div>
+            </div>
+          </div>
 
           {/* TABLE */}
           <div className="vertical-table-container">

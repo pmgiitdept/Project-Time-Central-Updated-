@@ -132,7 +132,8 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
               <thead>
                 <tr>
                   <th>Name</th>
-                  <th>Uploaded / Period</th>
+                  <th>Uploaded At</th>
+                  <th>Period</th>
                   <th>Project</th>
                   <th>Actions</th>
                 </tr>
@@ -141,7 +142,14 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
                 {filteredFiles.map(file => (
                   <tr key={file.id} className={selectedFile?.id === file.id ? "selected-row" : ""} onClick={() => setSelectedFile(file)}>
                     <td>{file.type === "pdf" ? file.file.split("/").pop() : file.employee_name}</td>
-                    <td>{file.type === "pdf" ? new Date(file.uploaded_at).toLocaleString() : `${file.period_from} → ${file.period_to}`}</td>
+                    <td>{file.type === "pdf" ? new Date(file.uploaded_at).toLocaleString() : ""}</td>
+                    <td>
+                      {file.type === "pdf"
+                        ? file.start_date && file.end_date
+                          ? `${new Date(file.start_date).toLocaleDateString()} → ${new Date(file.end_date).toLocaleDateString()}`
+                          : "N/A"
+                        : `${file.period_from} → ${file.period_to}`}
+                    </td>
                     <td>{file.type === "pdf" ? file.uploaded_by_name : file.project}</td>
                     <td>
                       {file.type === "pdf" ? (

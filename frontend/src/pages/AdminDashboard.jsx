@@ -1120,8 +1120,7 @@ export default function AdminDashboard() {
                     <label style={{ fontWeight: "bold" }}>Select Project:</label>
 
                     <select
-                      className="upload-button"
-                      style={{ minWidth: "250px" }}
+                      className="project-select"
                       value={selectedUploader?.id || ""}
                       onChange={(e) => {
                         const uploader = uploaders.find((u) => u.id === Number(e.target.value));

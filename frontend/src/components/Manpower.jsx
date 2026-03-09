@@ -11,10 +11,18 @@ export default function Manpower() {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [uploaderFilter, setUploaderFilter] = useState("");
+  const [searchText, setSearchText] = useState("");
 
   useEffect(() => {
     fetchFiles();
   }, []);
+
+  const resetFilters = () => {
+    setUploaderFilter("");
+    setFromDate("");
+    setToDate("");
+    setSearchText("");
+  };
 
   const fetchFiles = async () => {
     setLoading(true);

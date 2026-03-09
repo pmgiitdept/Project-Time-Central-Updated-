@@ -135,8 +135,10 @@ export default function Manpower() {
 
     {loading && <p>Loading manpower...</p>}
 
-    {/* Regular Employees Section */}
+    {/* Tables Section */}
     {!loading && (
+    <div className="manpower-tables-container">
+        {/* Regular Employees */}
         <div className="manpower-section">
         <h3 className="section-title">Regular Employees</h3>
         <div className="manpower-table-wrapper">
@@ -165,10 +167,8 @@ export default function Manpower() {
             </table>
         </div>
         </div>
-    )}
 
-    {/* Relievers Section */}
-    {!loading && (
+        {/* Relievers */}
         <div className="manpower-section">
         <h3 className="section-title">Relievers</h3>
         <div className="manpower-table-wrapper">
@@ -197,6 +197,7 @@ export default function Manpower() {
             </table>
         </div>
         </div>
+    </div>
     )}
     </motion.div>
   );

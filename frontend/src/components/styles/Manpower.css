@@ -50,9 +50,22 @@
   color: #111827;
 }
 
-/* Section Title */
-.manpower-section {
+.manpower-tables-container {
+  display: flex;
+  gap: 30px;
   margin-bottom: 30px;
+  flex-wrap: wrap; 
+}
+
+.manpower-section {
+  flex: 1; 
+  min-width: 300px; 
+}
+
+@media (max-width: 900px) {
+  .manpower-tables-container {
+    flex-direction: column;
+  }
 }
 
 .section-title {

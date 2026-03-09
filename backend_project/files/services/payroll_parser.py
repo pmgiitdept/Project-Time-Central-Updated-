@@ -112,9 +112,9 @@ def parse_payroll_pdf(file_path_or_obj, log_debug=None):
                         "employee_no": emp_no,
                         "full_name": full_name or "Unknown",
                         "wrk_days": total_days,
-                        "reg_hours": reg_hours,
-                        "ot_hours": ot_hours,
-                        "nd_hours": nd_hours,
+                        "reg_hours": round(reg_hours, 2),
+                        "ot_hours": round(ot_hours, 2),
+                        "nd_hours": round(nd_hours, 2),
                         "holiday_codes": holiday_codes,
                         "ot_per_row": ot_per_row,
                     })

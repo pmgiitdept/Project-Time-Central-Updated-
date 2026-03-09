@@ -69,7 +69,6 @@ export default function Manpower() {
     });
   };
 
-  // Flatten all employees into a single list with project mapping
   const allEmployees = useMemo(() => {
     const regular = new Map();
     const relievers = new Map();
@@ -78,7 +77,6 @@ export default function Manpower() {
       if (uploaderFilter && file.project !== uploaderFilter) return;
 
       file.employees.forEach(emp => {
-        // Combine projects if employee appears in multiple files
         const existingEmpMap = isReliever(emp) ? relievers : regular;
         if (!existingEmpMap.has(emp.employee_no)) {
           existingEmpMap.set(emp.employee_no, { ...emp, projects: new Set(emp.projects) });
@@ -98,105 +96,108 @@ export default function Manpower() {
 
   return (
     <motion.div className="manpower-container" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-      <h2>👥 Manpower Monitoring</h2>
+    <h2>👥 Manpower Monitoring</h2>
 
-      {/* Filters */}
-      <div className="manpower-filters">
+    {/* Filters */}
+    <div className="manpower-filters">
         <div className="filter-item">
-          <label>Project / Uploader</label>
-          <select value={uploaderFilter} onChange={(e) => setUploaderFilter(e.target.value)}>
+        <label>Project / Uploader</label>
+        <select value={uploaderFilter} onChange={(e) => setUploaderFilter(e.target.value)}>
             <option value="">All Projects</option>
             {uniqueUploaders.map(u => (
-              <option key={u} value={u}>{u}</option>
+            <option key={u} value={u}>{u}</option>
             ))}
-          </select>
+        </select>
         </div>
 
         <div className="filter-item">
-          <label>Start Date</label>
-          <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
+        <label>Start Date</label>
+        <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
         </div>
 
         <div className="filter-item">
-          <label>End Date</label>
-          <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} />
+        <label>End Date</label>
+        <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} />
         </div>
-      </div>
+    </div>
 
-      {/* Summary */}
-      <div className="manpower-summary">
+    {/* Summary */}
+    <div className="manpower-summary">
         <div className="summary-card">
-          <strong>Total Employees</strong>
-          <span>{allEmployees.regular.length}</span>
+        <strong>Total Employees</strong>
+        <span>{allEmployees.regular.length}</span>
         </div>
         <div className="summary-card">
-          <strong>Total Relievers</strong>
-          <span>{allEmployees.relievers.length}</span>
+        <strong>Total Relievers</strong>
+        <span>{allEmployees.relievers.length}</span>
         </div>
-      </div>
+    </div>
 
-      {loading && <p>Loading manpower...</p>}
+    {loading && <p>Loading manpower...</p>}
 
-      {/* Tables */}
-      {!loading && (
-        <div className="manpower-tables">
-          {/* Regular Employees */}
-          <div className="manpower-table">
-            <h3>Regular Employees</h3>
-            <table>
-              <thead>
+    {/* Regular Employees Section */}
+    {!loading && (
+        <div className="manpower-section">
+        <h3 className="section-title">Regular Employees</h3>
+        <div className="manpower-table-wrapper">
+            <table className="manpower-table">
+            <thead>
                 <tr>
-                  <th>Employee No</th>
-                  <th>Full Name</th>
-                  <th>Projects</th>
+                <th>Employee No</th>
+                <th>Full Name</th>
+                <th>Projects</th>
                 </tr>
-              </thead>
-              <tbody>
+            </thead>
+            <tbody>
                 {allEmployees.regular.map(emp => (
-                  <tr key={emp.employee_no}>
+                <tr key={emp.employee_no}>
                     <td>{emp.employee_no}</td>
                     <td>{emp.full_name}</td>
-                    <td>{Array.from(emp.projects).join(", ")}</td>
-                  </tr>
+                    <td>{Array.from(emp.projects).map(p => <span key={p}>{p}</span>)}</td>
+                </tr>
                 ))}
                 {allEmployees.regular.length === 0 && (
-                  <tr>
-                    <td colSpan={3} className="empty-row">No employees found</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Relievers */}
-          <div className="manpower-table">
-            <h3>Relievers</h3>
-            <table>
-              <thead>
                 <tr>
-                  <th>Employee No</th>
-                  <th>Full Name</th>
-                  <th>Projects</th>
+                    <td colSpan={3} className="empty-row">No employees found</td>
                 </tr>
-              </thead>
-              <tbody>
+                )}
+            </tbody>
+            </table>
+        </div>
+        </div>
+    )}
+
+    {/* Relievers Section */}
+    {!loading && (
+        <div className="manpower-section">
+        <h3 className="section-title">Relievers</h3>
+        <div className="manpower-table-wrapper">
+            <table className="manpower-table">
+            <thead>
+                <tr>
+                <th>Employee No</th>
+                <th>Full Name</th>
+                <th>Projects</th>
+                </tr>
+            </thead>
+            <tbody>
                 {allEmployees.relievers.map(emp => (
-                  <tr key={emp.employee_no}>
+                <tr key={emp.employee_no}>
                     <td>{emp.employee_no}</td>
                     <td>{emp.full_name}</td>
-                    <td>{Array.from(emp.projects).join(", ")}</td>
-                  </tr>
+                    <td>{Array.from(emp.projects).map(p => <span key={p}>{p}</span>)}</td>
+                </tr>
                 ))}
                 {allEmployees.relievers.length === 0 && (
-                  <tr>
+                <tr>
                     <td colSpan={3} className="empty-row">No relievers found</td>
-                  </tr>
+                </tr>
                 )}
-              </tbody>
+            </tbody>
             </table>
-          </div>
         </div>
-      )}
+        </div>
+    )}
     </motion.div>
   );
 }

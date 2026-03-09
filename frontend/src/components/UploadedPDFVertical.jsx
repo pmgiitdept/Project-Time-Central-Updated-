@@ -133,8 +133,8 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
                     <td>
                       {file.type === "pdf" ? (
                         <>
-                          <button onClick={e => { e.stopPropagation(); openModal(file, "text"); }}>View DTR</button>
-                          <button onClick={e => { e.stopPropagation(); openModal(file, "visual"); }}>Visual</button>
+                          <button onClick={e => { e.stopPropagation(); openModal(file, "text"); }}  className="view-btn">View DTR</button>
+                          <button onClick={e => { e.stopPropagation(); openModal(file, "visual"); }}  className="visual-btn">Visual</button>
                         </>
                       ) : (
                         <button onClick={e => { e.stopPropagation(); openModal(file, "parsed"); }}>View Parsed</button>
@@ -163,6 +163,7 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
                             toast.error("Failed to download file");
                           }
                         }}
+                         className="download-btn"
                       >
                         Download
                       </button>

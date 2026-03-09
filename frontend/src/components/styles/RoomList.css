@@ -162,6 +162,25 @@
   gap: 0.3rem;
   align-items: center;
 }
+
+.view-btn:hover {
+  background: rgba(34,197,94,0.15); 
+  color: #22c55e;
+  transform: scale(1.1);
+}
+
+.visual-btn:hover {
+  background: rgba(59,130,246,0.15); 
+  color: #3b82f6;
+  transform: scale(1.1);
+}
+
+.download-btn:hover {
+  background: rgba(139,92,246,0.15); 
+  color: #8b5cf6;
+  transform: scale(1.1);
+}
+
 .delete-btn:hover {
   background: rgba(239,68,68,0.15);
   color: #ef4444;

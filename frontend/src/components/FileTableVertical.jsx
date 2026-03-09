@@ -150,11 +150,11 @@ export default function FileTableVertical({ role, uploaderFilter = null }) {
 
   const getFilteredFiles = () => {
     return files.filter((file) => {
-      const name = (file.file?.split("/").pop() || "").toLowerCase();
-      const owner = (file.uploaded_by?.username || "").toLowerCase();
+      const name = String(file.file || "").split("/").pop().toLowerCase();
+      const owner = String(file.uploaded_by?.username || "").toLowerCase();
       const query = search.toLowerCase();
 
-      const fileDate = new Date(file.uploaded_at).setHours(0,0,0,0);
+      const fileDate = file.uploaded_at ? new Date(file.uploaded_at).setHours(0,0,0,0) : null;
       const startCovered = file.start_date ? new Date(file.start_date).setHours(0,0,0,0) : null;
       const endCovered = file.end_date ? new Date(file.end_date).setHours(0,0,0,0) : null;
 
@@ -167,7 +167,7 @@ export default function FileTableVertical({ role, uploaderFilter = null }) {
       const matchesEndDate = endDate ? endCovered <= new Date(endDate).setHours(0,0,0,0) : true;
 
       return matchesSearch && matchesUploader && matchesStatus &&
-             matchesUploadStart && matchesUploadEnd && matchesStartDate && matchesEndDate;
+            matchesUploadStart && matchesUploadEnd && matchesStartDate && matchesEndDate;
     });
   };
 

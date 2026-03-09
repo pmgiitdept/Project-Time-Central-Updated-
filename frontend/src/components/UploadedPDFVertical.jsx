@@ -116,7 +116,7 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
               value={uploaderFilterLocal}
               onChange={(e) => setUploaderFilterLocal(e.target.value)}
             >
-              <option value="">All</option>
+              <option value="">All Projects</option>
               {uploaderProjectOptions.map((option, index) => (
                 <option key={index} value={option}>
                   {option}

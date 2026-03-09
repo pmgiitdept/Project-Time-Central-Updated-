@@ -161,17 +161,11 @@ export default function DTRTableCompact({ fileId }) {
   ]);
 
   const formatCellValue = (colKey, value) => {
-
     if (integerColumns.has(colKey)) {
-
       const num = parseFloat(value);
-
       return Number.isNaN(num) ? "-" : Math.round(num);
-
     }
-
     return value ?? "-";
-
   };
 
   const totalEmployees = new Set(
@@ -180,88 +174,101 @@ export default function DTRTableCompact({ fileId }) {
 
   return (
     <div className="dtr-compact-wrapper">
+      {!fileId ? (
+        <p style={{ textAlign: "center", margin: "1rem", color: "#666" }}>
+          Select a file above to view its DTR content.
+        </p>
+      ) : (
+        <>
+          <h3 className="dtr-compact-title">
+            Project: {selectedFileObj?.uploaded_by?.username ||
+              selectedFileObj?.uploaded_by?.full_name ||
+              "Unknown"} | Employees: {totalEmployees}
+          </h3>
 
-      <h3 className="dtr-compact-title">
-        Project: {selectedFileObj?.uploaded_by?.username ||
-          selectedFileObj?.uploaded_by?.full_name ||
-          "Unknown"} | Employees: {totalEmployees}
-      </h3>
+          {selectedFileObj?.start_date && selectedFileObj?.end_date && (
+            <div className="dtr-compact-date">
+              📅 Date Covered: {new Date(selectedFileObj.start_date).toLocaleDateString()}
+              {" → "}
+              {new Date(selectedFileObj.end_date).toLocaleDateString()}
+            </div>
+          )}
 
-      {selectedFileObj?.start_date && selectedFileObj?.end_date && (
-        <div className="dtr-compact-date">
-          📅 Date Covered: {new Date(selectedFileObj.start_date).toLocaleDateString()}
-          {" → "}
-          {new Date(selectedFileObj.end_date).toLocaleDateString()}
-        </div>
+          <div style={{ margin: "10px 0" }}>
+            <button onClick={handleParseAndDebug}>
+              Parse & Compare
+            </button>
+          </div>
+
+          {fileContents.length > 0 ? (
+            <div className="dtr-compact-table-container">
+              <table className="dtr-table dtr-compact">
+                <thead>
+                  <tr>
+                    {staticColumns.concat(summaryColumns, extraColumns).map((col, idx) => (
+                      <th key={col.key} className={idx === 0 ? "sticky-col" : ""}>
+                        {col.label}
+                      </th>
+                    ))}
+                    {dateColumns.map((date) => (
+                      <th key={date}>
+                        {getDayNumber(date)}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedContents.map((row, rIdx) => (
+                    <tr
+                      key={row?.id ?? `row-${rIdx}`}
+                      className={
+                        row.status_flag === "mismatch"
+                          ? "mismatch-row"
+                          : row.status_flag === "match"
+                          ? "match-row"
+                          : ""
+                      }
+                    >
+                      {staticColumns.concat(summaryColumns, extraColumns).map((col, idx) => (
+                        <td key={col.key} className={idx === 0 ? "sticky-col" : ""}>
+                          {col.key === "full_name" && (
+                            <>
+                              {row.status_flag === "mismatch" && (
+                                <span
+                                  className="status-icon mismatch"
+                                  title={row.mismatch_flag || "Mismatch detected"}
+                                >
+                                  ⚠️
+                                </span>
+                              )}
+
+                              {row.status_flag === "match" && (
+                                <span className="status-icon match" title="Data matches payroll">
+                                  ✅
+                                </span>
+                              )}
+                            </>
+                          )}
+                          {formatCellValue(col.key, row[col.key])}
+                        </td>
+                      ))}
+                      {dateColumns.map((date) => (
+                        <td key={date}>
+                          {formatCellValue(date, row.daily_data?.[date])}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p style={{ textAlign: "center", margin: "1rem", color: "#666" }}>
+              No DTR data available for this file.
+            </p>
+          )}
+        </>
       )}
-
-      <div style={{ margin: "10px 0" }}>
-        <button onClick={handleParseAndDebug}>
-          Parse & Compare
-        </button>
-      </div>
-
-      <div className="dtr-compact-table-container">
-        <table className="dtr-table dtr-compact">
-          <thead>
-            <tr>
-              {staticColumns.concat(summaryColumns, extraColumns).map((col, idx) => (
-                <th key={col.key} className={idx === 0 ? "sticky-col" : ""}>
-                  {col.label}
-                </th>
-              ))}
-              {dateColumns.map((date) => (
-                <th key={date}>
-                  {getDayNumber(date)}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {sortedContents.map((row, rIdx) => (
-              <tr
-                key={row?.id ?? `row-${rIdx}`}
-                className={
-                  row.status_flag === "mismatch"
-                    ? "mismatch-row"
-                    : row.status_flag === "match"
-                    ? "match-row"
-                    : ""
-                }
-              >
-                {staticColumns.concat(summaryColumns, extraColumns).map((col, idx) => (
-                  <td key={col.key} className={idx === 0 ? "sticky-col" : ""}>
-                    {col.key === "full_name" && (
-                      <>
-                        {row.status_flag === "mismatch" && (
-                          <span
-                            className="status-icon mismatch"
-                            title={row.mismatch_flag || "Mismatch detected"}
-                          >
-                            ⚠️
-                          </span>
-                        )}
-
-                        {row.status_flag === "match" && (
-                          <span className="status-icon match" title="Data matches payroll">
-                            ✅
-                          </span>
-                        )}
-                      </>
-                    )}
-                    {formatCellValue(col.key, row[col.key])}
-                  </td>
-                ))}
-                {dateColumns.map((date) => (
-                  <td key={date}>
-                    {formatCellValue(date, row.daily_data?.[date])}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
     </div>
   );
 }

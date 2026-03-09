@@ -1114,13 +1114,7 @@ export default function AdminDashboard() {
             
               {activeSection === "filesVertical" && (
                 <div className="tables-wrapper">
-                  <div style={{ position: "fixed", top: "100px", right: "40px", zIndex: 500 }}>
-                    <button onClick={() => setRefresh(!refresh)} className="upload-button">
-                      🔄 Refresh DTR Data
-                    </button>
-                  </div>
-
-                  <div className="divider-hybrid"><span>PROJECT OVERVIEW</span></div>
+                  <div className="divider-hybrid"><span>SUBMITTED FILES</span></div>
 
                   <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1.5rem" }}>
                     <label style={{ fontWeight: "bold" }}>Select Project:</label>

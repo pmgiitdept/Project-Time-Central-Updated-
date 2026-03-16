@@ -81,37 +81,14 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
   };
   const closeModal = () => setActiveModal({ type: null, data: null });
 
-  // components/DTRFilesVertical.jsx
-  const parseFlexibleDate = (dateStr) => {
+  const parseDMY = (dateStr) => {
     if (!dateStr) return null;
-    dateStr = dateStr.trim();
 
-    // Normalize separators to "/"
-    dateStr = dateStr.replace(/[-\s]+/g, "/");
+    const parts = dateStr.split("/");
+    if (parts.length !== 3) return new Date(dateStr);
 
-    // Split into numeric parts
-    const parts = dateStr.split("/").map(Number);
-    if (parts.length !== 3) return null;
-
-    let day, month, year;
-
-    // Heuristic:
-    // If first part > 12 → assume DD/MM/YYYY
-    // If second part > 12 → assume MM/DD/YYYY
-    // Otherwise default to DD/MM/YYYY
-    if (parts[0] > 12) {
-      [day, month, year] = parts;
-    } else if (parts[1] > 12) {
-      [month, day, year] = parts;
-    } else {
-      // Ambiguous, you could check user locale or fallback
-      [day, month, year] = parts;
-    }
-
-    // Fix 2-digit years if needed
-    if (year < 100) year += 2000;
-
-    return new Date(year, month - 1, day);
+    const [day, month, year] = parts;
+    return new Date(`${year}-${month}-${day}`);
   };
 
   return (
@@ -179,9 +156,9 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
                     <td>
                       {file.type === "pdf"
                         ? file.start_date && file.end_date
-                          ? `${parseFlexibleDate(file.start_date)?.toLocaleDateString()} → ${parseFlexibleDate(file.end_date)?.toLocaleDateString()}`
+                          ? `${parseDMY(file.start_date)?.toLocaleDateString()} → ${parseDMY(file.end_date)?.toLocaleDateString()}`
                           : "N/A"
-                        : `${parseFlexibleDate(file.period_from)?.toLocaleDateString()} → ${parseFlexibleDate(file.period_to)?.toLocaleDateString()}`}
+                        : `${file.period_from} → ${file.period_to}`}
                     </td>
                     <td>{file.type === "pdf" ? file.uploaded_by_name : file.project}</td>
                     <td>

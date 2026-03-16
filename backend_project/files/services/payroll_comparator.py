@@ -24,40 +24,28 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
         if not date_val:
             return None
 
-        # Convert to string
+        if hasattr(date_val, "year"):
+            return date_val
+
         date_str = str(date_val).strip()
-        if not date_str:
-            return None
 
-        # Normalize separators: spaces, dashes → slash
-        date_str = re.sub(r"[-\s]+", "/", date_str)
+        formats = [
+            "%Y-%m-%d",
+            "%d/%m/%Y",
+            "%m/%d/%Y",
+            "%m-%d-%Y",
+            "%b %d, %Y",
+            "%B %d, %Y",
+        ]
 
-        # Split into numeric parts
-        parts = [p for p in date_str.split("/") if p]
-        if len(parts) != 3:
-            return None
+        for fmt in formats:
+            try:
+                return datetime.strptime(date_str, fmt).date()
+            except ValueError:
+                continue
 
-        try:
-            parts = [int(p) for p in parts]
-        except ValueError:
-            return None
+        return None
 
-        # Heuristic: detect DD/MM/YYYY vs MM/DD/YYYY
-        if parts[0] > 12:
-            day, month, year = parts
-        elif parts[1] > 12:
-            month, day, year = parts
-        else:
-            day, month, year = parts  # fallback default
-
-        if year < 100:
-            year += 2000
-
-        try:
-            return datetime(year, month, day).date()
-        except Exception:
-            return None
-        
     try:
         owner = dtr_file.uploaded_by
         debug(f"Comparing DTR for owner: {owner.username if owner else 'Unknown'}")

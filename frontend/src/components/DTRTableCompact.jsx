@@ -1,6 +1,6 @@
 /* components/DTRTableCompact.jsx */
-
 import { useEffect, useState } from "react";
+import { useRef } from "react";
 import api from "../api";
 import { toast } from "react-toastify";
 import "./styles/DTRTableCompact.css";
@@ -10,6 +10,10 @@ export default function DTRTableCompact({ fileId }) {
   const [fileContents, setFileContents] = useState([]);
   const [dateColumns, setDateColumns] = useState([]);
   const [selectedFileObj, setSelectedFileObj] = useState(null);
+
+  const [editableRow, setEditableRow] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const originalRowRef = useRef(null);
 
   const [parsing, setParsing] = useState(false);
 
@@ -178,6 +182,63 @@ export default function DTRTableCompact({ fileId }) {
     fileContents.map((row) => normalizeEmpNo(row?.employee_no)).filter(Boolean)
   ).size;
 
+  const handleEditChange = (rowIndex, field, value, dateKey = null) => {
+    setFileContents((prev) => {
+      const updated = [...prev];
+      const row = { ...updated[rowIndex] };
+
+      if (dateKey) {
+        row.daily_data = { ...row.daily_data, [dateKey]: value };
+      } else {
+        row[field] = value;
+      }
+
+      updated[rowIndex] = row;
+      return updated;
+    });
+  };
+
+  const startEdit = (rIdx) => {
+    originalRowRef.current = JSON.parse(JSON.stringify(fileContents[rIdx] || {}));
+    setEditableRow(rIdx);
+  };
+
+  const cancelEdit = (rIdx) => {
+    if (originalRowRef.current) {
+      setFileContents((prev) => {
+        const updated = [...prev];
+        updated[rIdx] = originalRowRef.current;
+        return updated;
+      });
+    }
+    originalRowRef.current = null;
+    setEditableRow(null);
+  };
+
+  const saveRow = async (rIdx) => {
+    try {
+      setSaving(true);
+      const rowToSave = fileContents[rIdx];
+
+      await api.post(`/files/dtr/files/${fileId}/update-rows/`, {
+        rows: [rowToSave],
+      });
+
+      toast.success("Row updated successfully!");
+
+      await handleViewFile(fileId);
+
+      originalRowRef.current = null;
+      setEditableRow(null);
+
+    } catch (err) {
+      console.error("Failed to save row:", err);
+      toast.error("Failed to save row.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="dtr-compact-wrapper">
       {!fileId ? (
@@ -245,6 +306,7 @@ export default function DTRTableCompact({ fileId }) {
                         {getDayNumber(date)}
                       </th>
                     ))}
+                    <th>Edit</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -279,14 +341,63 @@ export default function DTRTableCompact({ fileId }) {
                               )}
                             </>
                           )}
-                          {formatCellValue(col.key, row[col.key])}
+                          {editableRow === rIdx ? (
+                            <input
+                              type="text"
+                              value={row[col.key] ?? ""}
+                              onChange={(e) =>
+                                handleEditChange(rIdx, col.key, e.target.value)
+                              }
+                              className="editable-input"
+                            />
+                          ) : (
+                            formatCellValue(col.key, row[col.key])
+                          )}
                         </td>
                       ))}
                       {dateColumns.map((date) => (
                         <td key={date}>
-                          {formatCellValue(date, row.daily_data?.[date])}
+                          {editableRow === rIdx ? (
+                            <input
+                              type="text"
+                              value={row.daily_data?.[date] ?? ""}
+                              onChange={(e) =>
+                                handleEditChange(rIdx, "daily_data", e.target.value, date)
+                              }
+                              className="editable-input"
+                            />
+                          ) : (
+                            formatCellValue(date, row.daily_data?.[date])
+                          )}
                         </td>
                       ))}
+                      <td>
+                        {editableRow === rIdx ? (
+                          <>
+                            <button
+                              className="btn-save"
+                              onClick={() => saveRow(rIdx)}
+                              disabled={saving}
+                            >
+                              {saving ? "Saving..." : "Save"}
+                            </button>
+
+                            <button
+                              className="btn-cancel"
+                              onClick={() => cancelEdit(rIdx)}
+                            >
+                              Cancel
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            className="btn-edit"
+                            onClick={() => startEdit(rIdx)}
+                          >
+                            Edit
+                          </button>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

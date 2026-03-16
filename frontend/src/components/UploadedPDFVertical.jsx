@@ -81,14 +81,21 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
   };
   const closeModal = () => setActiveModal({ type: null, data: null });
 
-  const parseDMY = (dateStr) => {
+  const normalizeDate = (dateStr) => {
     if (!dateStr) return null;
 
-    const parts = dateStr.split("/");
-    if (parts.length !== 3) return new Date(dateStr);
+    const parts = dateStr.replace(/[- ]/g, "/").split("/");
 
-    const [day, month, year] = parts;
-    return new Date(`${year}-${month}-${day}`);
+    if (parts.length === 3) {
+      let [a, b, c] = parts.map(Number);
+
+      if (a > 1900) return new Date(a, b - 1, c); // YYYY/MM/DD
+      if (a > 12) return new Date(c, b - 1, a);   // DD/MM/YYYY
+
+      return new Date(c, a - 1, b);               // MM/DD/YYYY
+    }
+
+    return new Date(dateStr);
   };
 
   return (
@@ -156,7 +163,7 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
                     <td>
                       {file.type === "pdf"
                         ? file.start_date && file.end_date
-                          ? `${parseDMY(file.start_date)?.toLocaleDateString()} → ${parseDMY(file.end_date)?.toLocaleDateString()}`
+                          ? `${normalizeDate(file.start_date)?.toLocaleDateString()} → ${normalizeDate(file.end_date)?.toLocaleDateString()}`
                           : "N/A"
                         : `${file.period_from} → ${file.period_to}`}
                     </td>

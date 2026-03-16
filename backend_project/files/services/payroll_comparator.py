@@ -62,6 +62,8 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
     try:
         owner = dtr_file.uploaded_by
         debug(f"Comparing DTR for owner: {owner.username if owner else 'Unknown'}")
+        
+        debug(f"RAW PDF DB dates → {pdf.start_date} → {pdf.end_date}")
 
         dtr_start = parse_date_flexible(dtr_file.start_date)
         dtr_end = parse_date_flexible(dtr_file.end_date)
@@ -84,7 +86,9 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
             if not pdf.start_date or not pdf.end_date:
                 debug(f"Skipping PDF without period: {pdf.file.name}")
                 continue
-
+            
+            debug(f"RAW PDF DB dates → {pdf.start_date} → {pdf.end_date}")
+            
             pdf_start = parse_date_flexible(pdf.start_date)
             pdf_end = parse_date_flexible(pdf.end_date)
 

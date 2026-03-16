@@ -59,6 +59,15 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
     ),
   ].filter(Boolean);
 
+  const parseDMY = (dateStr) => {
+    if (!dateStr) return null;
+    const parts = dateStr.split("/");
+    if (parts.length !== 3) return new Date(dateStr);
+    const [day, month, year] = parts.map(Number);
+    return new Date(year, month - 1, day); 
+  };
+
+  // Now you can safely use parseDMY in filteredFiles
   const filteredFiles = files.filter(file => {
     const matchesSearch = file.type === "pdf"
       ? file.file.split("/").pop().toLowerCase().includes(search.toLowerCase())
@@ -82,14 +91,6 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
     setActiveModal({ type, data: file });
   };
   const closeModal = () => setActiveModal({ type: null, data: null });
-
-  const parseDMY = (dateStr) => {
-    if (!dateStr) return null;
-    const parts = dateStr.split("/");
-    if (parts.length !== 3) return new Date(dateStr);
-    const [day, month, year] = parts.map(Number);
-    return new Date(year, month - 1, day); 
-  };
 
   return (
     <motion.div className="file-vertical-wrapper" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>

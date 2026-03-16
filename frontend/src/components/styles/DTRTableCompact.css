@@ -260,6 +260,5 @@
 .dtr-table td:last-child {
   position: sticky;
   right: 0;
-  background: white;
   z-index: 10;
 }

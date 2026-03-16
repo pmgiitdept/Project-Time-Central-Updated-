@@ -29,26 +29,11 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
 
         date_str = str(date_val).strip()
 
-        date_str = date_str.replace("-", "/").replace(" ", "/")
-
-        parts = date_str.split("/")
-
-        if len(parts) == 3 and all(p.isdigit() for p in parts):
-            a, b, c = map(int, parts)
-
-            # YYYY/MM/DD
-            if a > 1900:
-                return datetime(a, b, c).date()
-
-            # DD/MM/YYYY
-            if a > 12:
-                return datetime(c, b, a).date()
-
-            # MM/DD/YYYY (default)
-            return datetime(c, a, b).date()
-
-        # Text formats fallback
         formats = [
+            "%Y-%m-%d",
+            "%d/%m/%Y",
+            "%m/%d/%Y",
+            "%m-%d-%Y",
             "%b %d, %Y",
             "%B %d, %Y",
         ]

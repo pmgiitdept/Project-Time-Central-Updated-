@@ -24,14 +24,25 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
         if not date_val:
             return None
 
+        # Convert to string
         date_str = str(date_val).strip()
-        date_str = re.sub(r"[-\s]+", "/", date_str)
-        parts = [int(p) for p in date_str.split("/")]
+        if not date_str:
+            return None
 
+        # Normalize separators: spaces, dashes → slash
+        date_str = re.sub(r"[-\s]+", "/", date_str)
+
+        # Split into numeric parts
+        parts = [p for p in date_str.split("/") if p]
         if len(parts) != 3:
             return None
 
-        # Heuristic to detect DD/MM/YYYY vs MM/DD/YYYY
+        try:
+            parts = [int(p) for p in parts]
+        except ValueError:
+            return None
+
+        # Heuristic: detect DD/MM/YYYY vs MM/DD/YYYY
         if parts[0] > 12:
             day, month, year = parts
         elif parts[1] > 12:
@@ -44,8 +55,9 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
 
         try:
             return datetime(year, month, day).date()
-        except:
+        except Exception:
             return None
+        
     try:
         owner = dtr_file.uploaded_by
         debug(f"Comparing DTR for owner: {owner.username if owner else 'Unknown'}")

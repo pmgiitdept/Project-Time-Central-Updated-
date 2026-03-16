@@ -255,3 +255,11 @@
   background: white;
   z-index: 5;
 }
+
+.dtr-table th:last-child,
+.dtr-table td:last-child {
+  position: sticky;
+  right: 0;
+  background: white;
+  z-index: 10;
+}

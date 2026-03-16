@@ -200,7 +200,9 @@ export default function DTRTableCompact({ fileId }) {
     });
   };
 
-  const startEdit = (rIdx) => {
+  const startEdit = (rIdx, event) => {
+    event?.preventDefault();
+
     const scrollLeft = tableContainerRef.current?.scrollLeft || 0;
 
     originalRowRef.current = JSON.parse(
@@ -209,11 +211,11 @@ export default function DTRTableCompact({ fileId }) {
 
     setEditableRow(rIdx);
 
-    requestAnimationFrame(() => {
+    setTimeout(() => {
       if (tableContainerRef.current) {
         tableContainerRef.current.scrollLeft = scrollLeft;
       }
-    });
+    }, 0);
   };
 
   const cancelEdit = (rIdx) => {
@@ -364,6 +366,8 @@ export default function DTRTableCompact({ fileId }) {
                             {editableRow === rIdx ? (
                               <input
                                 type="text"
+                                autoFocus={false}
+                                onFocus={(e) => e.target.blur()}
                                 value={row[col.key] ?? ""}
                                 onChange={(e) =>
                                   handleEditChange(rIdx, col.key, e.target.value)
@@ -380,6 +384,8 @@ export default function DTRTableCompact({ fileId }) {
                           <td key={date}>
                             {editableRow === rIdx ? (
                               <input
+                                autoFocus={false}
+                                onFocus={(e) => e.target.blur()}
                                 type="text"
                                 value={row.daily_data?.[date] ?? ""}
                                 onChange={(e) =>
@@ -414,7 +420,7 @@ export default function DTRTableCompact({ fileId }) {
                           ) : (
                             <button
                               className="btn-edit"
-                              onClick={() => startEdit(rIdx)}
+                              onClick={(e) => startEdit(rIdx, e)}
                             >
                               Edit
                             </button>

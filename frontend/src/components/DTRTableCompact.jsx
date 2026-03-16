@@ -310,96 +310,103 @@ export default function DTRTableCompact({ fileId }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {sortedContents.map((row, rIdx) => (
-                    <tr
-                      key={row?.id ?? `row-${rIdx}`}
-                      className={
-                        row.status_flag === "mismatch"
-                          ? "mismatch-row"
-                          : row.status_flag === "match"
-                          ? "match-row"
-                          : ""
-                      }
-                    >
-                      {staticColumns.concat(summaryColumns, extraColumns).map((col, idx) => (
-                        <td key={col.key} className={idx === 0 ? "sticky-col" : ""}>
-                          {col.key === "full_name" && (
+                  {sortedContents.map((row) => {
+                    const rIdx = fileContents.findIndex(r => r.id === row.id);
+
+                    return (
+                      <tr
+                        key={row?.id ?? `row-${rIdx}`}
+                        className={
+                          row.status_flag === "mismatch"
+                            ? "mismatch-row"
+                            : row.status_flag === "match"
+                            ? "match-row"
+                            : ""
+                        }
+                      >
+                        {staticColumns.concat(summaryColumns, extraColumns).map((col, idx) => (
+                          <td key={col.key} className={idx === 0 ? "sticky-col" : ""}>
+                            {col.key === "full_name" && (
+                              <>
+                                {row.status_flag === "mismatch" && (
+                                  <span
+                                    className="status-icon mismatch"
+                                    title={row.mismatch_flag || "Mismatch detected"}
+                                  >
+                                    ⚠️
+                                  </span>
+                                )}
+
+                                {row.status_flag === "match" && (
+                                  <span className="status-icon match" title="Data matches payroll">
+                                    ✅
+                                  </span>
+                                )}
+                              </>
+                            )}
+
+                            {editableRow === rIdx ? (
+                              <input
+                                type="text"
+                                value={row[col.key] ?? ""}
+                                onChange={(e) =>
+                                  handleEditChange(rIdx, col.key, e.target.value)
+                                }
+                                className="editable-input"
+                              />
+                            ) : (
+                              formatCellValue(col.key, row[col.key])
+                            )}
+                          </td>
+                        ))}
+
+                        {dateColumns.map((date) => (
+                          <td key={date}>
+                            {editableRow === rIdx ? (
+                              <input
+                                type="text"
+                                value={row.daily_data?.[date] ?? ""}
+                                onChange={(e) =>
+                                  handleEditChange(rIdx, "daily_data", e.target.value, date)
+                                }
+                                className="editable-input"
+                              />
+                            ) : (
+                              formatCellValue(date, row.daily_data?.[date])
+                            )}
+                          </td>
+                        ))}
+
+                        <td>
+                          {editableRow === rIdx ? (
                             <>
-                              {row.status_flag === "mismatch" && (
-                                <span
-                                  className="status-icon mismatch"
-                                  title={row.mismatch_flag || "Mismatch detected"}
-                                >
-                                  ⚠️
-                                </span>
-                              )}
+                              <button
+                                className="btn-save"
+                                onClick={() => saveRow(rIdx)}
+                                disabled={saving}
+                              >
+                                {saving ? "Saving..." : "Save"}
+                              </button>
 
-                              {row.status_flag === "match" && (
-                                <span className="status-icon match" title="Data matches payroll">
-                                  ✅
-                                </span>
-                              )}
+                              <button
+                                className="btn-cancel"
+                                onClick={() => cancelEdit(rIdx)}
+                              >
+                                Cancel
+                              </button>
                             </>
-                          )}
-                          {editableRow === rIdx ? (
-                            <input
-                              type="text"
-                              value={row[col.key] ?? ""}
-                              onChange={(e) =>
-                                handleEditChange(rIdx, col.key, e.target.value)
-                              }
-                              className="editable-input"
-                            />
                           ) : (
-                            formatCellValue(col.key, row[col.key])
+                            <button
+                              className="btn-edit"
+                              onClick={() => startEdit(rIdx)}
+                            >
+                              Edit
+                            </button>
                           )}
                         </td>
-                      ))}
-                      {dateColumns.map((date) => (
-                        <td key={date}>
-                          {editableRow === rIdx ? (
-                            <input
-                              type="text"
-                              value={row.daily_data?.[date] ?? ""}
-                              onChange={(e) =>
-                                handleEditChange(rIdx, "daily_data", e.target.value, date)
-                              }
-                              className="editable-input"
-                            />
-                          ) : (
-                            formatCellValue(date, row.daily_data?.[date])
-                          )}
-                        </td>
-                      ))}
-                      <td>
-                        {editableRow === rIdx ? (
-                          <>
-                            <button
-                              className="btn-save"
-                              onClick={() => saveRow(rIdx)}
-                              disabled={saving}
-                            >
-                              {saving ? "Saving..." : "Save"}
-                            </button>
-
-                            <button
-                              className="btn-cancel"
-                              onClick={() => cancelEdit(rIdx)}
-                            >
-                              Cancel
-                            </button>
-                          </>
-                        ) : (
-                          <button
-                            className="btn-edit"
-                            onClick={() => startEdit(rIdx)}
-                          >
-                            Edit
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

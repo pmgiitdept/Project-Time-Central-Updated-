@@ -4,7 +4,6 @@ import re
 import traceback
 from datetime import datetime, timedelta
 
-
 def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
 
     def debug(msg):
@@ -20,29 +19,30 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
         emp_no_str = re.sub(r"\D", "", str(emp_no)).strip()
         return emp_no_str.zfill(5) if emp_no_str else None
 
-    def parse_flexible(date_str):
-        """Tries DD/MM/YYYY or MM/DD/YYYY formats, returns datetime.date"""
-        if not date_str:
+    def parse_date_flexible(date_val):
+        if not date_val:
             return None
-        date_str = str(date_str).strip().replace("-", "/").replace(" ", "/")
-        for fmt in ("%Y/%m/%d", "%d/%m/%Y", "%m/%d/%Y"):
+        if hasattr(date_val, "year"):
+            return date_val
+        date_str = str(date_val).strip()
+        formats = [
+            "%Y-%m-%d",
+            "%d/%m/%Y",
+            "%m/%d/%Y",
+            "%m-%d-%Y",
+            "%b %d, %Y",
+            "%B %d, %Y",
+        ]
+        for fmt in formats:
             try:
                 return datetime.strptime(date_str, fmt).date()
             except ValueError:
                 continue
-        # fallback heuristic
-        parts = date_str.split("/")
-        if len(parts) == 3:
-            d, m, y = map(int, parts)
-            if d > 12:
-                return datetime(y, m, d).date()
-            else:
-                return datetime(y, d, m).date()
         return None
 
-    def parse_payroll_period(start_str, end_str):
-        """Normalize period based on end date: 1–15 or 16–end of month"""
-        end_date = parse_flexible(end_str)
+    def parse_payroll_period(end_str):
+        """Normalize a payroll/DTR period using only the end date."""
+        end_date = parse_date_flexible(end_str)
         if not end_date:
             return None, None
 
@@ -51,19 +51,20 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
             period_end = end_date.replace(day=15)
         else:
             period_start = end_date.replace(day=16)
-            # Last day of month
+            # Calculate last day of month
             next_month = end_date.replace(day=28) + timedelta(days=4)
             last_day = (next_month - timedelta(days=next_month.day)).day
             period_end = end_date.replace(day=last_day)
+
         return period_start, period_end
 
     try:
         owner = dtr_file.uploaded_by
         debug(f"Comparing DTR for owner: {owner.username if owner else 'Unknown'}")
 
-        # Normalize DTR period
-        dtr_start, dtr_end = parse_payroll_period(dtr_file.start_date, dtr_file.end_date)
-        debug(f"DTR normalized Period: {dtr_start} → {dtr_end}")
+        # Use only end date for period normalization
+        dtr_start, dtr_end = parse_payroll_period(dtr_file.end_date)
+        debug(f"DTR Period (normalized) : {dtr_start} → {dtr_end}")
 
         if not dtr_start or not dtr_end:
             debug("DTR file does not have a valid period")
@@ -75,14 +76,12 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
         )
 
         pdf_file = None
-
         for pdf in pdf_candidates:
-
-            if not pdf.start_date or not pdf.end_date:
-                debug(f"Skipping PDF without period: {pdf.file.name}")
+            if not pdf.end_date:
+                debug(f"Skipping PDF without end date: {pdf.file.name}")
                 continue
 
-            pdf_start, pdf_end = parse_payroll_period(pdf.start_date, pdf.end_date)
+            pdf_start, pdf_end = parse_payroll_period(pdf.end_date)
             if not pdf_start or not pdf_end:
                 debug(f"Skipping PDF with unreadable period: {pdf.file.name}")
                 continue
@@ -103,7 +102,6 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
             return
 
         debug(f"Using payroll PDF: {pdf_file.file.name}")
-
         pdf_employees = parse_payroll_pdf(pdf_file.file.path, log_debug=log_debug)
         pdf_map = {}
 
@@ -116,22 +114,22 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
                 for ot, holiday in zip(emp.get("ot_per_row", []), emp.get("holiday_codes", [])):
                     if holiday not in ["SHP", "LHP"]:
                         total_ot += ot
+
                 pdf_map[emp_no_norm] = {
                     "wrk_days": float(emp.get("wrk_days") or 0),
                     "reg_hours": float(emp.get("reg_hours") or 0),
                     "ot_hours": total_ot,
                     "nd_hours": float(emp.get("nd_hours") or 0),
                 }
+
             except Exception as e:
                 debug(f"Failed numeric parse for PDF emp {emp_no_norm}: {e}")
 
         debug(f"PDF employee numbers: {list(pdf_map.keys())}")
-
         entries = DTREntry.objects.filter(dtr_file=dtr_file)
         debug(f"Found {entries.count()} DTR entries")
 
         for entry in entries:
-
             issues = []
             emp_no_norm = normalize_emp_no(entry.employee_no)
             debug(f"Checking DTR emp: {emp_no_norm} ({entry.full_name})")

@@ -29,30 +29,49 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
 
         date_str = str(date_val).strip()
 
-        # Replace dashes and multiple spaces with slashes
+        # Normalize separators: spaces, dashes → slashes
         date_str = re.sub(r"[-\s]+", "/", date_str)
 
-        # Try numeric formats first
-        numeric_formats = ["%d/%m/%Y", "%m/%d/%Y", "%Y/%m/%d"]
-        for fmt in numeric_formats:
+        # Handle leading/trailing spaces
+        date_str = date_str.strip("/")
+
+        # List of formats to try, in order
+        formats = [
+            "%d/%m/%Y",   # 01/03/2026
+            "%m/%d/%Y",   # 03/01/2026
+            "%Y/%m/%d",   # 2026/03/01
+            "%d/%m/%y",   # 01/03/26
+            "%m/%d/%y",   # 03/01/26
+            "%b/%d/%Y",   # Mar/01/2026
+            "%B/%d/%Y",   # March/01/2026
+        ]
+
+        # Try all formats
+        for fmt in formats:
             try:
                 return datetime.strptime(date_str, fmt).date()
             except ValueError:
                 continue
 
-        # Try text month formats
-        text_formats = ["%b %d, %Y", "%B %d, %Y"]
-        for fmt in text_formats:
-            try:
-                return datetime.strptime(date_str, fmt).date()
-            except ValueError:
-                continue
-
-        # Try space-separated numeric as DD MM YYYY
+        # If still fails, try space-separated numeric (DD MM YYYY)
         match = re.match(r"(\d{1,2})/(\d{1,2})/(\d{4})", date_str)
         if match:
-            day, month, year = match.groups()
-            return datetime(int(year), int(month), int(day)).date()
+            d, m, y = match.groups()
+            return datetime(int(y), int(m), int(d)).date()
+
+        # Last resort: split by / and check
+        parts = date_str.split("/")
+        if len(parts) == 3:
+            d, m, y = parts
+            try:
+                d, m, y = int(d), int(m), int(y)
+                # Heuristic: if d > 12 → DD/MM, else assume MM/DD
+                if d > 12:
+                    return datetime(y, m, d).date()
+                else:
+                    return datetime(y, d, m).date()
+            except:
+                return None
 
         return None
 

@@ -268,7 +268,7 @@ export default function FileTableVertical({ role, uploaderFilter = null }) {
               <label>Search</label>
               <input
                 type="text"
-                placeholder="Uploader or filename"
+                placeholder="Search something..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -301,7 +301,7 @@ export default function FileTableVertical({ role, uploaderFilter = null }) {
             </div>
 
             <div className="filter-item">
-              <label>Upload From</label>
+              <label>Date Upload</label>
               <input
                 type="date"
                 value={uploadStartDate}
@@ -310,7 +310,7 @@ export default function FileTableVertical({ role, uploaderFilter = null }) {
             </div>
 
             <div className="filter-item">
-              <label>Covered Dates</label>
+              <label>Date Covered</label>
               <div className="date-range-inputs">
                 <input
                   type="date"
@@ -334,8 +334,8 @@ export default function FileTableVertical({ role, uploaderFilter = null }) {
                   <th>Project</th>
                   <th>Date Upload</th>
                   <th>Status</th>
-                  <th>Start</th>
-                  <th>End</th>
+                  <th>Start Date Period</th>
+                  <th>End Date Period</th>
                   <th>Rejection Reason</th>
                   {(role === "admin" || role === "viewer") && <th>Actions</th>}
                 </tr>

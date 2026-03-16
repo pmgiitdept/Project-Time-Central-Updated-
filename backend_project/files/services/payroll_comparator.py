@@ -29,24 +29,11 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
 
         date_str = str(date_val).strip()
 
-        date_str = date_str.replace("-", "/").replace(" ", "/")
-
-        parts = date_str.split("/")
-        if len(parts) == 3 and all(p.isdigit() for p in parts):
-            a, b, c = map(int, parts)
-
-            if a > 12:
-                return datetime(c, b, a).date()
-
-            if b > 12:
-                return datetime(c, a, b).date()
-
-            return datetime(c, a, b).date()
-
         formats = [
-            "%Y/%m/%d",
-            "%m/%d/%Y",
+            "%Y-%m-%d",
             "%d/%m/%Y",
+            "%m/%d/%Y",
+            "%m-%d-%Y",
             "%b %d, %Y",
             "%B %d, %Y",
         ]
@@ -62,8 +49,6 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
     try:
         owner = dtr_file.uploaded_by
         debug(f"Comparing DTR for owner: {owner.username if owner else 'Unknown'}")
-        
-        debug(f"RAW PDF DB dates → {pdf.start_date} → {pdf.end_date}")
 
         dtr_start = parse_date_flexible(dtr_file.start_date)
         dtr_end = parse_date_flexible(dtr_file.end_date)
@@ -86,9 +71,7 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
             if not pdf.start_date or not pdf.end_date:
                 debug(f"Skipping PDF without period: {pdf.file.name}")
                 continue
-            
-            debug(f"RAW PDF DB dates → {pdf.start_date} → {pdf.end_date}")
-            
+
             pdf_start = parse_date_flexible(pdf.start_date)
             pdf_end = parse_date_flexible(pdf.end_date)
 

@@ -15,6 +15,8 @@ export default function DTRTableCompact({ fileId }) {
   const [saving, setSaving] = useState(false);
   const originalRowRef = useRef(null);
 
+  const tableContainerRef = useRef(null);
+
   const [parsing, setParsing] = useState(false);
 
   const normalizeEmpNo = (empNo) => {
@@ -199,8 +201,19 @@ export default function DTRTableCompact({ fileId }) {
   };
 
   const startEdit = (rIdx) => {
-    originalRowRef.current = JSON.parse(JSON.stringify(fileContents[rIdx] || {}));
+    const scrollLeft = tableContainerRef.current?.scrollLeft || 0;
+
+    originalRowRef.current = JSON.parse(
+      JSON.stringify(fileContents[rIdx] || {})
+    );
+
     setEditableRow(rIdx);
+
+    requestAnimationFrame(() => {
+      if (tableContainerRef.current) {
+        tableContainerRef.current.scrollLeft = scrollLeft;
+      }
+    });
   };
 
   const cancelEdit = (rIdx) => {
@@ -292,7 +305,10 @@ export default function DTRTableCompact({ fileId }) {
           </div>
 
           {fileContents.length > 0 ? (
-            <div className="dtr-compact-table-container">
+            <div
+              className="dtr-compact-table-container"
+              ref={tableContainerRef}
+            >
               <table className="dtr-table dtr-compact">
                 <thead>
                   <tr>

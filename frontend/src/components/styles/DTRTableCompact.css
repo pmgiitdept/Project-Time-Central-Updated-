@@ -248,3 +248,10 @@
   border:none;
   padding:3px 6px;
 }
+
+.edit-column {
+  position: sticky;
+  right: 0;
+  background: white;
+  z-index: 5;
+}

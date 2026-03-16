@@ -14,9 +14,10 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
             print(f"{prefix} {msg}")
 
     def normalize_emp_no(emp_no):
+        """Keep only digits, remove prefixes like 'PM', and pad to 5 digits."""
         if not emp_no:
             return None
-        emp_no_str = re.sub(r"\D", "", str(emp_no)).strip()
+        emp_no_str = re.sub(r"\D", "", str(emp_no)).strip()  # remove all non-digit chars
         return emp_no_str.zfill(5) if emp_no_str else None
 
     def parse_date_flexible(date_val):
@@ -51,7 +52,6 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
             period_end = end_date.replace(day=15)
         else:
             period_start = end_date.replace(day=16)
-            # Calculate last day of month
             next_month = end_date.replace(day=28) + timedelta(days=4)
             last_day = (next_month - timedelta(days=next_month.day)).day
             period_end = end_date.replace(day=last_day)
@@ -105,15 +105,22 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
         pdf_employees = parse_payroll_pdf(pdf_file.file.path, log_debug=log_debug)
         pdf_map = {}
 
+        # Build PDF employee map
         for emp in pdf_employees:
             emp_no_norm = normalize_emp_no(emp.get("employee_no"))
+            if not emp_no_norm:
+                # Try to parse from header_text if employee_no missing
+                header_line = emp.get("header_text_line") or ""
+                match = re.search(r"([A-Z]*)(\d{5})", header_line)
+                if match:
+                    emp_no_norm = normalize_emp_no(match.group(2))
             if not emp_no_norm:
                 continue
             try:
                 total_ot = 0
                 for ot, holiday in zip(emp.get("ot_per_row", []), emp.get("holiday_codes", [])):
                     if holiday not in ["SHP", "LHP"]:
-                        total_ot += ot
+                        total_ot += float(ot or 0)
 
                 pdf_map[emp_no_norm] = {
                     "wrk_days": float(emp.get("wrk_days") or 0),
@@ -125,10 +132,11 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
             except Exception as e:
                 debug(f"Failed numeric parse for PDF emp {emp_no_norm}: {e}")
 
-        debug(f"PDF employee numbers: {list(pdf_map.keys())}")
+        debug(f"PDF employee numbers after normalization: {list(pdf_map.keys())}")
         entries = DTREntry.objects.filter(dtr_file=dtr_file)
         debug(f"Found {entries.count()} DTR entries")
 
+        # Compare each DTR entry
         for entry in entries:
             issues = []
             emp_no_norm = normalize_emp_no(entry.employee_no)

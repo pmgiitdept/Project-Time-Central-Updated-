@@ -64,7 +64,9 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
       ? file.file.split("/").pop().toLowerCase().includes(search.toLowerCase())
       : file.employee_name.toLowerCase().includes(search.toLowerCase());
     
-    const fileDate = new Date(file.uploaded_at || file.period_from).setHours(0,0,0,0);
+    const fileDate = file.type === "pdf"
+      ? parseDMY(file.start_date)?.setHours(0,0,0,0)
+      : parseDMY(file.period_from)?.setHours(0,0,0,0);
     const matchesUploadStart = uploadStartDate ? fileDate >= new Date(uploadStartDate).setHours(0,0,0,0) : true;
     const matchesUploadEnd = uploadEndDate ? fileDate <= new Date(uploadEndDate).setHours(0,0,0,0) : true;
 
@@ -83,12 +85,10 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
 
   const parseDMY = (dateStr) => {
     if (!dateStr) return null;
-
     const parts = dateStr.split("/");
     if (parts.length !== 3) return new Date(dateStr);
-
-    const [day, month, year] = parts;
-    return new Date(`${year}-${month}-${day}`);
+    const [day, month, year] = parts.map(Number);
+    return new Date(year, month - 1, day); 
   };
 
   return (
@@ -158,7 +158,7 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
                         ? file.start_date && file.end_date
                           ? `${parseDMY(file.start_date)?.toLocaleDateString()} → ${parseDMY(file.end_date)?.toLocaleDateString()}`
                           : "N/A"
-                        : `${file.period_from} → ${file.period_to}`}
+                        : `${parseDMY(file.period_from)?.toLocaleDateString()} → ${parseDMY(file.period_to)?.toLocaleDateString()}`}
                     </td>
                     <td>{file.type === "pdf" ? file.uploaded_by_name : file.project}</td>
                     <td>

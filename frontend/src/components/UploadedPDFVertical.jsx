@@ -81,6 +81,16 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
   };
   const closeModal = () => setActiveModal({ type: null, data: null });
 
+  const parseDMY = (dateStr) => {
+    if (!dateStr) return null;
+
+    const parts = dateStr.split("/");
+    if (parts.length !== 3) return new Date(dateStr);
+
+    const [day, month, year] = parts;
+    return new Date(`${year}-${month}-${day}`);
+  };
+
   return (
     <motion.div className="file-vertical-wrapper" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
 
@@ -146,7 +156,7 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
                     <td>
                       {file.type === "pdf"
                         ? file.start_date && file.end_date
-                          ? `${new Date(file.start_date).toLocaleDateString()} → ${new Date(file.end_date).toLocaleDateString()}`
+                          ? `${parseDMY(file.start_date)?.toLocaleDateString()} → ${parseDMY(file.end_date)?.toLocaleDateString()}`
                           : "N/A"
                         : `${file.period_from} → ${file.period_to}`}
                     </td>

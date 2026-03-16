@@ -20,8 +20,6 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
         emp_no_str = re.sub(r"\D", "", str(emp_no)).strip()
         return emp_no_str.zfill(5) if emp_no_str else None
 
-
-    # ✅ Robust universal date parser
     def parse_date_flexible(date_val):
         if not date_val:
             return None
@@ -31,39 +29,32 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
 
         date_str = str(date_val).strip()
 
-        # Normalize separators
-        date_str = re.sub(r"[-\s]", "/", date_str)
+        # Replace dashes and multiple spaces with slashes
+        date_str = re.sub(r"[-\s]+", "/", date_str)
 
-        parts = date_str.split("/")
-
-        # Handle numeric formats manually
-        if len(parts) == 3 and all(p.isdigit() for p in parts):
-            a, b, c = map(int, parts)
-
-            # YYYY/MM/DD
-            if a > 1900:
-                return datetime(a, b, c).date()
-
-            # DD/MM/YYYY
-            if a > 12:
-                return datetime(c, b, a).date()
-
-            # MM/DD/YYYY
-            if b > 12:
-                return datetime(c, a, b).date()
-
-            # Ambiguous → assume MM/DD/YYYY
-            return datetime(c, a, b).date()
-
-        # Text month fallback
-        for fmt in ["%b %d, %Y", "%B %d, %Y"]:
+        # Try numeric formats first
+        numeric_formats = ["%d/%m/%Y", "%m/%d/%Y", "%Y/%m/%d"]
+        for fmt in numeric_formats:
             try:
                 return datetime.strptime(date_str, fmt).date()
             except ValueError:
                 continue
 
-        return None
+        # Try text month formats
+        text_formats = ["%b %d, %Y", "%B %d, %Y"]
+        for fmt in text_formats:
+            try:
+                return datetime.strptime(date_str, fmt).date()
+            except ValueError:
+                continue
 
+        # Try space-separated numeric as DD MM YYYY
+        match = re.match(r"(\d{1,2})/(\d{1,2})/(\d{4})", date_str)
+        if match:
+            day, month, year = match.groups()
+            return datetime(int(year), int(month), int(day)).date()
+
+        return None
 
     try:
         owner = dtr_file.uploaded_by
@@ -72,7 +63,7 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
         dtr_start = parse_date_flexible(dtr_file.start_date)
         dtr_end = parse_date_flexible(dtr_file.end_date)
 
-        debug(f"DTR Period Parsed → {dtr_start} → {dtr_end}")
+        debug(f"DTR Period: {dtr_start} → {dtr_end}")
 
         if not dtr_start or not dtr_end:
             debug("DTR file does not have a valid period")
@@ -98,8 +89,7 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
                 debug(f"Skipping PDF with unreadable period: {pdf.file.name}")
                 continue
 
-            debug(f"Checking PDF {pdf.file.name}")
-            debug(f"PDF Period Parsed → {pdf_start} → {pdf_end}")
+            debug(f"Checking PDF {pdf.file.name} → {pdf_start} → {pdf_end}")
 
             if pdf_start == dtr_start and pdf_end == dtr_end:
                 pdf_file = pdf

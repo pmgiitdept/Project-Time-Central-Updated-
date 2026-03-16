@@ -32,10 +32,22 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
         dtrData = dtrData.filter(d => d.project === uploaderFilter);
       }
 
-      setFiles([
-        ...pdfData.map(f => ({ ...f, type: "pdf" })),
-        ...dtrData.map(d => ({ ...d, type: "parsed" }))
-      ]);
+      // Normalize dates here
+      pdfData = pdfData.map(f => ({
+        ...f,
+        start_date: f.start_date ? new Date(f.start_date) : null,
+        end_date: f.end_date ? new Date(f.end_date) : null,
+        type: "pdf"
+      }));
+
+      dtrData = dtrData.map(d => ({
+        ...d,
+        period_from: d.period_from ? new Date(d.period_from) : null,
+        period_to: d.period_to ? new Date(d.period_to) : null,
+        type: "parsed"
+      }));
+
+      setFiles([...pdfData, ...dtrData]);
     } catch (err) {
       console.error("Failed to fetch files:", err);
       toast.error("Failed to fetch files");
@@ -52,11 +64,7 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
   }, []);
 
   const uploaderProjectOptions = [
-    ...new Set(
-      files.map(file =>
-        file.type === "pdf" ? file.uploaded_by_name : file.project
-      )
-    ),
+    ...new Set(files.map(file => file.type === "pdf" ? file.uploaded_by_name : file.project)),
   ].filter(Boolean);
 
   const filteredFiles = files.filter(file => {
@@ -64,12 +72,12 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
       ? file.file.split("/").pop().toLowerCase().includes(search.toLowerCase())
       : file.employee_name.toLowerCase().includes(search.toLowerCase());
     
-    const fileDate = new Date(file.uploaded_at || file.period_from).setHours(0,0,0,0);
-    const matchesUploadStart = uploadStartDate ? fileDate >= new Date(uploadStartDate).setHours(0,0,0,0) : true;
-    const matchesUploadEnd = uploadEndDate ? fileDate <= new Date(uploadEndDate).setHours(0,0,0,0) : true;
+    const fileDate = file.type === "pdf" ? file.start_date : file.period_from;
+    const matchesUploadStart = uploadStartDate ? fileDate >= new Date(uploadStartDate) : true;
+    const matchesUploadEnd = uploadEndDate ? fileDate <= new Date(uploadEndDate) : true;
 
     const matchesUploader = uploaderFilterLocal 
-      ? (file.type === "pdf" ? file.uploaded_by_name === uploaderFilterLocal : file.project === uploaderFilterLocal) 
+      ? (file.type === "pdf" ? file.uploaded_by_name === uploaderFilterLocal : file.project === uploaderFilterLocal)
       : true;
 
     return matchesSearch && matchesUploadStart && matchesUploadEnd && matchesUploader;
@@ -81,48 +89,8 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
   };
   const closeModal = () => setActiveModal({ type: null, data: null });
 
-  // Robust date parser
-  const parseFlexibleDate = (dateStr) => {
-    if (!dateStr) return null;
-    dateStr = dateStr.trim();
-
-    // Normalize separators: spaces, dashes → slashes
-    dateStr = dateStr.replace(/[-\s]+/g, "/");
-
-    // Try common formats
-    const formats = [
-      { regex: /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/, order: "DMY" }, // 01/03/2026 or 1/3/2026
-      { regex: /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/, order: "MDY" }, // 3/1/2026
-      { regex: /^(\d{4})\/(\d{1,2})\/(\d{1,2})$/, order: "YMD" }, // 2026/03/01
-    ];
-
-    for (const fmt of formats) {
-      const match = dateStr.match(fmt.regex);
-      if (match) {
-        const [_, part1, part2, part3] = match.map(Number);
-        if (fmt.order === "DMY") return new Date(part3, part2 - 1, part1);
-        if (fmt.order === "MDY") return new Date(part3, part1 - 1, part2);
-        if (fmt.order === "YMD") return new Date(part1, part2 - 1, part3);
-      }
-    }
-
-    // Try space-separated numeric, e.g., "01 03 2026"
-    const spaceMatch = dateStr.match(/^(\d{1,2}) (\d{1,2}) (\d{4})$/);
-    if (spaceMatch) {
-      const [_, d, m, y] = spaceMatch.map(Number);
-      return new Date(y, m - 1, d);
-    }
-
-    // Try built-in parser as last resort
-    const parsed = new Date(dateStr);
-    if (!isNaN(parsed)) return parsed;
-
-    return null;
-  };
-
   return (
     <motion.div className="file-vertical-wrapper" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-
       <div className="file-vertical-top">
         <div className="vertical-header">
           <h3>Uploaded DTR Files</h3>
@@ -157,9 +125,7 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
             >
               <option value="">All Projects</option>
               {uploaderProjectOptions.map((option, index) => (
-                <option key={index} value={option}>
-                  {option}
-                </option>
+                <option key={index} value={option}>{option}</option>
               ))}
             </select>
           </div>
@@ -181,13 +147,15 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
                 {filteredFiles.map(file => (
                   <tr key={file.id} className={selectedFile?.id === file.id ? "selected-row" : ""} onClick={() => setSelectedFile(file)}>
                     <td>{file.type === "pdf" ? file.file.split("/").pop() : file.employee_name}</td>
-                    <td>{file.type === "pdf" ? new Date(file.uploaded_at).toLocaleString() : ""}</td>
+                    <td>{file.type === "pdf" ? file.uploaded_at ? new Date(file.uploaded_at).toLocaleString() : "" : ""}</td>
                     <td>
                       {file.type === "pdf"
                         ? file.start_date && file.end_date
-                          ? `${parseFlexibleDate(file.start_date)?.toLocaleDateString()} → ${parseFlexibleDate(file.end_date)?.toLocaleDateString()}`
+                          ? `${file.start_date.toLocaleDateString()} → ${file.end_date.toLocaleDateString()}`
                           : "N/A"
-                        : `${parseFlexibleDate(file.period_from)?.toLocaleDateString()} → ${parseFlexibleDate(file.period_to)?.toLocaleDateString()}`}
+                        : file.period_from && file.period_to
+                          ? `${file.period_from.toLocaleDateString()} → ${file.period_to.toLocaleDateString()}`
+                          : "N/A"}
                     </td>
                     <td>{file.type === "pdf" ? file.uploaded_by_name : file.project}</td>
                     <td>
@@ -223,7 +191,7 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
                             toast.error("Failed to download file");
                           }
                         }}
-                         className="download-btn"
+                        className="download-btn"
                       >
                         Download
                       </button>
@@ -273,7 +241,6 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
         )}
         {!activeModal.type && selectedFile && <p>Select a file and click an action to view details.</p>}
       </div>
-
     </motion.div>
   );
 }

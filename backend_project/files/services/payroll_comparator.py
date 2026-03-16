@@ -31,7 +31,6 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
 
         formats = [
             "%Y-%m-%d",
-            "%d/%m/%Y",
             "%m/%d/%Y",
             "%m-%d-%Y",
             "%b %d, %Y",

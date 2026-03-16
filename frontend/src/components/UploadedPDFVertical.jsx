@@ -32,22 +32,10 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
         dtrData = dtrData.filter(d => d.project === uploaderFilter);
       }
 
-      // Normalize dates here
-      pdfData = pdfData.map(f => ({
-        ...f,
-        start_date: f.start_date ? new Date(f.start_date) : null,
-        end_date: f.end_date ? new Date(f.end_date) : null,
-        type: "pdf"
-      }));
-
-      dtrData = dtrData.map(d => ({
-        ...d,
-        period_from: d.period_from ? new Date(d.period_from) : null,
-        period_to: d.period_to ? new Date(d.period_to) : null,
-        type: "parsed"
-      }));
-
-      setFiles([...pdfData, ...dtrData]);
+      setFiles([
+        ...pdfData.map(f => ({ ...f, type: "pdf" })),
+        ...dtrData.map(d => ({ ...d, type: "parsed" }))
+      ]);
     } catch (err) {
       console.error("Failed to fetch files:", err);
       toast.error("Failed to fetch files");
@@ -64,7 +52,11 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
   }, []);
 
   const uploaderProjectOptions = [
-    ...new Set(files.map(file => file.type === "pdf" ? file.uploaded_by_name : file.project)),
+    ...new Set(
+      files.map(file =>
+        file.type === "pdf" ? file.uploaded_by_name : file.project
+      )
+    ),
   ].filter(Boolean);
 
   const filteredFiles = files.filter(file => {
@@ -72,12 +64,12 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
       ? file.file.split("/").pop().toLowerCase().includes(search.toLowerCase())
       : file.employee_name.toLowerCase().includes(search.toLowerCase());
     
-    const fileDate = file.type === "pdf" ? file.start_date : file.period_from;
-    const matchesUploadStart = uploadStartDate ? fileDate >= new Date(uploadStartDate) : true;
-    const matchesUploadEnd = uploadEndDate ? fileDate <= new Date(uploadEndDate) : true;
+    const fileDate = new Date(file.uploaded_at || file.period_from).setHours(0,0,0,0);
+    const matchesUploadStart = uploadStartDate ? fileDate >= new Date(uploadStartDate).setHours(0,0,0,0) : true;
+    const matchesUploadEnd = uploadEndDate ? fileDate <= new Date(uploadEndDate).setHours(0,0,0,0) : true;
 
     const matchesUploader = uploaderFilterLocal 
-      ? (file.type === "pdf" ? file.uploaded_by_name === uploaderFilterLocal : file.project === uploaderFilterLocal)
+      ? (file.type === "pdf" ? file.uploaded_by_name === uploaderFilterLocal : file.project === uploaderFilterLocal) 
       : true;
 
     return matchesSearch && matchesUploadStart && matchesUploadEnd && matchesUploader;
@@ -89,8 +81,42 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
   };
   const closeModal = () => setActiveModal({ type: null, data: null });
 
+  // components/DTRFilesVertical.jsx
+  const parseFlexibleDate = (dateStr) => {
+    if (!dateStr) return null;
+    dateStr = dateStr.trim();
+
+    // Normalize separators to "/"
+    dateStr = dateStr.replace(/[-\s]+/g, "/");
+
+    // Split into numeric parts
+    const parts = dateStr.split("/").map(Number);
+    if (parts.length !== 3) return null;
+
+    let day, month, year;
+
+    // Heuristic:
+    // If first part > 12 → assume DD/MM/YYYY
+    // If second part > 12 → assume MM/DD/YYYY
+    // Otherwise default to DD/MM/YYYY
+    if (parts[0] > 12) {
+      [day, month, year] = parts;
+    } else if (parts[1] > 12) {
+      [month, day, year] = parts;
+    } else {
+      // Ambiguous, you could check user locale or fallback
+      [day, month, year] = parts;
+    }
+
+    // Fix 2-digit years if needed
+    if (year < 100) year += 2000;
+
+    return new Date(year, month - 1, day);
+  };
+
   return (
     <motion.div className="file-vertical-wrapper" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+
       <div className="file-vertical-top">
         <div className="vertical-header">
           <h3>Uploaded DTR Files</h3>
@@ -125,7 +151,9 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
             >
               <option value="">All Projects</option>
               {uploaderProjectOptions.map((option, index) => (
-                <option key={index} value={option}>{option}</option>
+                <option key={index} value={option}>
+                  {option}
+                </option>
               ))}
             </select>
           </div>
@@ -147,15 +175,13 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
                 {filteredFiles.map(file => (
                   <tr key={file.id} className={selectedFile?.id === file.id ? "selected-row" : ""} onClick={() => setSelectedFile(file)}>
                     <td>{file.type === "pdf" ? file.file.split("/").pop() : file.employee_name}</td>
-                    <td>{file.type === "pdf" ? file.uploaded_at ? new Date(file.uploaded_at).toLocaleString() : "" : ""}</td>
+                    <td>{file.type === "pdf" ? new Date(file.uploaded_at).toLocaleString() : ""}</td>
                     <td>
                       {file.type === "pdf"
                         ? file.start_date && file.end_date
-                          ? `${file.start_date.toLocaleDateString()} → ${file.end_date.toLocaleDateString()}`
+                          ? `${parseFlexibleDate(file.start_date)?.toLocaleDateString()} → ${parseFlexibleDate(file.end_date)?.toLocaleDateString()}`
                           : "N/A"
-                        : file.period_from && file.period_to
-                          ? `${file.period_from.toLocaleDateString()} → ${file.period_to.toLocaleDateString()}`
-                          : "N/A"}
+                        : `${parseFlexibleDate(file.period_from)?.toLocaleDateString()} → ${parseFlexibleDate(file.period_to)?.toLocaleDateString()}`}
                     </td>
                     <td>{file.type === "pdf" ? file.uploaded_by_name : file.project}</td>
                     <td>
@@ -191,7 +217,7 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
                             toast.error("Failed to download file");
                           }
                         }}
-                        className="download-btn"
+                         className="download-btn"
                       >
                         Download
                       </button>
@@ -241,6 +267,7 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
         )}
         {!activeModal.type && selectedFile && <p>Select a file and click an action to view details.</p>}
       </div>
+
     </motion.div>
   );
 }

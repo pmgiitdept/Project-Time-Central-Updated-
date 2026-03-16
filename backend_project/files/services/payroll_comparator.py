@@ -24,57 +24,28 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
         if not date_val:
             return None
 
-        if hasattr(date_val, "year"):
-            return date_val
-
         date_str = str(date_val).strip()
-
-        # Normalize separators: spaces, dashes → slashes
         date_str = re.sub(r"[-\s]+", "/", date_str)
+        parts = [int(p) for p in date_str.split("/")]
 
-        # Handle leading/trailing spaces
-        date_str = date_str.strip("/")
+        if len(parts) != 3:
+            return None
 
-        # List of formats to try, in order
-        formats = [
-            "%d/%m/%Y",   # 01/03/2026
-            "%m/%d/%Y",   # 03/01/2026
-            "%Y/%m/%d",   # 2026/03/01
-            "%d/%m/%y",   # 01/03/26
-            "%m/%d/%y",   # 03/01/26
-            "%b/%d/%Y",   # Mar/01/2026
-            "%B/%d/%Y",   # March/01/2026
-        ]
+        # Heuristic to detect DD/MM/YYYY vs MM/DD/YYYY
+        if parts[0] > 12:
+            day, month, year = parts
+        elif parts[1] > 12:
+            month, day, year = parts
+        else:
+            day, month, year = parts  # fallback default
 
-        # Try all formats
-        for fmt in formats:
-            try:
-                return datetime.strptime(date_str, fmt).date()
-            except ValueError:
-                continue
+        if year < 100:
+            year += 2000
 
-        # If still fails, try space-separated numeric (DD MM YYYY)
-        match = re.match(r"(\d{1,2})/(\d{1,2})/(\d{4})", date_str)
-        if match:
-            d, m, y = match.groups()
-            return datetime(int(y), int(m), int(d)).date()
-
-        # Last resort: split by / and check
-        parts = date_str.split("/")
-        if len(parts) == 3:
-            d, m, y = parts
-            try:
-                d, m, y = int(d), int(m), int(y)
-                # Heuristic: if d > 12 → DD/MM, else assume MM/DD
-                if d > 12:
-                    return datetime(y, m, d).date()
-                else:
-                    return datetime(y, d, m).date()
-            except:
-                return None
-
-        return None
-
+        try:
+            return datetime(year, month, day).date()
+        except:
+            return None
     try:
         owner = dtr_file.uploaded_by
         debug(f"Comparing DTR for owner: {owner.username if owner else 'Unknown'}")

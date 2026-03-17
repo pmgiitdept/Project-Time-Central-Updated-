@@ -1930,6 +1930,11 @@ class PDFFileViewSet(viewsets.ModelViewSet):
             return PDFFile.objects.all().order_by("-uploaded_at")
         return PDFFile.objects.filter(uploaded_by=user).order_by("-uploaded_at")
 
+    @action(detail=True, methods=["get"])
+    def download(self, request, pk=None):
+        obj = self.get_object()
+        return FileResponse(obj.file.open("rb"), as_attachment=True)
+
     @action(detail=True, methods=["put"], url_path="update-parsed")
     def update_parsed(self, request, pk=None):
         """Allow admins to edit and save parsed PDF data."""

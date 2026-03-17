@@ -178,7 +178,7 @@ export default function DTRFilesVertical({ currentUser, uploaderFilter }) {
                             const token = localStorage.getItem("access_token");
                             const res = await api.get(
                               file.type === "pdf"
-                                ? `/pdfs/${file.id}/download/`
+                                ? `/files/pdfs/${file.id}/download/`
                                 : `/files/parsed-dtrs/${file.id}/export/`,
                               { headers: { Authorization: `Bearer ${token}` }, responseType: "blob" }
                             );

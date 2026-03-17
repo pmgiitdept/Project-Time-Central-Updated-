@@ -17,33 +17,62 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
         """Keep only digits, remove prefixes like 'PM', and pad to 5 digits."""
         if not emp_no:
             return None
-        emp_no_str = re.sub(r"\D", "", str(emp_no)).strip()  # remove all non-digit chars
+        emp_no_str = re.sub(r"\D", "", str(emp_no)).strip()  
         return emp_no_str.zfill(5) if emp_no_str else None
 
     def parse_date_flexible(date_val):
         if not date_val:
             return None
+
         if hasattr(date_val, "year"):
             return date_val
+
         date_str = str(date_val).strip()
+
+        date_str = re.sub(r"\s+", " ", date_str)
+
+        space_date = re.match(r"(\d{1,2}) (\d{1,2}) (\d{4})", date_str)
+        if space_date:
+            day, month, year = space_date.groups()
+            try:
+                return datetime(int(year), int(month), int(day)).date()
+            except:
+                pass
+
         formats = [
             "%Y-%m-%d",
             "%d/%m/%Y",
             "%m/%d/%Y",
             "%m-%d-%Y",
+            "%d-%m-%Y",
             "%b %d, %Y",
             "%B %d, %Y",
         ]
+
         for fmt in formats:
             try:
                 return datetime.strptime(date_str, fmt).date()
             except ValueError:
                 continue
+
         return None
 
-    def parse_payroll_period(end_str):
-        """Normalize a payroll/DTR period using only the end date."""
-        end_date = parse_date_flexible(end_str)
+    def parse_payroll_period(date_str):
+        """Normalize payroll period using end date."""
+
+        if not date_str:
+            return None, None
+
+        text = str(date_str)
+
+        # Detect "dd mm yyyy to dd mm yyyy"
+        match = re.search(r"(\d{1,2}\s+\d{1,2}\s+\d{4}).*?(\d{1,2}\s+\d{1,2}\s+\d{4})", text)
+        if match:
+            start_raw, end_raw = match.groups()
+            end_date = parse_date_flexible(end_raw)
+        else:
+            end_date = parse_date_flexible(text)
+
         if not end_date:
             return None, None
 

@@ -155,6 +155,7 @@ export default function EmployeeDtrModal({
                     const headers = [
                       { key: "full_name", label: "Full Name" },
                       { key: "employee_no", label: "Employee #" },
+                      { key: "total_days", label: "Total Days" }, // LAST
                       { key: "time", label: "Time" },
                       { key: "total_hours", label: "Total Hours" },
                       { key: "regular_ot", label: "OT" },
@@ -167,7 +168,6 @@ export default function EmployeeDtrModal({
                         key: d,
                         label: formatDailyHeader(d),
                       })),
-                      { key: "total_days", label: "Total Days" }, // LAST
                     ];
 
                     return (
@@ -201,6 +201,7 @@ export default function EmployeeDtrModal({
                                     <td>{rec.full_name}</td>
                                     <td>{rec.employee_no}</td>
                                     <td>{rec.time}</td>
+                                    <td>{totalDays}</td>
                                     <td>{rec.total_hours}</td>
                                     <td>{rec.regular_ot}</td>
                                     <td>{rec.legal_holiday}</td>
@@ -213,7 +214,6 @@ export default function EmployeeDtrModal({
                                       <td key={d}>{rec.daily_data[d] || ""}</td>
                                     ))}
 
-                                    <td>{totalDays}</td>
                                   </tr>
                                 );
                               })}

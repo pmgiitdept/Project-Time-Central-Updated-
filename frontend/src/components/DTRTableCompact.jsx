@@ -19,6 +19,8 @@ export default function DTRTableCompact({ fileId }) {
 
   const [parsing, setParsing] = useState(false);
 
+  const [showMismatch, setShowMismatch] = useState(true);
+
   const normalizeEmpNo = (empNo) => {
     if (!empNo) return "";
     const digits = empNo.toString().replace(/\D/g, "");
@@ -316,17 +318,24 @@ export default function DTRTableCompact({ fileId }) {
             </div>
           </div>
 
-          {fileContents.length > 0 ? (
-            <div
-              className="dtr-compact-table-container"
-              ref={tableContainerRef}
-            >
-              {mismatchSummary.length > 0 && (
-                <div className="mismatch-summary-card">
-                  <div className="mismatch-header">
-                    ⚠️ Mismatch Summary ({mismatchSummary.length})
-                  </div>
+          {mismatchSummary.length > 0 && (
+            <div className="mismatch-summary-wrapper">
+              
+              <div className="mismatch-summary-header">
+                <span>
+                  ⚠️ Mismatch Summary ({mismatchSummary.length})
+                </span>
 
+                <button
+                  className="toggle-btn"
+                  onClick={() => setShowMismatch((prev) => !prev)}
+                >
+                  {showMismatch ? "Hide" : "Show"}
+                </button>
+              </div>
+
+              <div className={`mismatch-collapse ${showMismatch ? "open" : ""}`}>
+                <div className="mismatch-summary-card">
                   <div className="mismatch-list">
                     {mismatchSummary.map((emp, idx) => (
                       <div key={idx} className="mismatch-item">
@@ -343,7 +352,15 @@ export default function DTRTableCompact({ fileId }) {
                     ))}
                   </div>
                 </div>
-              )}
+              </div>
+            </div>
+          )}
+
+          {fileContents.length > 0 ? (
+            <div
+              className="dtr-compact-table-container"
+              ref={tableContainerRef}
+            >
               <table className="dtr-table dtr-compact">
                 <thead>
                   <tr>

@@ -151,23 +151,22 @@ export default function EmployeeDtrModal({
 
                     const dailyDates = getDateRange(group.start_date, group.end_date);
 
-                    // UPDATED headers
                     const headers = [
                       { key: "full_name", label: "Full Name" },
                       { key: "employee_no", label: "Employee #" },
                       { key: "time", label: "Time" },
+                      { key: "total_days", label: "Total Days" }, 
                       { key: "total_hours", label: "Total Hours" },
                       { key: "regular_ot", label: "OT" },
-                      { key: "legal_holiday", label: "Legal Holiday" },
-                      { key: "unworked_reg_holiday", label: "Unworked Reg Holiday" },
-                      { key: "special_holiday", label: "Special Holiday" },
-                      { key: "night_diff", label: "Night Diff" },
-                      { key: "undertime_minutes", label: "Undertime" },
+                      { key: "legal_holiday", label: "LH" },
+                      { key: "unworked_reg_holiday", label: "Unworked RH" },
+                      { key: "special_holiday", label: "SH" },
+                      { key: "night_diff", label: "ND" },
+                      { key: "undertime_minutes", label: "UT" },
                       ...dailyDates.map((d) => ({
                         key: d,
                         label: formatDailyHeader(d),
                       })),
-                      { key: "total_days", label: "Total Days" }, // LAST
                     ];
 
                     return (
@@ -201,6 +200,7 @@ export default function EmployeeDtrModal({
                                     <td>{rec.full_name}</td>
                                     <td>{rec.employee_no}</td>
                                     <td>{rec.time}</td>
+                                    <td>{totalDays}</td>
                                     <td>{rec.total_hours}</td>
                                     <td>{rec.regular_ot}</td>
                                     <td>{rec.legal_holiday}</td>
@@ -212,8 +212,6 @@ export default function EmployeeDtrModal({
                                     {dailyDates.map((d) => (
                                       <td key={d}>{rec.daily_data[d] || ""}</td>
                                     ))}
-
-                                    <td>{totalDays}</td>
                                   </tr>
                                 );
                               })}

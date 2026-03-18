@@ -17,7 +17,7 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
         """Keep only digits, remove prefixes like 'PM', and pad to 5 digits."""
         if not emp_no:
             return None
-        emp_no_str = re.sub(r"\D", "", str(emp_no)).strip()  
+        emp_no_str = re.sub(r"\D", "", str(emp_no)).strip()
         return emp_no_str.zfill(5) if emp_no_str else None
 
     def parse_date_flexible(date_val):
@@ -28,6 +28,7 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
         date_str = str(date_val).strip()
         date_str = re.sub(r"\s+", " ", date_str)
 
+        # Check for "dd mm yyyy"
         space_date = re.match(r"(\d{1,2}) (\d{1,2}) (\d{4})", date_str)
         if space_date:
             day, month, year = space_date.groups()
@@ -60,7 +61,8 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
             return None, None
         text = str(date_str)
 
-        match = re.search(r"(\d{1,2}\s+\d{1,2}\s+\d{4}).*?(\d{1,2}\s+\d{1,2}\s+\d{4})", text)
+        # Detect "dd mm yyyy to dd mm yyyy"
+        match = re.search(r"(\d{1,2}\s*\d{1,2}\s*\d{4}).*?(\d{1,2}\s*\d{1,2}\s*\d{4})", text)
         if match:
             start_raw, end_raw = match.groups()
             end_date = parse_date_flexible(end_raw)
@@ -111,8 +113,9 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
         pdf_found = False
 
         for pdf in pdf_candidates:
-            if not pdf.end_date:
-                debug(f"Skipping PDF without end date: {pdf.file.name}")
+            # Prefer using PDF's start/end dates; skip if missing
+            if not pdf.start_date or not pdf.end_date:
+                debug(f"Skipping PDF without start/end date: {pdf.file.name}")
                 continue
 
             pdf_start, pdf_end = parse_payroll_period(pdf.end_date)
@@ -131,6 +134,7 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
             for emp in pdf_employees:
                 emp_no_norm = normalize_emp_no(emp.get("employee_no"))
                 if not emp_no_norm:
+                    # Try parsing from header text line
                     header_line = emp.get("header_text_line") or ""
                     match = re.search(r"([A-Z]*)(\d{5})", header_line)
                     if match:
@@ -144,8 +148,13 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
                         if holiday not in ["SHP", "LHP"]:
                             total_ot += float(ot or 0)
 
-                    # Add to map only if missing (can also sum if multiple PDFs)
-                    if emp_no_norm not in pdf_map:
+                    # Merge if already exists (sum OT/ND, keep max work hours)
+                    if emp_no_norm in pdf_map:
+                        pdf_map[emp_no_norm]["wrk_days"] = max(pdf_map[emp_no_norm]["wrk_days"], float(emp.get("wrk_days") or 0))
+                        pdf_map[emp_no_norm]["reg_hours"] = max(pdf_map[emp_no_norm]["reg_hours"], float(emp.get("reg_hours") or 0))
+                        pdf_map[emp_no_norm]["ot_hours"] += total_ot
+                        pdf_map[emp_no_norm]["nd_hours"] += float(emp.get("nd_hours") or 0)
+                    else:
                         pdf_map[emp_no_norm] = {
                             "wrk_days": float(emp.get("wrk_days") or 0),
                             "reg_hours": float(emp.get("reg_hours") or 0),
@@ -153,6 +162,7 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
                             "nd_hours": float(emp.get("nd_hours") or 0),
                             "full_name": emp.get("full_name") or "Unknown",
                         }
+
                 except Exception as e:
                     debug(f"Failed numeric parse for PDF emp {emp_no_norm}: {e}")
 
@@ -165,7 +175,7 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
                 entry.save()
             return
 
-        debug(f"PDF employee numbers after normalization: {list(pdf_map.keys())}")
+        debug(f"PDF employee numbers after merging all period PDFs: {list(pdf_map.keys())}")
         entries = DTREntry.objects.filter(dtr_file=dtr_file)
         debug(f"Found {entries.count()} DTR entries")
 

@@ -354,13 +354,3 @@
 
   box-shadow: 0 2px 6px rgba(0,0,0,0.05);
 }
-
-.mismatch-collapse {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.3s ease;
-}
-
-.mismatch-collapse.open {
-  max-height: 300px;
-}

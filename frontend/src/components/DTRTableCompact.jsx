@@ -334,7 +334,7 @@ export default function DTRTableCompact({ fileId }) {
                 </button>
               </div>
 
-              <div className={`mismatch-collapse ${showMismatch ? "open" : ""}`}>
+              {showMismatch && (
                 <div className="mismatch-summary-card">
                   <div className="mismatch-list">
                     {mismatchSummary.map((emp, idx) => (
@@ -352,7 +352,7 @@ export default function DTRTableCompact({ fileId }) {
                     ))}
                   </div>
                 </div>
-              </div>
+              )}
             </div>
           )}
 

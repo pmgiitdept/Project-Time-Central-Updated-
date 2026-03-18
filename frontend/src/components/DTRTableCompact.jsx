@@ -36,6 +36,16 @@ export default function DTRTableCompact({ fileId }) {
     return nameA.localeCompare(nameB);
   });
 
+  const mismatchSummary = sortedContents
+  .filter((row) => row.status_flag === "mismatch")
+  .map((row) => ({
+    employee_no: row.employee_no,
+    full_name: row.full_name,
+    issues: row.mismatch_flag
+      ? row.mismatch_flag.split(",").map((i) => i.trim())
+      : [],
+  }));
+  
   const handleViewFile = async (id = fileId) => {
     const normalizedId = normalizeId(id);
     if (!normalizedId) return;
@@ -311,6 +321,29 @@ export default function DTRTableCompact({ fileId }) {
               className="dtr-compact-table-container"
               ref={tableContainerRef}
             >
+              {mismatchSummary.length > 0 && (
+                <div className="mismatch-summary-card">
+                  <div className="mismatch-header">
+                    ⚠️ Mismatch Summary ({mismatchSummary.length})
+                  </div>
+
+                  <div className="mismatch-list">
+                    {mismatchSummary.map((emp, idx) => (
+                      <div key={idx} className="mismatch-item">
+                        <div className="mismatch-emp">
+                          [{emp.employee_no}] {emp.full_name}
+                        </div>
+
+                        <ul className="mismatch-issues">
+                          {emp.issues.map((issue, i) => (
+                            <li key={i}>→ {issue}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               <table className="dtr-table dtr-compact">
                 <thead>
                   <tr>

@@ -262,3 +262,50 @@
   right: 0;
   z-index: 10;
 }
+
+.mismatch-summary-card {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  float: right;
+  width: 320px;
+  max-height: 300px;
+  overflow-y: auto;
+
+  background: #fff5f5;
+  border: 1px solid #ffcccc;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 10px;
+
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.mismatch-header {
+  font-weight: bold;
+  color: #c0392b;
+  margin-bottom: 8px;
+}
+
+.mismatch-item {
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed #ddd;
+}
+
+.mismatch-emp {
+  font-weight: 600;
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.mismatch-issues {
+  margin: 0;
+  padding-left: 16px;
+  font-size: 12px;
+  color: #555;
+}
+
+.mismatch-issues li {
+  margin-bottom: 2px;
+}

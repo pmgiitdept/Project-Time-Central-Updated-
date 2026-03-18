@@ -57,10 +57,31 @@ def parse_payroll_pdf(file_path_or_obj, log_debug=None):
                 lines = text.splitlines()
                 header_lines = [l for l in lines if "Employee No" in l or "Daily Time Record" in l]
 
-                emp_no, full_name = extract_employee_info_from_header(header_lines)
+                header_text = " ".join(header_lines)
+
+                emp_no = None
+                full_name = None
+
+                match = re.search(
+                    r"Employee\s*No\.?\s*:\s*([A-Z]*\d+).*?Name\s*:\s*(.+)",
+                    header_text,
+                    re.I
+                )
+
+                if match:
+                    emp_no = normalize_emp_no(match.group(1))
+                    full_name = match.group(2).strip()
 
                 if not emp_no:
-                    debug(f"Page {page_num}: No employee number found")
+                    debug(f"Page {page_num}: Trying fallback extraction")
+
+                    fallback_match = re.search(r"\b\d{3,6}\b", header_text)
+                    if fallback_match:
+                        emp_no = normalize_emp_no(fallback_match.group(0))
+                        full_name = full_name or "Unknown"
+
+                if not emp_no:
+                    debug(f"Page {page_num}: Still no employee number, skipping")
                     continue
 
                 tables = page.extract_tables() or []

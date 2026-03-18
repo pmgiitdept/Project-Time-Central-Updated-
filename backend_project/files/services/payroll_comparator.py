@@ -130,7 +130,8 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
             pdf_emp = None
             # Search employee across all matching PDFs
             for pdf in matching_pdfs:
-                pdf_employees = parse_payroll_pdf(pdf.file.path, log_debug=log_debug)
+                parsed = parse_payroll_pdf(pdf.file.path, log_debug=log_debug)
+                pdf_employees = parsed["employees"]
                 for emp in pdf_employees:
                     emp_pdf_no = normalize_emp_no(emp.get("employee_no"))
                     if not emp_pdf_no:

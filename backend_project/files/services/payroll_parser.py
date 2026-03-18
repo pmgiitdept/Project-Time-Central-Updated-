@@ -57,6 +57,9 @@ def parse_payroll_pdf(file_path_or_obj, log_debug=None):
             for page_num, page in enumerate(pdf.pages, 1):
 
                 text = page.extract_text()
+
+                debug(f"FULL PAGE TEXT (Page {page_num}):\n{text}")
+
                 if not text:
                     debug(f"Page {page_num} has no text, skipping")
                     continue

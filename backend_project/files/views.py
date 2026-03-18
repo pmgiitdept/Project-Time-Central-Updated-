@@ -1922,6 +1922,7 @@ def restore_employee_directory(request):
     
 class PDFFileViewSet(viewsets.ModelViewSet):
     serializer_class = PDFFileSerializer
+    pagination_class = None
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):

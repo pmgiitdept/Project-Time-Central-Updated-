@@ -1,4 +1,5 @@
 .dtr-compact-wrapper {
+  position: relative;
   max-height: 700px; 
   padding: 0.25rem 0.5rem;
   background-color: #ffffff;
@@ -264,20 +265,15 @@
 }
 
 .mismatch-summary-card {
-  position: sticky;
   top: 0;
   z-index: 5;
-  float: right;
   width: 320px;
   max-height: 300px;
   overflow-y: auto;
-
   background: #fff5f5;
   border: 1px solid #ffcccc;
   border-radius: 10px;
   padding: 12px;
-  margin-bottom: 10px;
-
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
@@ -313,6 +309,11 @@
 .mismatch-summary-wrapper {
   margin-top: 10px;
   margin-bottom: 10px;
+  position: absolute;
+  right: 10px;
+  width: 320px;
+  z-index: 100;
+  
 }
 
 .mismatch-summary-header {
@@ -341,16 +342,12 @@
   text-decoration: underline;
 }
 
-.mismatch-summary-card {
-  margin-top: 8px;
-  padding: 10px;
+.mismatch-collapse {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
 
-  background: #fff;
-  border: 1px solid #eee;
-  border-radius: 8px;
-
-  max-height: 250px;
-  overflow-y: auto;
-
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+.mismatch-collapse.open {
+  max-height: 300px;
 }

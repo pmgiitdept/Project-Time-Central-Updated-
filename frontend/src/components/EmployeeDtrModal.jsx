@@ -155,11 +155,7 @@ export default function EmployeeDtrModal({
                       { key: "full_name", label: "Full Name" },
                       { key: "employee_no", label: "Employee #" },
                       { key: "time", label: "Time" },
-                      ...dailyDates.map((d) => ({
-                        key: d,
-                        label: formatDailyHeader(d),
-                      })),
-                      { key: "total_days", label: "Total Days" },
+                      
                       { key: "total_hours", label: "Total Hours" },
                       { key: "regular_ot", label: "OT" },
                       { key: "legal_holiday", label: "Legal Holiday" },
@@ -167,6 +163,11 @@ export default function EmployeeDtrModal({
                       { key: "special_holiday", label: "Special Holiday" },
                       { key: "night_diff", label: "Night Diff" },
                       { key: "undertime_minutes", label: "Undertime" },
+                      ...dailyDates.map((d) => ({
+                        key: d,
+                        label: formatDailyHeader(d),
+                      })),
+                      { key: "total_days", label: "Total Days" },
                     ];
 
                     return (

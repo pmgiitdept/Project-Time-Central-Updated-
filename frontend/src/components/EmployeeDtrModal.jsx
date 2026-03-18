@@ -205,8 +205,6 @@ export default function EmployeeDtrModal({
                                       <td key={d}>{rec.daily_data[d] || ""}</td>
                                     ))}
 
-                                    <td>{totalDays}</td>
-
                                     <td>{rec.total_hours}</td>
                                     <td>{rec.regular_ot}</td>
                                     <td>{rec.legal_holiday}</td>
@@ -214,6 +212,9 @@ export default function EmployeeDtrModal({
                                     <td>{rec.special_holiday}</td>
                                     <td>{rec.night_diff}</td>
                                     <td>{rec.undertime_minutes}</td>
+
+                                    <td>{totalDays}</td>
+
                                   </tr>
                                 );
                               })}

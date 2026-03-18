@@ -23,12 +23,9 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
     def parse_date_flexible(date_val):
         if not date_val:
             return None
-
         if hasattr(date_val, "year"):
             return date_val
-
         date_str = str(date_val).strip()
-
         date_str = re.sub(r"\s+", " ", date_str)
 
         space_date = re.match(r"(\d{1,2}) (\d{1,2}) (\d{4})", date_str)
@@ -59,13 +56,10 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
 
     def parse_payroll_period(date_str):
         """Normalize payroll period using end date."""
-
         if not date_str:
             return None, None
-
         text = str(date_str)
 
-        # Detect "dd mm yyyy to dd mm yyyy"
         match = re.search(r"(\d{1,2}\s+\d{1,2}\s+\d{4}).*?(\d{1,2}\s+\d{1,2}\s+\d{4})", text)
         if match:
             start_raw, end_raw = match.groups()
@@ -91,7 +85,6 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
         owner = dtr_file.uploaded_by
         debug(f"Comparing DTR for owner: {owner.username if owner else 'Unknown'}")
 
-        # Use only end date for period normalization
         dtr_start, dtr_end = parse_payroll_period(dtr_file.end_date)
         debug(f"DTR Period (normalized) : {dtr_start} → {dtr_end}")
 
@@ -104,7 +97,19 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
             file__iendswith=".pdf"
         )
 
-        pdf_file = None
+        if not pdf_candidates.exists():
+            debug("No PDF files found for this owner")
+            entries = DTREntry.objects.filter(dtr_file=dtr_file)
+            for entry in entries:
+                entry.status_flag = "mismatch"
+                entry.mismatch_flag = "Payroll PDF with same period not found"
+                entry.save()
+            return
+
+        # --- BUILD COMBINED PDF EMPLOYEE MAP ACROSS ALL PDFs OF SAME PERIOD ---
+        pdf_map = {}
+        pdf_found = False
+
         for pdf in pdf_candidates:
             if not pdf.end_date:
                 debug(f"Skipping PDF without end date: {pdf.file.name}")
@@ -115,13 +120,43 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
                 debug(f"Skipping PDF with unreadable period: {pdf.file.name}")
                 continue
 
-            debug(f"Checking PDF {pdf.file.name} → {pdf_start} → {pdf_end}")
+            if pdf_start != dtr_start or pdf_end != dtr_end:
+                debug(f"PDF {pdf.file.name} period {pdf_start} → {pdf_end} does not match DTR period")
+                continue
 
-            if pdf_start == dtr_start and pdf_end == dtr_end:
-                pdf_file = pdf
-                break
+            pdf_found = True
+            debug(f"Parsing PDF {pdf.file.name} for period {pdf_start} → {pdf_end}")
+            pdf_employees = parse_payroll_pdf(pdf.file.path, log_debug=log_debug)
 
-        if not pdf_file:
+            for emp in pdf_employees:
+                emp_no_norm = normalize_emp_no(emp.get("employee_no"))
+                if not emp_no_norm:
+                    header_line = emp.get("header_text_line") or ""
+                    match = re.search(r"([A-Z]*)(\d{5})", header_line)
+                    if match:
+                        emp_no_norm = normalize_emp_no(match.group(2))
+                if not emp_no_norm:
+                    continue
+
+                try:
+                    total_ot = 0
+                    for ot, holiday in zip(emp.get("ot_per_row", []), emp.get("holiday_codes", [])):
+                        if holiday not in ["SHP", "LHP"]:
+                            total_ot += float(ot or 0)
+
+                    # Add to map only if missing (can also sum if multiple PDFs)
+                    if emp_no_norm not in pdf_map:
+                        pdf_map[emp_no_norm] = {
+                            "wrk_days": float(emp.get("wrk_days") or 0),
+                            "reg_hours": float(emp.get("reg_hours") or 0),
+                            "ot_hours": total_ot,
+                            "nd_hours": float(emp.get("nd_hours") or 0),
+                            "full_name": emp.get("full_name") or "Unknown",
+                        }
+                except Exception as e:
+                    debug(f"Failed numeric parse for PDF emp {emp_no_norm}: {e}")
+
+        if not pdf_found:
             debug("No Payroll PDF found with matching period")
             entries = DTREntry.objects.filter(dtr_file=dtr_file)
             for entry in entries:
@@ -130,42 +165,11 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
                 entry.save()
             return
 
-        debug(f"Using payroll PDF: {pdf_file.file.name}")
-        pdf_employees = parse_payroll_pdf(pdf_file.file.path, log_debug=log_debug)
-        pdf_map = {}
-
-        # Build PDF employee map
-        for emp in pdf_employees:
-            emp_no_norm = normalize_emp_no(emp.get("employee_no"))
-            if not emp_no_norm:
-                # Try to parse from header_text if employee_no missing
-                header_line = emp.get("header_text_line") or ""
-                match = re.search(r"([A-Z]*)(\d{5})", header_line)
-                if match:
-                    emp_no_norm = normalize_emp_no(match.group(2))
-            if not emp_no_norm:
-                continue
-            try:
-                total_ot = 0
-                for ot, holiday in zip(emp.get("ot_per_row", []), emp.get("holiday_codes", [])):
-                    if holiday not in ["SHP", "LHP"]:
-                        total_ot += float(ot or 0)
-
-                pdf_map[emp_no_norm] = {
-                    "wrk_days": float(emp.get("wrk_days") or 0),
-                    "reg_hours": float(emp.get("reg_hours") or 0),
-                    "ot_hours": total_ot,
-                    "nd_hours": float(emp.get("nd_hours") or 0),
-                }
-
-            except Exception as e:
-                debug(f"Failed numeric parse for PDF emp {emp_no_norm}: {e}")
-
         debug(f"PDF employee numbers after normalization: {list(pdf_map.keys())}")
         entries = DTREntry.objects.filter(dtr_file=dtr_file)
         debug(f"Found {entries.count()} DTR entries")
 
-        # Compare each DTR entry
+        # --- COMPARE EACH DTR ENTRY ---
         for entry in entries:
             issues = []
             emp_no_norm = normalize_emp_no(entry.employee_no)
@@ -173,7 +177,7 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
             pdf_emp = pdf_map.get(emp_no_norm)
 
             if not pdf_emp:
-                issues.append("Missing in Payroll PDF")
+                issues.append("Missing in Payroll PDF(s)")
             else:
                 if float(entry.total_days or 0) != pdf_emp["wrk_days"]:
                     issues.append(f"Days mismatch (PDF {pdf_emp['wrk_days']} vs DTR {entry.total_days})")

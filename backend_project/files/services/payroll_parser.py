@@ -24,20 +24,30 @@ def parse_payroll_pdf(file_path_or_obj, log_debug=None):
         except:
             return 0.0
 
-    # 🔥 BULLETPROOF PERIOD EXTRACTOR
+    # 🔥 FIXED & FLEXIBLE PERIOD EXTRACTOR
     def extract_payroll_period(text):
-        text = text.replace("/-", "/")  # fix broken formats
-        text = re.sub(r"\s+", " ", text)  # normalize spaces/line breaks
+        if not text:
+            return None, None
 
-        match = re.search(
-            r"(\d{4}[/-]\d{1,2}[/-]\d{1,2}|\d{1,2}[/-]\d{1,2}[/-]\d{4})\s*(?:to|-)\s*(\d{4}[/-]\d{1,2}[/-]\d{1,2}|\d{1,2}[/-]\d{1,2}[/-]\d{4})",
-            text,
-            re.IGNORECASE
-        )
+        # Normalize weird PDF artifacts
+        text = text.replace("/-", "/")
+        text = text.replace("\xa0", " ")  # non-breaking space
+        text = text.replace("–", "-").replace("—", "-")  # unicode dashes
+        text = re.sub(r"\s+", " ", text)  # collapse whitespace
+
+        pattern = r"""
+            (\d{4}[/-]\d{1,2}[/-]\d{1,2}|\d{1,2}[/-]\d{1,2}[/-]\d{4})
+            \s*
+            (?:to|TO|-)
+            \s*
+            (\d{4}[/-]\d{1,2}[/-]\d{1,2}|\d{1,2}[/-]\d{1,2}[/-]\d{4})
+        """
+
+        match = re.search(pattern, text, re.IGNORECASE | re.VERBOSE)
 
         if match:
-            start = re.sub(r"\s+", "", match.group(1))
-            end = re.sub(r"\s+", "", match.group(2))
+            start = match.group(1).strip()
+            end = match.group(2).strip()
             return start, end
 
         return None, None
@@ -61,10 +71,9 @@ def parse_payroll_pdf(file_path_or_obj, log_debug=None):
 
                 text = page.extract_text()
 
-                # ✅ FULL PAGE DEBUG
+                # 🔍 DEBUG (keep this!)
                 debug(f"FULL PAGE TEXT (Page {page_num}):\n{text}")
 
-                # ✅ WORDS-LEVEL DEBUG (to catch split/fragmented text)
                 words = page.extract_words()
                 debug(f"WORDS (Page {page_num}, first 20): {words[:20]}")
 
@@ -74,8 +83,8 @@ def parse_payroll_pdf(file_path_or_obj, log_debug=None):
 
                 full_text += "\n" + text
 
-                # --- Try extract period early per page ---
-                if not period_start_raw:
+                # 🔥 FIX: check both start & end
+                if not period_start_raw or not period_end_raw:
                     start, end = extract_payroll_period(text)
                     if start and end:
                         period_start_raw = start
@@ -84,7 +93,6 @@ def parse_payroll_pdf(file_path_or_obj, log_debug=None):
 
                 lines = text.splitlines()
 
-                # 🔥 IMPROVED HEADER DETECTION
                 header_lines = [
                     l for l in lines
                     if (
@@ -109,7 +117,6 @@ def parse_payroll_pdf(file_path_or_obj, log_debug=None):
                     emp_no = normalize_emp_no(match.group(1))
                     full_name = match.group(2).strip()
 
-                # 🔥 STRONGER FALLBACK
                 if not emp_no:
                     fallback_match = re.search(r"\b\d{3,6}\b", header_text)
                     if fallback_match:
@@ -180,8 +187,8 @@ def parse_payroll_pdf(file_path_or_obj, log_debug=None):
                         f"Days: {total_days} REG: {reg_hours} OT: {ot_hours} ND: {nd_hours}"
                     )
 
-        # ✅ FINAL FALLBACK (whole document)
-        if not period_start_raw:
+        # 🔥 FINAL FALLBACK (whole document)
+        if not period_start_raw or not period_end_raw:
             start, end = extract_payroll_period(full_text)
             if start and end:
                 period_start_raw = start

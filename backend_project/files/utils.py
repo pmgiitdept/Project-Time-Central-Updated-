@@ -63,7 +63,7 @@ def send_rejection_sms(phone_number: str, file_name: str, use_mock: bool = True)
 
 
 # =========================
-# NEW: DATE NORMALIZATION
+# DATE NORMALIZATION
 # =========================
 def normalize_date(date_str: str):
     if not date_str:
@@ -89,7 +89,7 @@ def normalize_date(date_str: str):
 
 
 # =========================
-# UPDATED PDF EXTRACTION
+# FULL PDF EXTRACTION (ROBUST)
 # =========================
 def extract_pdf_pages(file_path):
     pages = {}
@@ -109,12 +109,13 @@ def extract_pdf_pages(file_path):
                 text = page.extract_text() or ""
                 lines = [line.strip() for line in text.split("\n") if line.strip()]
 
+                # =========================
+                # PASS 1: LINE-BASED MATCH
+                # =========================
                 for line in lines:
 
-                    # =========================
-                    # FLEXIBLE DATE MATCH
-                    # =========================
-                    match = re.search(
+                    # STRICT HEADER MATCH (original format)
+                    strict_match = re.search(
                         r"(daily\s*time\s*record\s*for\s*the\s*period\s*of\s*"
                         r"\d{1,2}[\/\-\s]\d{1,2}[\/\-\s]\d{2,4}\s*to\s*"
                         r"\d{1,2}[\/\-\s]\d{1,2}[\/\-\s]\d{2,4})",
@@ -122,8 +123,8 @@ def extract_pdf_pages(file_path):
                         re.I,
                     )
 
-                    if match:
-                        clean_line = match.group(1).strip()
+                    if strict_match:
+                        clean_line = strict_match.group(1).strip()
 
                         date_match = re.search(
                             r"(\d{1,2}[\/\-\s]\d{1,2}[\/\-\s]\d{2,4})\s*to\s*"
@@ -133,18 +134,30 @@ def extract_pdf_pages(file_path):
                         )
 
                         if date_match:
-                            start_raw = date_match.group(1)
-                            end_raw = date_match.group(2)
-
-                            page_data["start_date"] = normalize_date(start_raw)
-                            page_data["end_date"] = normalize_date(end_raw)
+                            page_data["start_date"] = normalize_date(date_match.group(1))
+                            page_data["end_date"] = normalize_date(date_match.group(2))
 
                         page_data["header_text"].append(clean_line)
                         continue
 
                     # =========================
-                    # HEADER CLEANUP RULES
+                    # FLEXIBLE DATE MATCH (IMPORTANT FIX)
                     # =========================
+                    flexible_match = re.search(
+                        r"(\d{1,2}[\/\-\s]\d{1,2}[\/\-\s]\d{2,4})\s*[-to]+\s*"
+                        r"(\d{1,2}[\/\-\s]\d{1,2}[\/\-\s]\d{2,4})",
+                        line,
+                        re.I,
+                    )
+
+                    if flexible_match:
+                        page_data["start_date"] = normalize_date(flexible_match.group(1))
+                        page_data["end_date"] = normalize_date(flexible_match.group(2))
+
+                        page_data["header_text"].append(line)
+                        continue
+
+                    # header filters
                     if re.search(r"\bemployee\s*no\b", line, re.I):
                         page_data["header_text"].append(line)
                         continue
@@ -154,7 +167,7 @@ def extract_pdf_pages(file_path):
                         continue
 
                 # =========================
-                # TABLE EXTRACTION
+                # PASS 2: TABLE EXTRACTION
                 # =========================
                 tables = page.extract_tables()
                 if tables:
@@ -162,12 +175,31 @@ def extract_pdf_pages(file_path):
                         if t and len(t) > 0:
                             page_data["tables"].append(t)
 
+                # =========================
+                # PASS 3: FULL PAGE FALLBACK (VERY IMPORTANT)
+                # =========================
+                if not page_data["start_date"] or not page_data["end_date"]:
+
+                    all_text = " ".join(lines)
+
+                    broad_match = re.search(
+                        r"(\d{1,2}[\/\-\s]\d{1,2}[\/\-\s]\d{2,4}).{0,30}"
+                        r"(?:to|-).{0,30}"
+                        r"(\d{1,2}[\/\-\s]\d{1,2}[\/\-\s]\d{2,4})",
+                        all_text,
+                        re.I,
+                    )
+
+                    if broad_match:
+                        page_data["start_date"] = normalize_date(broad_match.group(1))
+                        page_data["end_date"] = normalize_date(broad_match.group(2))
+
                 pages[str(i)] = page_data
 
                 print(
                     f"✅ Page {i}: "
                     f"{len(page_data['header_text'])} headers, "
-                    f"{len(page_data['tables'])} tables. "
+                    f"{len(page_data['tables'])} tables "
                     f"(start={page_data['start_date']}, end={page_data['end_date']})"
                 )
 

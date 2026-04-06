@@ -14,7 +14,7 @@ function getDTRCutoffStatus() {
   const month = today.getMonth();
 
   const cutoff15Start = new Date(year, month, 15);
-  const cutoff15End = new Date(year, month, 20);
+  const cutoff15End = new Date(year, month, 25);
 
   const cutoff30Start = new Date(year, month, 30);
   const cutoff30End = new Date(cutoff30Start);
@@ -22,7 +22,7 @@ function getDTRCutoffStatus() {
 
   const prev30Start = new Date(year, month - 1, 30);
   const prev30End = new Date(prev30Start);
-  prev30End.setDate(prev30End.getDate() + 5);
+  prev30End.setDate(prev30End.getDate() + 10);
 
   const canSubmit =
     (today >= cutoff15Start && today <= cutoff15End) ||

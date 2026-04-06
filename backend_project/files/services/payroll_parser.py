@@ -1,6 +1,8 @@
 import pdfplumber
 import re
-from .date_utils import parse_date_flexible 
+from datetime import datetime
+from .date_utils import parse_date_flexible, infer_period_from_table_and_upload
+
 
 def parse_payroll_pdf(file_path_or_obj, log_debug=None):
 
@@ -25,7 +27,9 @@ def parse_payroll_pdf(file_path_or_obj, log_debug=None):
         except:
             return 0.0
 
-    # ✅ UPDATED: now RETURNS parsed dates
+    # =========================
+    # PERIOD EXTRACTION (HEADER)
+    # =========================
     def extract_payroll_period(text):
         if not text:
             return None, None
@@ -57,7 +61,6 @@ def parse_payroll_pdf(file_path_or_obj, log_debug=None):
             start_raw = match.group(1).strip()
             end_raw = match.group(2).strip()
 
-            # 🔥 CRITICAL FIX: normalize immediately
             start = parse_date_flexible(start_raw)
             end = parse_date_flexible(end_raw)
 
@@ -65,15 +68,21 @@ def parse_payroll_pdf(file_path_or_obj, log_debug=None):
 
         return None, None
 
+    # =========================
+    # MAIN STORAGE
+    # =========================
     employees = []
     full_text = ""
+
+    period_start = None
+    period_end = None
+
+    # store table rows for fallback
+    all_table_rows = []
 
     pdf_source = file_path_or_obj
     if not isinstance(file_path_or_obj, str):
         file_path_or_obj.seek(0)
-
-    period_start = None
-    period_end = None
 
     try:
         with pdfplumber.open(pdf_source) as pdf:
@@ -91,13 +100,15 @@ def parse_payroll_pdf(file_path_or_obj, log_debug=None):
 
                 full_text += "\n" + text
 
-                # ✅ FIXED: already parsed dates
+                # =========================
+                # 1. TRY HEADER PERIOD FIRST
+                # =========================
                 if not period_start or not period_end:
                     start, end = extract_payroll_period(text)
                     if start and end:
                         period_start = start
                         period_end = end
-                        debug(f"Detected Payroll Period: {start} → {end}")
+                        debug(f"Detected Payroll Period (HEADER): {start} → {end}")
 
                 lines = text.splitlines()
 
@@ -138,6 +149,9 @@ def parse_payroll_pdf(file_path_or_obj, log_debug=None):
                 tables = page.extract_tables() or []
 
                 for table in tables:
+
+                    # keep full table for fallback logic
+                    all_table_rows.extend(table)
 
                     data_rows = table[2:] if len(table) > 2 else table
 
@@ -189,8 +203,26 @@ def parse_payroll_pdf(file_path_or_obj, log_debug=None):
     except Exception as e:
         debug(f"Failed to parse PDF: {e}")
 
+    # =========================
+    # 2. FALLBACK PERIOD LOGIC
+    # =========================
+    if not period_start or not period_end:
+        debug("Header period missing → using table + upload fallback")
+
+        # try to infer from table
+        period_start, period_end = infer_period_from_table_and_upload(
+            uploaded_at=datetime.now(),
+            table_rows=all_table_rows
+        )
+
+        if period_start and period_end:
+            debug(f"Detected Payroll Period (TABLE FALLBACK): {period_start} → {period_end}")
+
+    # =========================
+    # RETURN FINAL STRUCTURE
+    # =========================
     return {
         "employees": employees,
-        "period_start": period_start,  # ✅ NOW CLEAN DATE
+        "period_start": period_start,
         "period_end": period_end,
     }

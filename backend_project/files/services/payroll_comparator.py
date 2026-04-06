@@ -1,9 +1,7 @@
 from .payroll_parser import parse_payroll_pdf
-from .date_utils import parse_date_flexible
 from files.models import PDFFile, DTREntry
 import re
 import traceback
-from datetime import timedelta
 
 
 def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
@@ -22,52 +20,58 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
         emp_no_str = re.sub(r"\D", "", str(emp_no)).strip()
         return emp_no_str.zfill(5) if emp_no_str else None
 
-    # ✅ CLEAN: now uses centralized parser
-    def parse_payroll_period(date_val):
-        if not date_val:
-            return None, None
-
-        end_date = parse_date_flexible(date_val)
-
-        if not end_date:
-            return None, None
-
-        if end_date.day <= 15:
-            period_start = end_date.replace(day=1)
-            period_end = end_date.replace(day=15)
-        else:
-            period_start = end_date.replace(day=16)
-            next_month = end_date.replace(day=28) + timedelta(days=4)
-            last_day = (next_month - timedelta(days=next_month.day)).day
-            period_end = end_date.replace(day=last_day)
-
-        return period_start, period_end
-
     try:
         owner = dtr_file.uploaded_by
         debug(f"Comparing DTR for owner: {owner.username if owner else 'Unknown'}")
 
-        dtr_start, dtr_end = parse_payroll_period(dtr_file.end_date)
-        debug(f"DTR Period (normalized): {dtr_start} → {dtr_end}")
+        # =========================
+        # 1. PARSE DTR (SOURCE OF TRUTH)
+        # =========================
+        parsed_dtr = parse_payroll_pdf(dtr_file.file.path, log_debug=log_debug)
+
+        dtr_start = parsed_dtr.get("period_start")
+        dtr_end = parsed_dtr.get("period_end")
+
+        debug(f"DTR Period (parsed): {dtr_start} → {dtr_end}")
 
         if not dtr_start or not dtr_end:
             debug("DTR file does not have a valid period")
             return
 
-        # --- GET MATCHING PDFs ---
+        # =========================
+        # 2. GET PDF CANDIDATES
+        # =========================
         pdf_candidates = PDFFile.objects.filter(
             uploaded_by=owner,
             file__iendswith=".pdf"
         ).exclude(start_date__isnull=True).exclude(end_date__isnull=True)
 
+        parsed_pdf_cache = {}
         matching_pdfs = []
 
+        # =========================
+        # 3. PARSE ALL PDFs FIRST (CACHE)
+        # =========================
         for pdf in pdf_candidates:
-            pdf_start, pdf_end = parse_payroll_period(pdf.end_date)
+            debug(f"Parsing Payroll PDF: {pdf.file.name}")
 
+            parsed_pdf_cache[pdf.id] = parse_payroll_pdf(
+                pdf.file.path,
+                log_debug=log_debug
+            )
+
+            parsed_pdf = parsed_pdf_cache[pdf.id]
+
+            pdf_start = parsed_pdf.get("period_start")
+            pdf_end = parsed_pdf.get("period_end")
+
+            # Match against DTR period
             if pdf_start == dtr_start and pdf_end == dtr_end:
                 matching_pdfs.append(pdf)
 
+        # =========================
+        # 4. HANDLE NO MATCH
+        # =========================
         if not matching_pdfs:
             debug("No Payroll PDF found with matching period")
 
@@ -81,17 +85,9 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
 
         debug(f"Found {len(matching_pdfs)} matching Payroll PDFs")
 
-        # ✅ PERFORMANCE FIX: parse PDFs ONCE
-        parsed_pdf_cache = {}
-
-        for pdf in matching_pdfs:
-            debug(f"Parsing PDF once: {pdf.file.name}")
-            parsed_pdf_cache[pdf.id] = parse_payroll_pdf(
-                pdf.file.path,
-                log_debug=log_debug
-            )
-
-        # --- COMPARE DTR ENTRIES ---
+        # =========================
+        # 5. COMPARE ENTRIES
+        # =========================
         entries = DTREntry.objects.filter(dtr_file=dtr_file)
         debug(f"Found {entries.count()} DTR entries")
 
@@ -103,14 +99,17 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
 
             pdf_emp = None
 
-            # 🔍 SEARCH employee across parsed PDFs
+            # =========================
+            # 6. SEARCH EMPLOYEE IN PDFs
+            # =========================
             for pdf in matching_pdfs:
                 parsed = parsed_pdf_cache[pdf.id]
-                pdf_employees = parsed["employees"]
+                pdf_employees = parsed.get("employees", [])
 
                 for emp in pdf_employees:
                     emp_pdf_no = normalize_emp_no(emp.get("employee_no"))
 
+                    # fallback extraction from header
                     if not emp_pdf_no:
                         header_line = emp.get("header_text_line") or ""
                         match = re.search(r"([A-Z]*)(\d{5})", header_line)
@@ -118,6 +117,7 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
                             emp_pdf_no = normalize_emp_no(match.group(2))
 
                     if emp_pdf_no == emp_no_norm:
+
                         total_ot = sum(
                             float(ot or 0)
                             for ot, holiday in zip(
@@ -139,22 +139,35 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
                 if pdf_emp:
                     break
 
-            # --- COMPARISON ---
+            # =========================
+            # 7. COMPARISON LOGIC
+            # =========================
             if not pdf_emp:
                 issues.append("Missing in Payroll PDF")
             else:
                 if float(entry.total_days or 0) != pdf_emp["wrk_days"]:
-                    issues.append(f"Days mismatch (PDF {pdf_emp['wrk_days']} vs DTR {entry.total_days})")
+                    issues.append(
+                        f"Days mismatch (PDF {pdf_emp['wrk_days']} vs DTR {entry.total_days})"
+                    )
 
                 if float(entry.total_hours or 0) != pdf_emp["reg_hours"]:
-                    issues.append(f"Hours mismatch (PDF {pdf_emp['reg_hours']} vs DTR {entry.total_hours})")
+                    issues.append(
+                        f"Hours mismatch (PDF {pdf_emp['reg_hours']} vs DTR {entry.total_hours})"
+                    )
 
                 if float(entry.regular_ot or 0) != pdf_emp["ot_hours"]:
-                    issues.append(f"OT mismatch (PDF {pdf_emp['ot_hours']} vs DTR {entry.regular_ot})")
+                    issues.append(
+                        f"OT mismatch (PDF {pdf_emp['ot_hours']} vs DTR {entry.regular_ot})"
+                    )
 
                 if float(entry.night_diff or 0) != pdf_emp["nd_hours"]:
-                    issues.append(f"Night diff mismatch (PDF {pdf_emp['nd_hours']} vs DTR {entry.night_diff})")
+                    issues.append(
+                        f"Night diff mismatch (PDF {pdf_emp['nd_hours']} vs DTR {entry.night_diff})"
+                    )
 
+            # =========================
+            # 8. SAVE RESULTS
+            # =========================
             entry.mismatch_flag = ", ".join(issues) if issues else ""
             entry.status_flag = "mismatch" if issues else "match"
             entry.save()

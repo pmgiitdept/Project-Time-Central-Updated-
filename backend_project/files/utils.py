@@ -11,10 +11,6 @@ logger = logging.getLogger(__name__)
 
 
 def get_client_ip(request) -> Optional[str]:
-    """
-    Safely extract the client's IP address from the request.
-    Handles proxies via HTTP_X_FORWARDED_FOR.
-    """
     x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
     if x_forwarded_for:
         return x_forwarded_for.split(",")[0].strip()
@@ -26,6 +22,7 @@ def log_action(user, action: str, status: str = "success", ip: Optional[str] = N
         print(f"Logging action for {user.username}")
     else:
         print("Logging action for anonymous user")
+
     AuditLog.objects.create(
         user=user if getattr(user, "is_authenticated", False) else None,
         action=action,
@@ -35,17 +32,6 @@ def log_action(user, action: str, status: str = "success", ip: Optional[str] = N
 
 
 def send_rejection_sms(phone_number: str, file_name: str, use_mock: bool = True) -> bool:
-    """
-    Send SMS notification when a file is rejected.
-    
-    Args:
-        phone_number: Recipient phone number
-        file_name: Name of the rejected file
-        use_mock: If True, logs the message instead of sending via Twilio
-    
-    Returns:
-        True if message is sent (or logged in mock mode), False otherwise
-    """
     message = f"Your uploaded file '{file_name}' has been rejected. Please check your account for details."
 
     if use_mock:
@@ -76,6 +62,35 @@ def send_rejection_sms(phone_number: str, file_name: str, use_mock: bool = True)
         return False
 
 
+# =========================
+# NEW: DATE NORMALIZATION
+# =========================
+def normalize_date(date_str: str):
+    if not date_str:
+        return None
+
+    date_str = date_str.strip().replace(" ", "")
+
+    formats = [
+        "%m/%d/%Y",
+        "%d/%m/%Y",
+        "%m-%d-%Y",
+        "%d-%m-%Y",
+        "%Y-%m-%d",
+    ]
+
+    for fmt in formats:
+        try:
+            return datetime.strptime(date_str, fmt).strftime("%Y-%m-%d")
+        except ValueError:
+            continue
+
+    return None
+
+
+# =========================
+# UPDATED PDF EXTRACTION
+# =========================
 def extract_pdf_pages(file_path):
     pages = {}
 
@@ -84,42 +99,63 @@ def extract_pdf_pages(file_path):
             print(f"📘 Extracting DTR data from {len(pdf.pages)} pages...")
 
             for i, page in enumerate(pdf.pages, start=1):
-                page_data = {"header_text": [], "tables": []}
+                page_data = {
+                    "header_text": [],
+                    "tables": [],
+                    "start_date": None,
+                    "end_date": None,
+                }
 
                 text = page.extract_text() or ""
                 lines = [line.strip() for line in text.split("\n") if line.strip()]
 
                 for line in lines:
+
+                    # =========================
+                    # FLEXIBLE DATE MATCH
+                    # =========================
                     match = re.search(
-                        r"(daily\s*time\s*record\s*for\s*the\s*period\s*of\s*\d{1,2}\s*/\s*\d{1,2}\s*/\s*\d{4}\s*to\s*\d{1,2}\s*/\s*\d{1,2}\s*/\s*\d{4})",
+                        r"(daily\s*time\s*record\s*for\s*the\s*period\s*of\s*"
+                        r"\d{1,2}[\/\-\s]\d{1,2}[\/\-\s]\d{2,4}\s*to\s*"
+                        r"\d{1,2}[\/\-\s]\d{1,2}[\/\-\s]\d{2,4})",
                         line,
                         re.I,
                     )
+
                     if match:
                         clean_line = match.group(1).strip()
 
                         date_match = re.search(
-                            r"(\d{1,2}\s*/\s*\d{1,2}\s*/\s*\d{4})\s*to\s*(\d{1,2}\s*/\s*\d{1,2}\s*/\s*\d{4})",
+                            r"(\d{1,2}[\/\-\s]\d{1,2}[\/\-\s]\d{2,4})\s*to\s*"
+                            r"(\d{1,2}[\/\-\s]\d{1,2}[\/\-\s]\d{2,4})",
                             clean_line,
+                            re.I,
                         )
-                        if date_match:
-                            start_date_str = date_match.group(1).replace(" ", "")
-                            end_date_str = date_match.group(2).replace(" ", "")
 
-                            page_data["start_date"] = start_date_str
-                            page_data["end_date"] = end_date_str
+                        if date_match:
+                            start_raw = date_match.group(1)
+                            end_raw = date_match.group(2)
+
+                            page_data["start_date"] = normalize_date(start_raw)
+                            page_data["end_date"] = normalize_date(end_raw)
 
                         page_data["header_text"].append(clean_line)
                         continue
 
+                    # =========================
+                    # HEADER CLEANUP RULES
+                    # =========================
                     if re.search(r"\bemployee\s*no\b", line, re.I):
-                        page_data["header_text"].append(line.strip())
+                        page_data["header_text"].append(line)
                         continue
 
                     if re.search(r"\bname\s*[:\-]", line, re.I):
-                        page_data["header_text"].append(line.strip())
+                        page_data["header_text"].append(line)
                         continue
 
+                # =========================
+                # TABLE EXTRACTION
+                # =========================
                 tables = page.extract_tables()
                 if tables:
                     for t in tables:
@@ -127,7 +163,13 @@ def extract_pdf_pages(file_path):
                             page_data["tables"].append(t)
 
                 pages[str(i)] = page_data
-                print(f"✅ Page {i}: {len(page_data['header_text'])} headers, {len(page_data['tables'])} tables.")
+
+                print(
+                    f"✅ Page {i}: "
+                    f"{len(page_data['header_text'])} headers, "
+                    f"{len(page_data['tables'])} tables. "
+                    f"(start={page_data['start_date']}, end={page_data['end_date']})"
+                )
 
     except Exception as e:
         print("❌ PDF extraction failed:", e)

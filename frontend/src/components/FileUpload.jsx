@@ -143,8 +143,6 @@ export default function FileUpload({ refreshFiles, refreshPDFs }) {
           📄 Upload PDF
         </button>
       </div>
-
-      {file && <p className="selected-file">📂 {file.name}</p>}
     </motion.div>
   );
 }

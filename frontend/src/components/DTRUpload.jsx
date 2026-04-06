@@ -113,8 +113,6 @@ export default function DTRUpload({ refreshDTR }) {
           </button>
         </form>
 
-        {file && <p className="selected-file">📊 {file.name}</p>}
-
         {/* <button
           type="button"
           className="upload-button1 secondary"

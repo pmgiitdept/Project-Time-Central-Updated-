@@ -4,7 +4,7 @@ from datetime import datetime
 from .date_utils import parse_date_flexible, infer_period_from_table_and_upload
 
 
-def parse_payroll_pdf(file_path_or_obj, log_debug=None):
+def parse_payroll_pdf(file_path_or_obj, log_debug=None, uploaded_at=None):
 
     def debug(msg):
         if log_debug:
@@ -211,7 +211,7 @@ def parse_payroll_pdf(file_path_or_obj, log_debug=None):
 
         # try to infer from table
         period_start, period_end = infer_period_from_table_and_upload(
-            uploaded_at=datetime.now(),
+           uploaded_at=uploaded_at or datetime.now(),
             table_rows=all_table_rows
         )
 

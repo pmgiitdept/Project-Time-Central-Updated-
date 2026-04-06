@@ -14,11 +14,19 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
             print(f"{prefix} {msg}")
 
     def normalize_emp_no(emp_no):
-        """Keep only digits and pad to 5 digits."""
         if not emp_no:
             return None
         emp_no_str = re.sub(r"\D", "", str(emp_no)).strip()
         return emp_no_str.zfill(5) if emp_no_str else None
+
+    def normalize_date(date_obj):
+        """Ensure consistent comparison between parsed dates"""
+        if not date_obj:
+            return None
+        try:
+            return date_obj.strftime("%Y-%m-%d")
+        except:
+            return str(date_obj)
 
     try:
         owner = dtr_file.uploaded_by
@@ -27,7 +35,11 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
         # =========================
         # 1. PARSE DTR (SOURCE OF TRUTH)
         # =========================
-        parsed_dtr = parse_payroll_pdf(dtr_file.file.path, log_debug=log_debug)
+        parsed_dtr = parse_payroll_pdf(
+            dtr_file.file.path,
+            log_debug=log_debug,
+            uploaded_at=dtr_file.uploaded_at
+        )
 
         dtr_start = parsed_dtr.get("period_start")
         dtr_end = parsed_dtr.get("period_end")
@@ -37,6 +49,9 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
         if not dtr_start or not dtr_end:
             debug("DTR file does not have a valid period")
             return
+
+        dtr_start_norm = normalize_date(dtr_start)
+        dtr_end_norm = normalize_date(dtr_end)
 
         # =========================
         # 2. GET PDF CANDIDATES
@@ -57,7 +72,8 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
 
             parsed_pdf_cache[pdf.id] = parse_payroll_pdf(
                 pdf.file.path,
-                log_debug=log_debug
+                log_debug=log_debug,
+                uploaded_at=pdf.uploaded_at  # 🔥 IMPORTANT FIX
             )
 
             parsed_pdf = parsed_pdf_cache[pdf.id]
@@ -65,8 +81,13 @@ def compare_dtr_with_payroll_pdf(dtr_file, log_debug=None):
             pdf_start = parsed_pdf.get("period_start")
             pdf_end = parsed_pdf.get("period_end")
 
-            # Match against DTR period
-            if pdf_start == dtr_start and pdf_end == dtr_end:
+            pdf_start_norm = normalize_date(pdf_start)
+            pdf_end_norm = normalize_date(pdf_end)
+
+            # =========================
+            # MATCHING LOGIC (FIXED)
+            # =========================
+            if pdf_start_norm == dtr_start_norm and pdf_end_norm == dtr_end_norm:
                 matching_pdfs.append(pdf)
 
         # =========================

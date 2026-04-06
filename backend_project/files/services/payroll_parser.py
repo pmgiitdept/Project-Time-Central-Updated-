@@ -1,5 +1,6 @@
 import pdfplumber
 import re
+from services.date_utils import parse_date_flexible  # ✅ NEW
 
 def parse_payroll_pdf(file_path_or_obj, log_debug=None):
 
@@ -24,16 +25,15 @@ def parse_payroll_pdf(file_path_or_obj, log_debug=None):
         except:
             return 0.0
 
-    # 🔥 FIXED & FLEXIBLE PERIOD EXTRACTOR
+    # ✅ UPDATED: now RETURNS parsed dates
     def extract_payroll_period(text):
         if not text:
             return None, None
 
-        # Normalize weird PDF artifacts
         text = text.replace("/-", "/")
-        text = text.replace("\xa0", " ")  # non-breaking space
-        text = text.replace("–", "-").replace("—", "-")  # unicode dashes
-        text = re.sub(r"\s+", " ", text)  # collapse whitespace
+        text = text.replace("\xa0", " ")
+        text = text.replace("–", "-").replace("—", "-")
+        text = re.sub(r"\s+", " ", text)
 
         pattern = r"""
             (
@@ -54,8 +54,13 @@ def parse_payroll_pdf(file_path_or_obj, log_debug=None):
         match = re.search(pattern, text, re.IGNORECASE | re.VERBOSE)
 
         if match:
-            start = match.group(1).strip()
-            end = match.group(2).strip()
+            start_raw = match.group(1).strip()
+            end_raw = match.group(2).strip()
+
+            # 🔥 CRITICAL FIX: normalize immediately
+            start = parse_date_flexible(start_raw)
+            end = parse_date_flexible(end_raw)
+
             return start, end
 
         return None, None
@@ -67,8 +72,8 @@ def parse_payroll_pdf(file_path_or_obj, log_debug=None):
     if not isinstance(file_path_or_obj, str):
         file_path_or_obj.seek(0)
 
-    period_start_raw = None
-    period_end_raw = None
+    period_start = None
+    period_end = None
 
     try:
         with pdfplumber.open(pdf_source) as pdf:
@@ -79,25 +84,20 @@ def parse_payroll_pdf(file_path_or_obj, log_debug=None):
 
                 text = page.extract_text()
 
-                # 🔍 DEBUG (keep this!)
                 debug(f"FULL PAGE TEXT (Page {page_num}):\n{text}")
 
-                words = page.extract_words()
-                debug(f"WORDS (Page {page_num}, first 20): {words[:20]}")
-
                 if not text:
-                    debug(f"Page {page_num} has no text, skipping")
                     continue
 
                 full_text += "\n" + text
 
-                # 🔥 FIX: check both start & end
-                if not period_start_raw or not period_end_raw:
+                # ✅ FIXED: already parsed dates
+                if not period_start or not period_end:
                     start, end = extract_payroll_period(text)
                     if start and end:
-                        period_start_raw = start
-                        period_end_raw = end
-                        debug(f"Detected Payroll Period (page {page_num}): {start} → {end}")
+                        period_start = start
+                        period_end = end
+                        debug(f"Detected Payroll Period: {start} → {end}")
 
                 lines = text.splitlines()
 
@@ -107,7 +107,7 @@ def parse_payroll_pdf(file_path_or_obj, log_debug=None):
                         "Employee No" in l
                         or "Daily Time Record" in l
                         or re.search(r"\d{4}[/-]\d{1,2}[/-]\d{1,2}", l)
-                        or re.search(r"\d{1,2}\s+\d{1,2}\s+\d{4}", l)  # 🔥 ADD THIS
+                        or re.search(r"\d{1,2}\s+\d{1,2}\s+\d{4}", l)
                     )
                 ]
 
@@ -133,14 +133,9 @@ def parse_payroll_pdf(file_path_or_obj, log_debug=None):
                         full_name = full_name or "Unknown"
 
                 if not emp_no:
-                    debug(f"Page {page_num}: No employee number found, skipping")
                     continue
 
                 tables = page.extract_tables() or []
-
-                if not tables:
-                    debug(f"Page {page_num}: No tables found")
-                    continue
 
                 for table in tables:
 
@@ -191,26 +186,11 @@ def parse_payroll_pdf(file_path_or_obj, log_debug=None):
                         "ot_per_row": ot_per_row,
                     })
 
-                    debug(
-                        f"Page {page_num}: Parsed {emp_no} - {full_name} | "
-                        f"Days: {total_days} REG: {reg_hours} OT: {ot_hours} ND: {nd_hours}"
-                    )
-
-        # 🔥 FINAL FALLBACK (whole document)
-        if not period_start_raw or not period_end_raw:
-            start, end = extract_payroll_period(full_text)
-            if start and end:
-                period_start_raw = start
-                period_end_raw = end
-                debug(f"Detected Payroll Period (fallback full text): {start} → {end}")
-
     except Exception as e:
-        debug(f"Failed to open/parse PDF: {e}")
-
-    debug(f"Total employees parsed: {len(employees)}")
+        debug(f"Failed to parse PDF: {e}")
 
     return {
         "employees": employees,
-        "period_start_raw": period_start_raw,
-        "period_end_raw": period_end_raw,
+        "period_start": period_start,  # ✅ NOW CLEAN DATE
+        "period_end": period_end,
     }

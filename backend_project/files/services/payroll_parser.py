@@ -36,11 +36,19 @@ def parse_payroll_pdf(file_path_or_obj, log_debug=None):
         text = re.sub(r"\s+", " ", text)  # collapse whitespace
 
         pattern = r"""
-            (\d{4}[/-]\d{1,2}[/-]\d{1,2}|\d{1,2}[/-]\d{1,2}[/-]\d{4})
+            (
+                \d{4}[/-]\d{1,2}[/-]\d{1,2} |
+                \d{1,2}[/-]\d{1,2}[/-]\d{4} |
+                \d{1,2}\s+\d{1,2}\s+\d{4}
+            )
             \s*
             (?:to|TO|-)
             \s*
-            (\d{4}[/-]\d{1,2}[/-]\d{1,2}|\d{1,2}[/-]\d{1,2}[/-]\d{4})
+            (
+                \d{4}[/-]\d{1,2}[/-]\d{1,2} |
+                \d{1,2}[/-]\d{1,2}[/-]\d{4} |
+                \d{1,2}\s+\d{1,2}\s+\d{4}
+            )
         """
 
         match = re.search(pattern, text, re.IGNORECASE | re.VERBOSE)
@@ -99,6 +107,7 @@ def parse_payroll_pdf(file_path_or_obj, log_debug=None):
                         "Employee No" in l
                         or "Daily Time Record" in l
                         or re.search(r"\d{4}[/-]\d{1,2}[/-]\d{1,2}", l)
+                        or re.search(r"\d{1,2}\s+\d{1,2}\s+\d{4}", l)  # 🔥 ADD THIS
                     )
                 ]
 

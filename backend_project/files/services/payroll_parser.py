@@ -1,6 +1,6 @@
 import pdfplumber
 import re
-from date_utils import parse_date_flexible 
+from .date_utils import parse_date_flexible 
 
 def parse_payroll_pdf(file_path_or_obj, log_debug=None):
 
